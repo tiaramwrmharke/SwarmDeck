@@ -27,3 +27,5 @@ export function readGitStatus(dir: string): GitStatus | null {
     if (result.error || result.status !== 0 || typeof result.stdout !== 'string') return null;
     return parseGitStatusV2(result.stdout);
   } catch {
+    return null;
+  }
