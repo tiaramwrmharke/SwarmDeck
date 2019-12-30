@@ -1,0 +1,21 @@
+import { KEYCHAIN_SERVICE, LEGACY_KEYCHAIN_SERVICES } from './ref.js';
+
+interface KeyringEntryLike {
+  getPassword(): string | null;
+  setPassword(password: string): void;
+  deletePassword(): boolean;
+}
+
+interface KeyringModule {
+  Entry: new (service: string, account: string) => KeyringEntryLike;
+}
+
+let keyringModule: KeyringModule | null | undefined;
+
+async function loadKeyring(): Promise<KeyringModule | null> {
+  if (keyringModule !== undefined) return keyringModule;
+  try {
+    const importer = new Function('m', 'return import(m)') as (m: string) => Promise<unknown>;
+    const mod = await importer('@napi-rs/keyring');
+    keyringModule = (mod as unknown as KeyringModule);
+  } catch {
