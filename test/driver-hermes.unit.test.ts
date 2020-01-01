@@ -66,3 +66,6 @@ while True:
         model_id = params.get("modelId")
         write({"jsonrpc":"2.0","id":rid,"result":{}})
     elif method == "session/set_mode":
+        mode_id = params.get("modeId")
+        write({"jsonrpc":"2.0","id":rid,"result":{}})
+    elif method == "session/prompt":
