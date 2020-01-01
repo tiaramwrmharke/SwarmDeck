@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+
+import { ensureGitignore, formatThinkingForDisplay, DEFAULT_RUN_TIMEOUT_S } from '../bot/bot.js';
+import { initializeProjectSkills, listAgents, listModels, listSkills, getUsage, doStream } from '../agent/index.js';
+import type { Agent, StreamOpts } from '../agent/index.js';
+import { querySessions, querySessionTail } from '../bot/session-hub.js';
+import { getDriver } from '../agent/driver.js';
+import { loadUserConfig, resolveUserWorkdir } from '../core/config/user-config.js';
+import { VERSION } from '../core/version.js';
+
+function parseArgs(argv: string[]) {
+  const args: Record<string, any> = {
+    command: null, model: null, workdir: null, prompt: null, timeout: DEFAULT_RUN_TIMEOUT_S, help: false,
+    session: null, n: 4,
+  };
+  const positional: string[] = [];
+  const it = argv[Symbol.iterator]();
+  for (const arg of it) {
+    switch (arg) {
+      case '-m': case '--model': args.model = it.next().value; break;
+      case '-w': case '--workdir': args.workdir = it.next().value; break;
+      case '-p': case '--prompt': args.prompt = it.next().value; break;
+      case '-s': case '--session': args.session = it.next().value; break;
+      case '-n': args.n = parseInt(it.next().value ?? '', 10) || 4; break;
+      case '--timeout': args.timeout = parseInt(it.next().value ?? '', 10) || DEFAULT_RUN_TIMEOUT_S; break;
+      case '-h': case '--help': args.help = true; break;
+      default:
+        if (arg.startsWith('-')) { process.stderr.write(`Unknown option: ${arg}\n`); process.exit(1); }
+        else positional.push(arg);
+    }
+  }
+  args.command = positional[0] ?? null;
+  if (!args.prompt && positional.length > 1) args.prompt = positional.slice(1).join(' ');
+  return args;
+}
+
+const HELP = `swarmdeck run — standalone commands
+
+Usage:
+  npm run command -- <command> [options]
+
+Commands:
+  skills          List project-defined custom skills (.swarmdeck/skills)
+  claude-run      Run a single Claude prompt and print the result
+  codex-run       Run a single Codex prompt and print the result
+  claude-status   Show Claude agent info and API usage
+  codex-status    Show Codex agent info and API usage
+  gemini-status   Show Gemini agent info and API usage
+  claude-models   List available Claude models
