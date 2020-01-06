@@ -26,3 +26,6 @@ export class FeishuSurface implements Surface {
   readonly id = 'feishu';
   readonly capabilities = { editMessages: true, images: false, buttons: true };
 
+  private io?: LoomIO;
+  private unsub?: () => void;
+  private readonly bySession = new Map<string, ChatBinding>();
