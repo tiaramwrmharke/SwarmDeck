@@ -48,3 +48,6 @@ function resolveSkillFile(root: string, skillName: string): string {
 function parseSkillMeta(content: string): { label: string | null; description: string | null; mcpRequires?: string[] } {
   let label: string | null = null;
   let description: string | null = null;
+  let mcpRequires: string[] | undefined;
+  const fm = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (fm) {
