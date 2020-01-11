@@ -1,0 +1,26 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { ClaudeDriver } from '../src/drivers/claude.js';
+import type { AgentTurnInput, DriverContext, DriverEvent } from '../src/contracts/driver.js';
+
+// A fake `claude` CLI whose behaviour after the first user message is chosen by FAKE_MODE:
+//   healthy — stream a real reply + result (the model is alive)
+//   silent  — emit only `system/init`, then never answer (a severed model connection: the
+//             INITIAL model wait that never resolves — the exact "spinner that never ends")
+//   apierr  — emit `system/init` + a synthetic API-error assistant message, then go silent
+//             (the model is unreachable and the CLI is "retrying" but never recovers)
+// In every non-healthy mode it keeps stdin OPEN and stays alive, so the ONLY thing that can
+// end the turn is the driver's model-stall watchdog — which is what we are testing.
+const FAKE_CLAUDE = `#!/usr/bin/env node
+const SID = 'sess-stall-1';
+const MODE = process.env.FAKE_MODE || 'healthy';
+let buf = '';
+const out = (o) => process.stdout.write(JSON.stringify(o) + '\\n');
+process.stdin.on('data', (d) => {
+  buf += d; const lines = buf.split('\\n'); buf = lines.pop() || '';
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    let m; try { m = JSON.parse(line); } catch { continue; }
+    if (m.type !== 'user') continue;
