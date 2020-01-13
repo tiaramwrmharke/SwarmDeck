@@ -1,0 +1,5 @@
+// Workspace subsystem: the unified top-level directory + session/skill/mcp management that
+// a consuming app gets "for free" off createLoom() (exposed as loom.paths/sessions/skills/mcp).
+// (Native-session discovery lives with the drivers — drivers/native.ts — because knowing each
+// agent CLI's on-disk transcript format is driver-axis knowledge.)
+
