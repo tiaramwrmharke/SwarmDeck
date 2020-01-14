@@ -62,3 +62,4 @@ function getLinuxBatteryData(): HostBatteryData | null {
     const batteries = fs.readdirSync(powerDir).filter(name => /^BAT/i.test(name));
     for (const battery of batteries) {
       const batteryDir = path.join(powerDir, battery);
+      const capacityPath = path.join(batteryDir, 'capacity');
