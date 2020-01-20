@@ -47,3 +47,5 @@ Commands:
   codex-status    Show Codex agent info and API usage
   gemini-status   Show Gemini agent info and API usage
   claude-models   List available Claude models
+  codex-models    List available Codex models
+  claude-sessions List recent Claude sessions for the workdir
