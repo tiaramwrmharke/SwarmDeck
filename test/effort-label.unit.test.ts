@@ -20,3 +20,6 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
   // The dashboard composer/turn-header and the IM picker/agent-status all render the same
   // string, so a level must read the same everywhere. Guards against reintroducing "Very High".
   for (const agent of ['claude', 'codex', 'hermes'] as const) {
+    it(`${agent}: every label equals its id`, () => {
+      const levels = effortOptionsFor(agent);
+      expect(levels.length).toBeGreaterThan(0);
