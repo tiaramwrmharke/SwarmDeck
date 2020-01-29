@@ -1,0 +1,26 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('dingtalk-stream', () => {
+  const TOPIC_ROBOT = '/v1.0/im/bot/messages/get';
+  class FakeDWClient {
+    config: any;
+    registered: any = null;
+    constructor(opts: any) { this.config = opts; }
+    registerCallbackListener = vi.fn((_topic: string, cb: any) => { this.registered = cb; return this; });
+    getAccessToken = vi.fn(async () => 'fake-token');
+    connect = vi.fn(async () => undefined);
+    disconnect = vi.fn(() => undefined);
+    socketCallBackResponse = vi.fn();
+  }
+  return {
+    DWClient: FakeDWClient,
+    TOPIC_ROBOT,
+    EventAck: { SUCCESS: 'SUCCESS', LATER: 'LATER' },
+  };
+});
+
+import { DingtalkChannel } from '../src/channels/dingtalk/channel.ts';
+
+const fetchCalls: { url: string; init?: any }[] = [];
+
+beforeEach(() => {
