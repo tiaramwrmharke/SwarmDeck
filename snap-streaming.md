@@ -1,0 +1,274 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "swarmdeck" [ref=e36]
+        - generic [ref=e8]: v0.4.29
+      - navigation [ref=e9]:
+        - generic [ref=e10]:
+          - link "工作台" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "IM 接入" [ref=e12] [cursor=pointer]:
+            - /url: /im
+          - link "智能体配置" [ref=e13] [cursor=pointer]:
+            - /url: /agents
+          - link "扩展插件" [ref=e14] [cursor=pointer]:
+            - /url: /extensions
+          - link "系统设置" [ref=e15] [cursor=pointer]:
+            - /url: /system
+      - generic [ref=e16]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - img [ref=e39]
+            - img "31%" [ref=e811]
+          - generic [ref=e43]:
+            - img [ref=e44]
+            - img "11%" [ref=e45]
+        - button "重启进程" [ref=e17] [cursor=pointer]:
+          - img [ref=e18]
+          - generic [ref=e21]: 重启进程
+        - button "Light mode" [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+        - button "EN" [ref=e29] [cursor=pointer]
+  - main [ref=e30]:
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - textbox "搜索…" [ref=e56]
+          - generic [ref=e57]:
+            - button "全部" [ref=e58] [cursor=pointer]
+            - button "运行中" [ref=e59] [cursor=pointer]
+            - button "待审查" [ref=e60] [cursor=pointer]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63] [cursor=pointer]:
+              - img [ref=e64]
+              - generic [ref=e66]:
+                - generic [ref=e67]: swarmdeck
+                - img [ref=e69]
+              - generic [ref=e75]:
+                - button "新建会话" [ref=e76]:
+                  - img [ref=e77]
+                - button "扩展插件" [ref=e78]:
+                  - img [ref=e79]
+                - button [ref=e81]:
+                  - img [ref=e82]
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - 'button "Claude 1 <1m 我感觉现在 dashboard 整体的刷新流程很有问题，比如经常出现停止后的消息被吞，排队中的消息已经撤回仍然反复出现，以及刚发送的消息要先等待一段时间才被确认返回，同时新建会话的时候顶部会先 pending 然后才会到具体的 ses... Found the new-session input (`e832`). I''ll run the verification flow here. First, a prompt that streams text for a while (no tools) — this exercises symptom 4 (new-session pending→real) on creation and symptom 3 (bubble must appear immediately and stay):" [ref=e874] [cursor=pointer]':
+                  - generic [ref=e88]:
+                    - img [ref=e89]
+                    - generic [ref=e90]: Claude
+                    - generic [ref=e91]:
+                      - generic [ref=e92]:
+                        - img [ref=e93]
+                        - text: "1"
+                      - generic [ref=e95]: <1m
+                  - generic [ref=e98]: 我感觉现在 dashboard 整体的刷新流程很有问题，比如经常出现停止后的消息被吞，排队中的消息已经撤回仍然反复出现，以及刚发送的消息要先等待一段时间才被确认返回，同时新建会话的时候顶部会先 pending 然后才会到具体的 ses...
+                  - generic [ref=e100]: "Found the new-session input (`e832`). I'll run the verification flow here. First, a prompt that streams text for a while (no tools) — this exercises symptom 4 (new-session pending→real) on creation and symptom 3 (bubble must appear immediately and stay):"
+                - button "更多操作" [ref=e101] [cursor=pointer]:
+                  - img [ref=e102]
+              - generic [ref=e947]:
+                - 'button "Claude <1m STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work...." [ref=e948] [cursor=pointer]':
+                  - generic [ref=e949]:
+                    - img [ref=e950]
+                    - generic [ref=e951]: Claude
+                    - generic [ref=e953]: <1m
+                  - generic [ref=e956]: "STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work...."
+                - button "更多操作" [ref=e957] [cursor=pointer]:
+                  - img [ref=e958]
+              - generic [ref=e106]:
+                - button "Claude opus-4-8 7 7m 插队这个问题还是有啊，你之前是怎么修改的问题很多 Two new bugs reported, both pointing at the WS/transport path:" [ref=e875] [cursor=pointer]:
+                  - generic [ref=e108]:
+                    - img [ref=e109]
+                    - generic [ref=e110]: Claude
+                    - generic [ref=e111]: opus-4-8
+                    - generic [ref=e112]:
+                      - generic [ref=e113]:
+                        - img [ref=e114]
+                        - text: "7"
+                      - generic [ref=e116]: 7m
+                  - generic [ref=e119]: 插队这个问题还是有啊，你之前是怎么修改的问题很多
+                  - generic [ref=e121]: "Two new bugs reported, both pointing at the WS/transport path:"
+                - button "更多操作" [ref=e122] [cursor=pointer]:
+                  - img [ref=e123]
+              - generic [ref=e127]:
+                - 'button "Claude opus-4-8 25 9m Automated queue test. Call the im_ask_user tool ONCE: title ''ANCHOR'', question ''hold the queue — reply when ready'', o... PRIMES_DONE" [ref=e876] [cursor=pointer]':
+                  - generic [ref=e129]:
+                    - img [ref=e130]
+                    - generic [ref=e131]: Claude
+                    - generic [ref=e132]: opus-4-8
+                    - generic [ref=e133]:
+                      - generic [ref=e134]:
+                        - img [ref=e135]
+                        - text: "25"
+                      - generic [ref=e137]: 9m
+                  - generic [ref=e140]: "Automated queue test. Call the im_ask_user tool ONCE: title 'ANCHOR', question 'hold the queue — reply when ready', o..."
+                  - generic [ref=e142]: PRIMES_DONE
+                - button "更多操作" [ref=e143] [cursor=pointer]:
+                  - img [ref=e144]
+              - generic [ref=e148]:
+                - button "Claude opus-4-8 3 27m 你帮我打开浏览器，然后把飞书后台我的机器人（盛大机器人那个）改一下机器人菜单配置，改成图里这样 You're at the computer now — that's much easier. Let me bring up a fresh QR code; you can scan it directly off the sc..." [ref=e877] [cursor=pointer]:
+                  - generic [ref=e150]:
+                    - img [ref=e151]
+                    - generic [ref=e152]: Claude
+                    - generic [ref=e153]: opus-4-8
+                    - generic [ref=e154]:
+                      - generic [ref=e155]:
+                        - img [ref=e156]
+                        - text: "3"
+                      - generic [ref=e158]: 27m
+                  - generic [ref=e161]: 你帮我打开浏览器，然后把飞书后台我的机器人（盛大机器人那个）改一下机器人菜单配置，改成图里这样
+                  - generic [ref=e163]: You're at the computer now — that's much easier. Let me bring up a fresh QR code; you can scan it directly off the sc...
+                - button "更多操作" [ref=e164] [cursor=pointer]:
+                  - img [ref=e165]
+              - button "+ 还有 150 个" [ref=e878] [cursor=pointer]:
+                - generic [ref=e191]: + 还有 150 个
+                - img [ref=e192]
+          - generic [ref=e194]:
+            - generic [ref=e195] [cursor=pointer]:
+              - img [ref=e196]
+              - generic [ref=e199]: Two Agents
+              - generic [ref=e200]:
+                - button "新建会话" [ref=e201]:
+                  - img [ref=e202]
+                - button "扩展插件" [ref=e203]:
+                  - img [ref=e204]
+                - button [ref=e206]:
+                  - img [ref=e207]
+                - button [ref=e210]:
+                  - img [ref=e211]
+            - generic [ref=e214]:
+              - generic [ref=e215]:
+                - 'button "Codex z-ai/glm-5.2 1d Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring. {\"type\":\"error\",\"status\":400,\"error\":{\"type\":\"invalid_request_error\",\"message\":\"The ''z-ai/glm-5.2'' model is not suppo..." [ref=e216] [cursor=pointer]':
+                  - generic [ref=e217]:
+                    - img [ref=e218]
+                    - generic [ref=e219]: Codex
+                    - generic [ref=e220]: z-ai/glm-5.2
+                    - generic [ref=e222]: 1d
+                  - generic [ref=e225]: Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring.
+                  - generic [ref=e227]: "{\"type\":\"error\",\"status\":400,\"error\":{\"type\":\"invalid_request_error\",\"message\":\"The 'z-ai/glm-5.2' model is not suppo..."
+                - button "更多操作" [ref=e228] [cursor=pointer]:
+                  - img [ref=e229]
+              - generic [ref=e233]:
+                - button "Claude z-ai/glm-5.2 2d Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring. python" [ref=e234] [cursor=pointer]:
+                  - generic [ref=e235]:
+                    - img [ref=e236]
+                    - generic [ref=e237]: Claude
+                    - generic [ref=e238]: z-ai/glm-5.2
+                    - generic [ref=e240]: 2d
+                  - generic [ref=e243]: Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring.
+                  - generic [ref=e245]: python
+                - button "更多操作" [ref=e246] [cursor=pointer]:
+                  - img [ref=e247]
+        - generic [ref=e251]:
+          - generic [ref=e252]:
+            - button "单窗口" [ref=e253] [cursor=pointer]:
+              - img [ref=e254]
+            - button "双窗口" [ref=e256] [cursor=pointer]:
+              - img [ref=e257]
+            - button "三窗口" [ref=e260] [cursor=pointer]:
+              - img [ref=e261]
+            - button "六窗口" [ref=e265] [cursor=pointer]:
+              - img [ref=e266]
+          - button "添加工作区" [ref=e273] [cursor=pointer]:
+            - img [ref=e274]
+            - text: 添加工作区
+      - generic [ref=e276]:
+        - generic [ref=e277]:
+          - generic [ref=e278]:
+            - generic [ref=e280]:
+              - generic [ref=e281]: glm-cast4
+              - generic [ref=e282]: /
+              - generic [ref=e283]: Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring.
+            - generic [ref=e284]:
+              - generic "hub.created" [ref=e285]: 06/21 23:29
+              - generic "hub.updated" [ref=e286]: 1d
+              - button "文件" [ref=e287] [cursor=pointer]:
+                - img [ref=e288]
+              - button "关闭" [ref=e290] [cursor=pointer]:
+                - img [ref=e291]
+          - generic [ref=e295]:
+            - generic [ref=e297]:
+              - generic [ref=e300]: 继续上滑可加载更早的对话
+              - generic [ref=e302]:
+                - generic [ref=e304]: "Oscillation test: print a markdown numbered list 1 to 30, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e306]:
+                - generic [ref=e308]: "Reload test: print 1 to 30, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e310]:
+                - generic [ref=e312]: "Oscillation capture: print 1 to 25, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e314]:
+                - generic [ref=e316]: "Snap source test: print 1 to 20, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e318]:
+                - generic [ref=e320]: "After-fix oscillation check: print 1 to 25, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e322]:
+                - generic [ref=e324]: Write a flowing 150-word paragraph (prose, NO lists, NO headings) explaining how the TCP three-way handshake works and why it matters.
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e326]:
+                - generic [ref=e328]: 用大约120字的一段连续文字（不要列表、不要标题）解释 TCP 三次握手的过程。
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e330]:
+                - generic [ref=e332]: 再用大约150字的一段连续文字（不要列表、不要标题、不要分段）解释 TCP 为什么需要四次挥手而不是三次。
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e334]:
+                - generic [ref=e336]: 再写大约150字连续文字解释滑动窗口与拥塞控制的区别（不要列表/标题）。
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
