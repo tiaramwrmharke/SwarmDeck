@@ -22,3 +22,7 @@ export interface CoreSessionRecord {
   model?: string | null;
   effort?: string | null;
   runState?: 'running' | 'completed' | 'incomplete';
+  runDetail?: string | null;
+  // Liveness ownership for a 'running' turn: the OS pid of the process driving it, plus when it
+  // started. A store shared by multiple processes (e.g. a dev + prod app on the same home dir)
+  // uses this to tell a crashed orphan (owner pid dead) apart from a turn live in another
