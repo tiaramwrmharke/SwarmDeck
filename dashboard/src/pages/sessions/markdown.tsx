@@ -44,3 +44,5 @@ function trimFileToken(value: string): { text: string; trailing: string } {
     text = text.slice(0, -1);
   }
   return { text, trailing };
+}
+
