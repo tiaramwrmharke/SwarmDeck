@@ -1,0 +1,5 @@
+import { Bot } from './bot.js';
+
+export class HeadlessBot extends Bot {
+  private resolveRun: (() => void) | null = null;
+
