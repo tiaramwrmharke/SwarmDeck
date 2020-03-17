@@ -134,3 +134,6 @@ export function codexToolSummary(item: any): { id: string; name: string; summary
   if (CODEX_TOOL_CALL_TYPES.has(item.type)) {
     const raw = typeof item.tool === 'string' && item.tool.trim() ? item.tool.trim()
       : typeof item.name === 'string' && item.name.trim() ? item.name.trim() : '';
+    const name = raw ? (raw.split('.').pop() || raw) : 'tool';
+    return { id, name, summary: raw ? `Use ${name}` : 'Use tool' };
+  }
