@@ -13,3 +13,5 @@ export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
   children: ReactNode;
 }
 
+export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
+  { level = 2, className, children, ...rest },

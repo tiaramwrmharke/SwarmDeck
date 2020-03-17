@@ -26,3 +26,5 @@ class TestBot extends Bot {
       kind: 'permission',
       id: 'demo-req-1',
       title: 'Tool Permission Required',
+      hint: 'The agent wants to execute a shell command. Please approve or deny.',
+      questions: [
