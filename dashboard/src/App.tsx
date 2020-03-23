@@ -47,3 +47,4 @@ function locationToTab(pathname: string): DashboardTab {
     '/permissions': 'system',
     '/system': 'system',
   };
+  return map[pathname] || 'sessions';

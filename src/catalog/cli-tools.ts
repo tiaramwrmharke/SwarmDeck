@@ -1,0 +1,72 @@
+import type { RecommendedCli } from '../agent/cli/registry.js';
+
+export const CLI_TOOLS: RecommendedCli[] = [
+  {
+    id: 'gh',
+    binary: 'gh',
+    name: 'GitHub CLI',
+    description: 'Manage pull requests, issues, and Actions from the terminal',
+    descriptionZh: '终端直管 PR、Issue 和 Actions',
+    category: 'dev',
+    iconSlug: 'github',
+    homepage: 'https://cli.github.com/',
+    recommendedScope: 'global',
+    versionArgv: ['gh', '--version'],
+    install: {
+      docs: 'https://github.com/cli/cli#installation',
+      darwin: [{ label: 'Homebrew', cmd: 'brew install gh' }],
+      linux:  [
+        { label: 'apt (Debian/Ubuntu)', cmd: 'sudo apt install gh' },
+        { label: 'dnf (Fedora)',         cmd: 'sudo dnf install gh' },
+      ],
+      win:    [{ label: 'winget', cmd: 'winget install GitHub.cli' }],
+    },
+    auth: {
+      type: 'oauth-web',
+      statusArgv: ['gh', 'auth', 'status'],
+      loginArgv:  ['gh', 'auth', 'login', '--web', '--git-protocol', 'https'],
+      logoutArgv: ['gh', 'auth', 'logout', '--hostname', 'github.com'],
+      loginHint:   'Opens a browser for GitHub OAuth.',
+      loginHintZh: '将打开浏览器完成 GitHub OAuth 授权。',
+    },
+  },
+
+  {
+    id: 'wrangler',
+    binary: 'wrangler',
+    name: 'Cloudflare Wrangler',
+    description: 'Build and deploy Cloudflare Workers, Pages, and D1',
+    descriptionZh: '构建并部署 Workers / Pages / D1',
+    category: 'cloud',
+    iconSlug: 'cloudflare',
+    homepage: 'https://developers.cloudflare.com/workers/wrangler/',
+    recommendedScope: 'global',
+    versionArgv: ['wrangler', '--version'],
+    install: {
+      docs: 'https://developers.cloudflare.com/workers/wrangler/install-and-update/',
+      darwin: [{ label: 'npm', cmd: 'npm i -g wrangler' }],
+      linux:  [{ label: 'npm', cmd: 'npm i -g wrangler' }],
+      win:    [{ label: 'npm', cmd: 'npm i -g wrangler' }],
+    },
+    auth: {
+      type: 'oauth-web',
+      statusArgv: ['wrangler', 'whoami'],
+      loginArgv:  ['wrangler', 'login'],
+      logoutArgv: ['wrangler', 'logout'],
+      loginHint:   'Opens a browser for Cloudflare OAuth.',
+      loginHintZh: '将打开浏览器完成 Cloudflare OAuth 授权。',
+    },
+  },
+  {
+    id: 'vercel',
+    binary: 'vercel',
+    name: 'Vercel CLI',
+    description: 'Deploy Next.js / frontend projects to Vercel',
+    descriptionZh: '将 Next.js / 前端项目部署到 Vercel',
+    category: 'cloud',
+    iconSlug: 'vercel',
+    homepage: 'https://vercel.com/docs/cli',
+    recommendedScope: 'global',
+    versionArgv: ['vercel', '--version'],
+    install: {
+      docs: 'https://vercel.com/docs/cli#installing-vercel-cli',
