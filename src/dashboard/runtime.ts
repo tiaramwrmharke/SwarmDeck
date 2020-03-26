@@ -119,3 +119,5 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
     {
       channel: 'discord',
       configured: discordConfigured,
+      ready: false,
+      validated: false,
