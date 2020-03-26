@@ -49,3 +49,6 @@ Commands:
   claude-models   List available Claude models
   codex-models    List available Codex models
   claude-sessions List recent Claude sessions for the workdir
+  codex-sessions  List recent Codex sessions for the workdir
+  gemini-sessions List recent Gemini sessions for the workdir
+  claude-tail     Show last N messages of a Claude session
