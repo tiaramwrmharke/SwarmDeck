@@ -7,3 +7,4 @@ export interface ToolResult {
   isError?: boolean;
 }
 
+export interface McpToolDef {
