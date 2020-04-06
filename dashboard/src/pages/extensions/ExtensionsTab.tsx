@@ -762,3 +762,7 @@ function skillCountSummary(item: SkillCatalogItem, locale: string): string {
       : `${installed} / ${totalStr} installed`;
   }
   return installed > 0
+    ? (locale === 'zh-CN' ? `${installed} 已安装` : `${installed} installed`)
+    : L(locale, '未安装', 'Not installed');
+}
+
