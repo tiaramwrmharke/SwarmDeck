@@ -11,3 +11,4 @@ permissions:
   contents: read
 
 jobs:
+  publish-kernel:
