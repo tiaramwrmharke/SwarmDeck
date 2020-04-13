@@ -1,0 +1,35 @@
+# @swarmdeck/kernel
+
+> Reusable core that turns heterogeneous coding-agent CLIs (Claude Code, Codex, Gemini, ACP/Hermes)
+> into ONE uniform, accumulating `UniversalSnapshot` + control verbs (prompt/stop/steer/interact),
+> exposed over pluggable surfaces (IM, Web, tunnel, raw PTY). You read one snapshot shape and never
+> parse a CLI's native output. ESM-only, Node >= 20. Runtime dep: `ws`; optional: `node-pty` (raw TUI).
+
+This file is an LLM-oriented summary. Full prose: README.md. Exact types: the bundled `dist/**/*.d.ts`.
+
+## Install & import
+
+```
+npm i @swarmdeck/kernel
+```
+ESM only. Main export re-exports everything; subpaths: `@swarmdeck/kernel/drivers`, `/surfaces`, `/protocol`.
+
+## Three usage tiers
+
+1) ONE turn, no persistence — `runTurn(driver, input, opts?) => Promise<{ result, snapshot }>`:
+```ts
+import { runTurn, ClaudeDriver } from '@swarmdeck/kernel';
+const { result, snapshot } = await runTurn(
+  new ClaudeDriver(),
+  { prompt: 'hi', workdir: process.cwd(), effort: 'high' },            // AgentTurnInput
+  { onSnapshot: (s) => render(s), onSteer: (steer) => {}, signal },    // RunTurnOptions (signal = AbortSignal to stop)
+);
+// result: { ok, text, reasoning?, error?, stopReason?, sessionId?, usage? }
+```
+
+2) FULL multi-session backend — `createLoom(config) => Loom`:
+```ts
+import { createLoom, ClaudeDriver, WebSurface } from '@swarmdeck/kernel';
+const loom = createLoom({ drivers: [new ClaudeDriver()], surfaces: [new WebSurface({ port: 8787 })], defaultAgent: 'claude' });
+await loom.start();
+const { sessionKey, taskId } = await loom.io.prompt({ prompt: 'hi', agent: 'claude' });
