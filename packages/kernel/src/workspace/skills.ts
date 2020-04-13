@@ -40,3 +40,5 @@ const DEFAULT_AGENT_SKILL_DIRS = ['.claude/skills', '.agents/skills'];
 export interface SkillMeta {
   label: string | null;
   description: string | null;
+  mcpRequires?: string[];
+}

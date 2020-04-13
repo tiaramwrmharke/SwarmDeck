@@ -6,3 +6,6 @@ export default function Nav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <a href="#top" aria-label="swarmdeck" className="flex items-center">
           <span className="brand-logo h-7" />
+        </a>
+        <nav className="flex items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2 py-1 text-sm backdrop-blur">
+          <a href="#orchestrator" className="hidden rounded-full px-3 py-1.5 text-neutral-300 transition hover:bg-white/5 hover:text-white sm:block">
