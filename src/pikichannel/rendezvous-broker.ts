@@ -20,3 +20,6 @@ export class RendezvousBroker {
   handleUpgrade(req: http.IncomingMessage, socket: internal.Duplex, head: Buffer): void {
     this.wss.handleUpgrade(req, socket, head, (ws) => this.wss.emit('connection', ws, req));
   }
+
+  stop(): void { this.wss.close(); }
+
