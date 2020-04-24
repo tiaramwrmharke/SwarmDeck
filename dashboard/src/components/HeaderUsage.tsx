@@ -1,0 +1,15 @@
+import { useStore } from '../store';
+import { getAgentMeta } from '../utils';
+import { usageGauge, usageWindowTone } from '../usage';
+import { Tooltip } from './ui';
+import { BrandIcon } from './BrandIcon';
+import { UsageRing } from './UsageRing';
+import { UsageTooltipContent } from './UsageTooltip';
+import { HeaderAccountMenu } from './HeaderAccountMenu';
+
+// Agents whose local accounts are token-switched (kept in sync with the backend).
+const ACCOUNT_AGENTS = new Set(['claude']);
+
+export function HeaderUsage({ t }: { t: (key: string) => string }) {
+  const agentStatus = useStore(s => s.agentStatus);
+  const refreshAgentStatus = useStore(s => s.refreshAgentStatus);
