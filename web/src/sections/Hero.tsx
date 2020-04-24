@@ -27,3 +27,7 @@ function CopyCommand() {
       <span className="text-neutral-500 select-none">$</span>
       <span>{INSTALL_CMD}</span>
       <span className="ml-1 text-xs text-neutral-400 transition group-hover:text-neutral-200">
+        {copied ? 'copied ✓' : 'copy'}
+      </span>
+    </button>
+  );
