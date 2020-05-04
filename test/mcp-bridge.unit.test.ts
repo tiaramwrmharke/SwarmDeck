@@ -1,0 +1,87 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
+import {
+  getConfiguredRemoteCdpUrl,
+  getManagedBrowserProfileDir,
+  resolveManagedBrowserMcpCommand,
+} from '../src/browser-profile.ts';
+import {
+  _matchPeekabooMcpProcessCommand,
+  _matchPlaywrightMcpProcessCommand,
+  buildPeekabooChildEnv,
+  buildGuiSetupHints,
+  buildSupplementalMcpServers,
+  redactMcpConfigForLog,
+  resolveBridgeBrowserEndpoint,
+  resolveGuiIntegrationConfig,
+  resolveMcpServerCommand,
+  resolveSendFilePath,
+} from '../src/agent/mcp/bridge.ts';
+import { makeTmpDir } from './support/env.ts';
+
+function writeFile(filePath: string, content = '') {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content);
+}
+
+describe('resolveMcpServerCommand', () => {
+  it('reuses the current CLI entrypoint from source and falls back to the compiled session server', () => {
+    const root1 = makeTmpDir('swarmdeck-mcp-bridge-');
+    const cliPath = path.join(root1, 'src', 'cli', 'main.ts');
+    writeFile(cliPath, 'console.log("cli");\n');
+
+    const command1 = resolveMcpServerCommand({
+      execPath: '/usr/local/bin/node',
+      execArgv: ['--loader', 'tsx', '--inspect=9229'],
+      argv: ['node', cliPath],
+      moduleUrl: `file://${path.join(root1, 'src', 'agent', 'mcp', 'bridge.ts')}`,
+    });
+
+    expect(command1).toEqual({
+      command: '/usr/local/bin/node',
+      args: ['--loader', 'tsx', cliPath, '--mcp-serve'],
+    });
+
+    const root2 = makeTmpDir('swarmdeck-mcp-bridge-');
+    const mcpDir = path.join(root2, 'dist', 'agent', 'mcp');
+    const serverPath = path.join(mcpDir, 'session-server.js');
+    writeFile(serverPath, 'console.log("server");\n');
+
+    const command2 = resolveMcpServerCommand({
+      execPath: '/usr/local/bin/node',
+      execArgv: [],
+      argv: ['node', path.join(root2, 'other.js')],
+      moduleUrl: `file://${path.join(mcpDir, 'bridge.js')}`,
+    });
+
+    expect(command2).toEqual({
+      command: 'node',
+      args: [serverPath],
+    });
+  });
+});
+
+describe('resolveSendFilePath', () => {
+  it('prefers workspace-relative files and falls back to workdir-relative files', () => {
+    const root1 = makeTmpDir('swarmdeck-send-file-');
+    const workspacePath1 = path.join(root1, 'workspace');
+    const workdir1 = path.join(root1, 'project');
+    const workspaceFile = path.join(workspacePath1, 'desktop-screenshot.png');
+    const workdirFile1 = path.join(workdir1, 'desktop-screenshot.png');
+    writeFile(workspaceFile, 'workspace');
+    writeFile(workdirFile1, 'workdir');
+
+    expect(resolveSendFilePath('desktop-screenshot.png', workspacePath1, [], workdir1).path).toBe(workspaceFile);
+
+    const root2 = makeTmpDir('swarmdeck-send-file-');
+    const workspacePath2 = path.join(root2, 'workspace');
+    const workdir2 = path.join(root2, 'project');
+    const workdirFile2 = path.join(workdir2, 'desktop-screenshot.png');
+    fs.mkdirSync(workspacePath2, { recursive: true });
+    writeFile(workdirFile2, 'workdir');
+
+    expect(resolveSendFilePath('desktop-screenshot.png', workspacePath2, [], workdir2).path).toBe(workdirFile2);
+  });
+});
+
