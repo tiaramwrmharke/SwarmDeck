@@ -39,3 +39,5 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
     expect(pendingClaudeBackgroundTasks(s)).toBe(1);
   });
 
+  it('clears pending on a terminal task_updated', () => {
+    const s = freshState();

@@ -195,3 +195,4 @@ export const SessionPanel = memo(function SessionPanel({
   const recalledTombstonesRef = useRef<Map<string, number>>(new Map());
   const composerSelectionRef = useRef<{ model: string | null; effort: string | null }>({ model: null, effort: null });
   const handleComposerSelectionChange = useCallback((sel: { model: string | null; effort: string | null }) => {
+    composerSelectionRef.current = sel;
