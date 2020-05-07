@@ -5,3 +5,4 @@ const DASHBOARD_TAB_ITEMS: ReadonlyArray<{
   labelKey: string;
   descriptionKey: string;
 }> = [
+  { key: 'sessions', labelKey: 'tab.sessions', descriptionKey: 'tabDesc.sessions' },

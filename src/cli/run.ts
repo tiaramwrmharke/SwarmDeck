@@ -52,3 +52,7 @@ Commands:
   codex-sessions  List recent Codex sessions for the workdir
   gemini-sessions List recent Gemini sessions for the workdir
   claude-tail     Show last N messages of a Claude session
+  codex-tail      Show last N messages of a Codex session
+  gemini-tail     Show last N messages of a Gemini session
+
+Options:
