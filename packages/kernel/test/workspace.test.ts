@@ -62,3 +62,6 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     fs.writeFileSync(path.join(projDir, 'sess-abc.jsonl'), lines);
 
     const out = discoverClaudeNativeSessions(workdir, { home: tmp });
+    expect(out).toHaveLength(1);
+    expect(out[0].sessionId).toBe('sess-abc');
+    expect(out[0].title).toBe('fix the build');
