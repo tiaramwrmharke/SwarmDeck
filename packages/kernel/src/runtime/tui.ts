@@ -7,3 +7,6 @@ export interface AttachTuiOptions {
   observers?: Array<(chunk: string) => void>; // tee the raw TUI stream (e.g. mirror to web/record)
 }
 
+// Full terminal passthrough: spawn the agent's TUI in a PTY and wire the caller's
+// stdin/stdout to it raw (so the user is "inside" the real Claude/Codex TUI), while
+// optionally tee-ing every byte to observers. Resolves with the exit code.
