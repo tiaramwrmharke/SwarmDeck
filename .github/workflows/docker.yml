@@ -1,0 +1,26 @@
+name: Docker
+
+# Builds + publishes the pikiclaw container image to GitHub Container Registry.
+#
+# Triggers:
+#   - push of a `v*` tag         → `:vX.Y.Z` + `:latest` + `:major` + `:minor`
+#   - push to `main`             → `:edge` (rolling) for early testers
+#   - manual via Actions UI      → use the ref's natural tag set
+#
+# Platforms: linux/amd64 + linux/arm64. amd64 builds natively on the runner;
+# arm64 emulates via QEMU. For a Node image this finishes in well under 15 min
+# even with the heavy `npm ci` step.
+#
+# Auth: GHCR uses the workflow's GITHUB_TOKEN — no extra secrets needed.
+
+on:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write

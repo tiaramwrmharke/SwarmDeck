@@ -6,3 +6,4 @@ export {
 } from './store.js';
 export { sealInline, unsealInline } from './inline-seal.js';
 
+import { writeKeychain, deleteKeychain, isKeychainAvailable } from './store.js';
