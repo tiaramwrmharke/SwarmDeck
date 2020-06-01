@@ -33,3 +33,5 @@ import { createLoom, ClaudeDriver, WebSurface } from '@swarmdeck/kernel';
 const loom = createLoom({ drivers: [new ClaudeDriver()], surfaces: [new WebSurface({ port: 8787 })], defaultAgent: 'claude' });
 await loom.start();
 const { sessionKey, taskId } = await loom.io.prompt({ prompt: 'hi', agent: 'claude' });
+const unsub = loom.io.subscribe((key, snapshot, patch, seq) => render(snapshot));
+```
