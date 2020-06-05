@@ -26,3 +26,6 @@ describe('projectSessionForList', () => {
     const out = projectSessionForList(makeSession({
       lastQuestion: huge, lastAnswer: huge, lastMessageText: huge, runDetail: huge,
     }) as any);
+    expect(out.lastQuestion!.length).toBe(CAP);
+    expect(out.lastAnswer!.length).toBe(CAP);
+    expect(out.lastMessageText!.length).toBe(CAP);
