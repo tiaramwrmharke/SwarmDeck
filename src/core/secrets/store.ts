@@ -19,3 +19,7 @@ async function loadKeyring(): Promise<KeyringModule | null> {
     const mod = await importer('@napi-rs/keyring');
     keyringModule = (mod as unknown as KeyringModule);
   } catch {
+    keyringModule = null;
+  }
+  return keyringModule;
+}
