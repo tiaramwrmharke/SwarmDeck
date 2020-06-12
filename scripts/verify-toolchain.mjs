@@ -32,3 +32,7 @@ const kernelPkg = readJson('packages/kernel/package.json');
 const lock = readJson('package-lock.json');
 const expectedNode = fs.readFileSync(path.join(root, '.nvmrc'), 'utf8').trim().replace(/^v/, '');
 const packageManager = /^npm@(\d+\.\d+\.\d+)$/.exec(pkg.packageManager ?? '');
+if (!packageManager) fail('packageManager must be an exact npm@x.y.z version');
+const expectedNpm = packageManager[1];
+const expectedTypeScript = pkg.devDependencies?.typescript;
+if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(expectedTypeScript ?? '')) {
