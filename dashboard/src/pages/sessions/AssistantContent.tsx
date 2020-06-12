@@ -64,3 +64,6 @@ export function categorizeAssistantBlocks(blocks: MessageBlock[]): {
     planBlocks: normalized.filter(b => b.type === 'plan' && hasPlan(b.plan)),
     subAgentBlocks: normalized.filter(b => b.type === 'sub_agent'),
     outputBlocks: normalized.filter(b => b.type === 'text' || b.type === 'image' || b.type === 'file'),
+    noticeBlocks: normalized.filter(b => b.type === 'system_notice'),
+  };
+}
