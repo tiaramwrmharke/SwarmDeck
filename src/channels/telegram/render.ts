@@ -93,3 +93,6 @@ function formatCommandItemHtml(item: CommandSelectionItem, index: number): strin
 
 function formatCommandButtonLabel(button: CommandActionButton, maxChars = 24): string {
   const prefix = button.state && button.state !== 'default'
+    ? `${selectionStateSymbol(button.state)} `
+    : '';
+  return truncateMiddle(`${prefix}${button.label}`.trim(), maxChars);
