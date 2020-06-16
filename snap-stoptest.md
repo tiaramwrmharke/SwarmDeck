@@ -1,0 +1,91 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "swarmdeck" [ref=e47]
+        - generic [ref=e8]: v0.4.29
+      - navigation [ref=e9]:
+        - generic [ref=e10]:
+          - link "工作台" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "IM 接入" [ref=e12] [cursor=pointer]:
+            - /url: /im
+          - link "智能体配置" [ref=e13] [cursor=pointer]:
+            - /url: /agents
+          - link "扩展插件" [ref=e14] [cursor=pointer]:
+            - /url: /extensions
+          - link "系统设置" [ref=e15] [cursor=pointer]:
+            - /url: /system
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - img [ref=e19]
+            - img "42%" [ref=e652]
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - img "11%" [ref=e618]
+        - button "重启进程" [ref=e28] [cursor=pointer]:
+          - img [ref=e29]
+          - generic [ref=e32]: 重启进程
+        - button "Light mode" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "EN" [ref=e40] [cursor=pointer]
+  - main [ref=e41]:
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - textbox "搜索…" [ref=e56]
+          - generic [ref=e57]:
+            - button "全部" [ref=e58] [cursor=pointer]
+            - button "运行中" [ref=e59] [cursor=pointer]
+            - button "待审查" [ref=e60] [cursor=pointer]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63] [cursor=pointer]:
+              - img [ref=e64]
+              - generic [ref=e66]:
+                - generic [ref=e67]: swarmdeck
+                - img [ref=e69]
+              - generic [ref=e75]:
+                - button "新建会话" [ref=e76]:
+                  - img [ref=e77]
+                - button "扩展插件" [ref=e78]:
+                  - img [ref=e79]
+                - button [ref=e81]:
+                  - img [ref=e82]
+            - generic [ref=e85]:
+              - generic [ref=e106]:
+                - 'button "Claude opus-4-8 4 <1m STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work.... The ocean is the great defining feature of our planet, a single connected body of saltwater that covers more than sev..." [ref=e653] [cursor=pointer]':
+                  - generic [ref=e108]:
+                    - img [ref=e109]
+                    - generic [ref=e110]: Claude
+                    - generic [ref=e111]: opus-4-8
+                    - generic [ref=e112]:
+                      - generic [ref=e113]:
+                        - img [ref=e114]
+                        - text: "4"
+                      - generic [ref=e116]: <1m
+                  - generic [ref=e119]: "STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work...."
+                  - generic [ref=e121]: The ocean is the great defining feature of our planet, a single connected body of saltwater that covers more than sev...
+                - button "更多操作" [ref=e122] [cursor=pointer]:
+                  - img [ref=e123]
+              - generic [ref=e86]:
+                - 'button "Claude 1 <1m 我感觉现在 dashboard 整体的刷新流程很有问题，比如经常出现停止后的消息被吞，排队中的消息已经撤回仍然反复出现，以及刚发送的消息要先等待一段时间才被确认返回，同时新建会话的时候顶部会先 pending 然后才会到具体的 ses... Symptom 2 verified fixed.** The snapshot is decisive — line 490 shows the recalled text landed in the **composer input** (`e497` = \"QUEUED-Q1-RECALL-ME-NOW\"), which is the by-design recall-to-draft behavior. There is **no queued bar** in the test panel anymore, the essay ran to completion, and Q1 was **never promoted/run** (it''s not in history). If the recall had been clobbered by a streaming snapshot (the old bug), Q1 would have survived in the queue and then run after the essay — it didn''..." [ref=e619] [cursor=pointer]':
+                  - generic [ref=e88]:
+                    - img [ref=e89]
+                    - generic [ref=e90]: Claude
+                    - generic [ref=e91]:
+                      - generic [ref=e92]:
+                        - img [ref=e93]
+                        - text: "1"
+                      - generic [ref=e95]: <1m
+                  - generic [ref=e98]: 我感觉现在 dashboard 整体的刷新流程很有问题，比如经常出现停止后的消息被吞，排队中的消息已经撤回仍然反复出现，以及刚发送的消息要先等待一段时间才被确认返回，同时新建会话的时候顶部会先 pending 然后才会到具体的 ses...
+                  - generic [ref=e100]: "Symptom 2 verified fixed.** The snapshot is decisive — line 490 shows the recalled text landed in the **composer input** (`e497` = \"QUEUED-Q1-RECALL-ME-NOW\"), which is the by-design recall-to-draft behavior. There is **no queued bar** in the test panel anymore, the essay ran to completion, and Q1 was **never promoted/run** (it's not in history). If the recall had been clobbered by a streaming snapshot (the old bug), Q1 would have survived in the queue and then run after the essay — it didn'..."
+                - button "更多操作" [ref=e101] [cursor=pointer]:
+                  - img [ref=e102]
+              - generic [ref=e127]:
+                - button "Claude opus-4-8 7 23m 插队这个问题还是有啊，你之前是怎么修改的问题很多 Two new bugs reported, both pointing at the WS/transport path:" [ref=e654] [cursor=pointer]:
+                  - generic [ref=e129]:
+                    - img [ref=e130]

@@ -24,3 +24,4 @@ export class ChannelHealth {
   private readonly log: ChannelHealthLogger;
   private readonly sustainedThresholdMs: number;
   private readonly sustainedFailureHint: string;
+  private readonly transientFailureLevel: ChannelHealthLogLevel;
