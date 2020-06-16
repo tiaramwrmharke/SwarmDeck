@@ -34,3 +34,4 @@ export function mimeForArtifact(filePath: string): string {
 }
 
 function manifestPath(agent: Agent, sessionId: string): string {
+  return path.join(sessionAttachmentsDir(agent, sessionId), 'delivered.jsonl');
