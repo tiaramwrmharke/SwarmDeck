@@ -32,3 +32,6 @@ app.get('/api/agents/:agent/accounts', async (c) => {
   const agent = c.req.param('agent');
   if (!allDriverIds().includes(agent)) return c.json({ ok: false, error: `Unknown agent: ${agent}` }, 400);
   if (!accountAgentSupported(agent)) {
+    return c.json({ ok: true, agent, supported: false, accounts: [], activeAccountId: null, nativeUsage: null, max: MAX_ACCOUNTS_PER_AGENT });
+  }
+  // `fresh=1` = the user is actively looking (popover open / panel refresh): re-probe past the
