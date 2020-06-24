@@ -50,3 +50,4 @@ function validRecords(agent: string): AgentAccountRecord[] {
 
 export function listAccounts(agent: string): AgentAccountRecord[] {
   return validRecords(agent).slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
