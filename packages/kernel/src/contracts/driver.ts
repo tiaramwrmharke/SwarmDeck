@@ -40,3 +40,7 @@ export interface McpServerSpec {
   name: string;
   type?: 'stdio' | 'http';
   command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  headers?: Record<string, string>;
