@@ -649,3 +649,5 @@ export class Bot {
     activity = '',
     meta?: StreamPreviewMeta,
     plan?: StreamPreviewPlan | null,
+  ) {
+    const key = this.liveSessionKey(taskId, fallbackKey);
