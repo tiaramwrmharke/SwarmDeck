@@ -35,3 +35,5 @@ function snapshotEnv(): Record<string, string | undefined> {
 function restoreEnv(snap: Record<string, string | undefined>) {
   for (const k of BG_ENV) {
     if (snap[k] === undefined) delete process.env[k];
+    else process.env[k] = snap[k]!;
+  }
