@@ -45,3 +45,6 @@ export interface ForkSessionResult {
   sessionKey: string;
   // The turn the branch was really cut at (null = nothing was kept: the whole transcript was
   // dropped, or the parent had no turns). Equals the requested `atTaskId` unless it stepped back.
+  atTaskId: string | null;
+  // The native keep-boundary pinned for the branch; null = none, so the first dispatch seeds.
+  anchor: string | null;
