@@ -320,3 +320,7 @@ export interface ClaudeScreenInfo {
  * 200-col edge ("Esc to cancel" → "sctocancel"). So the footer is corroborating, never required;
  * the load-bearing signals are the cursor'd numbered select (`❯`+`1.`) plus the proceed/confirm
  * question, and the persistent idle mode-line. Robust to claude version churn for the same reason.
+ *
+ * Default-deny: anything not high-confidence returns 'unknown', because mislabelling a real freeze
+ * as a clearable/idle state would convert a self-healing stall (auto-resume) into a silently
+ * dropped turn — ambiguity must bias to the freeze path.
