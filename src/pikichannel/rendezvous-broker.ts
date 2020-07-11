@@ -23,3 +23,5 @@ export class RendezvousBroker {
 
   stop(): void { this.wss.close(); }
 
+  get stats() { return { hosts: this.hosts.size, sessions: this.sessions.size }; }
+
