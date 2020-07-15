@@ -61,3 +61,5 @@ export function AccountsPanel({ agentId }: { agentId: string }) {
         const r = await api.addAgentAccount(agentId, form.label, form.token);
         if (!r.ok) throw new Error(r.error || 'add failed');
         toast(L('账号已添加', 'Account added'));
+      } else {
+        const r = await api.updateAgentAccount(agentId, form.id!, { token: form.token });
