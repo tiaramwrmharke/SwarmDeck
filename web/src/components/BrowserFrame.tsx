@@ -1,0 +1,13 @@
+import type { CSSProperties } from 'react';
+import { cn } from '@/lib/utils';
+
+export default function BrowserFrame({
+  src,
+  video,
+  alt,
+  ratioW,
+  ratioH,
+  cropTop = 0,
+  label = 'localhost:3939',
+  badge,
+  className,
