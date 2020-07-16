@@ -31,3 +31,7 @@ function CopyCommand() {
       </span>
     </button>
   );
+}
+
+export default function Hero() {
+  return (
