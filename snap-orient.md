@@ -212,3 +212,5 @@
                 - generic [ref=e308]: "Reload test: print 1 to 30, one per line \"N — <word>\". No preamble."
                 - generic:
                   - button "复制":
+                    - img
+                  - button "重跑":
