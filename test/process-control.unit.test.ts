@@ -27,3 +27,6 @@ function resetEnv() {
   delete process.env.PIKILOOM_RESTART_STATE_FILE;
   delete process.env.PIKILOOM_RESTART_CMD;
   delete process.env.TELEGRAM_ALLOWED_CHAT_IDS;
+  delete process.env.FEISHU_ALLOWED_CHAT_IDS;
+  delete process.env.npm_config_yes;
+}
