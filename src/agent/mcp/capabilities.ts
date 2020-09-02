@@ -10,3 +10,6 @@ export interface SessionPromptContext {
   onInteraction: boolean;   // whether the im_ask_user / HITL path is wired for this turn
 }
 
+export interface SessionToolCapability {
+  id: string;
+  tools: string[];          // the session MCP tool names this capability owns (live in ./tools/)
