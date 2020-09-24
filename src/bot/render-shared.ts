@@ -76,3 +76,4 @@ function compactModelLabel(model: string): string {
   return slashIdx > 0 ? trimmed.slice(slashIdx + 1) : trimmed;
 }
 
+export function formatFooterParts(
