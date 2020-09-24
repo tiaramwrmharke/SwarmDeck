@@ -303,3 +303,4 @@ export default function SplashCursor({
 
     class Material {
       vertexShader: WebGLShader | null;
+      fragmentShaderSource: string;
