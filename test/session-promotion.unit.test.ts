@@ -32,3 +32,5 @@ function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSes
     userNote: null,
     migratedFrom: null,
     migratedTo: null,
+    linkedSessions: [],
+    ...opts,
