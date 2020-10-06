@@ -12,3 +12,5 @@ export interface AttachTuiOptions {
 // optionally tee-ing every byte to observers. Resolves with the exit code.
 export async function attachTui(spec: TuiSpec, opts: AttachTuiOptions = {}): Promise<PtyExit> {
   const stdin = opts.stdin ?? process.stdin;
+  const stdout = opts.stdout ?? process.stdout;
+  const bridge = PtyBridge.open(spec, { cols: stdout.columns, rows: stdout.rows });

@@ -280,3 +280,7 @@ const zhCN: Record<string, string> = {
   'hub.search': '搜索…',
   'hub.filterAll': '全部',
   'hub.filterRunning': '运行中',
+  'hub.filterReview': '待审查',
+  'hub.showMore': '展开更多',
+  'hub.nMore': '还有 {n} 个',
+  'hub.workspace': '工作区',
