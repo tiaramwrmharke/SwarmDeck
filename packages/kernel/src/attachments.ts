@@ -41,3 +41,7 @@ export const MAX_IMAGE_EDGE = 1568;
  * or null when the bytes aren't one of those formats. Header-only: never decodes.
  */
 export function imageDimensions(buf: Buffer): { width: number; height: number } | null {
+  if (buf.length >= 24 && buf.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))) {
+    return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+  }
+  if (buf.length >= 10 && (buf.subarray(0, 6).toString('latin1') === 'GIF87a' || buf.subarray(0, 6).toString('latin1') === 'GIF89a')) {
