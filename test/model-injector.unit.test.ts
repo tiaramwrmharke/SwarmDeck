@@ -60,3 +60,7 @@ describe('resolveAgentInjection — Claude BYOK ANTHROPIC_BASE_URL', () => {
   });
 
   it('drops a trailing /v1 before mapping DeepSeek to /anthropic', async () => {
+    const inj = await bindClaude('openai-compatible', 'https://api.deepseek.com/v1', 'deepseek-v4-flash');
+    expect(inj.env.ANTHROPIC_BASE_URL).toBe('https://api.deepseek.com/anthropic');
+  });
+
