@@ -16,3 +16,4 @@ const AGENT_LABELS: Record<Agent, string> = {
   codex: 'Codex',
   gemini: 'Gemini CLI',
 };
+
