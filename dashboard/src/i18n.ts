@@ -284,3 +284,4 @@ const zhCN: Record<string, string> = {
   'hub.showMore': '展开更多',
   'hub.nMore': '还有 {n} 个',
   'hub.workspace': '工作区',
+  'hub.result': '结果',
