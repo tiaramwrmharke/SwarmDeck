@@ -54,3 +54,6 @@ export function Section({
                 {title}
               </div>
             )}
+            {description && (
+              <div className="mt-1.5 text-[13px] leading-relaxed text-fg-4">{description}</div>
+            )}
