@@ -40,3 +40,5 @@ describe('claudeModelStallMs', () => {
     if (prev === undefined) delete process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
     else process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = prev;
   });
+  // Subscription accounts stream nothing during extended thinking, and at the reasoning rungs a
+  // legitimate silent think regularly exceeds 2 minutes — the old 120s default settled LIVE turns
