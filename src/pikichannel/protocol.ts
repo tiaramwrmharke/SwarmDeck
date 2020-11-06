@@ -54,3 +54,5 @@ export interface UniversalArtifact {
   kind: 'photo' | 'document';
   caption?: string;
 }
+
+export interface UniversalInteraction {
