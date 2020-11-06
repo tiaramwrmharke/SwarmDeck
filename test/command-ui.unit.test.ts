@@ -17,3 +17,5 @@ describe('CommandAction codec', () => {
     { kind: 'agent.switch', agent: 'hermes' },
     { kind: 'agent.account.set', agent: 'claude', accountId: 'c0f32fdb' },
     { kind: 'agent.account.set', agent: 'claude', accountId: null },
+    { kind: 'model.switch', modelId: 'claude-opus-4-7' },
+    { kind: 'effort.set', effort: 'xhigh' },
