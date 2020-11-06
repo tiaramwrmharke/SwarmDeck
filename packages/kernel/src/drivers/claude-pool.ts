@@ -36,3 +36,6 @@ const CLAUDE_WARM_DESTROY_GUARD_MS = 15_000;
 
 interface ParkedClaude {
   child: ChildProcess;
+  fingerprint: string;
+  parkedAt: number;
+  idleTimer: ReturnType<typeof setTimeout>;
