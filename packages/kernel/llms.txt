@@ -35,3 +35,4 @@ await loom.start();
 const { sessionKey, taskId } = await loom.io.prompt({ prompt: 'hi', agent: 'claude' });
 const unsub = loom.io.subscribe((key, snapshot, patch, seq) => render(snapshot));
 ```
+Every port has a default (zero config). Override any: sessionStore, modelResolver, toolProvider, systemPromptBuilder, catalog, interactionHandler, plugins, serialPerSession, stateDirName, appNamespace, agentSkillDirs, workdir, defaultAgent, log.
