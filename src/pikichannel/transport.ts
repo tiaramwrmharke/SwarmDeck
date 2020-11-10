@@ -12,3 +12,7 @@ export interface ChannelConnection {
 }
 
 export interface ChannelTransport {
+  readonly kind: TransportKind;
+  start(onConnection: (conn: ChannelConnection) => void): void;
+  stop(): void;
+}
