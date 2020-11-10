@@ -122,3 +122,5 @@ process.stdin.on('data', (c) => {
       emit({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 'toolu_1', name: 'Bash', input: { command: 'gh api -X PATCH' } }], stop_reason: 'tool_use' } });
       emit({ type: 'user', message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'true' }] } });
       // The model's closing round comes back EMPTY — the swallowed-reply shape.
+      emit({ type: 'result', subtype: 'success', is_error: false, stop_reason: 'end_turn' });
+    } else {
