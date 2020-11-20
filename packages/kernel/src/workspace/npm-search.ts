@@ -4,3 +4,5 @@
 export interface NpmPackageHit {
   name: string;
   description: string | null;
+  homepage: string | null;
+  author: string | null;
