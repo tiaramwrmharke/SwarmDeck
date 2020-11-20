@@ -25,3 +25,4 @@ function writeTranscript(lines: string[]): void {
   const file = transcriptPath();
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, lines.join('\n') + '\n');
+}
