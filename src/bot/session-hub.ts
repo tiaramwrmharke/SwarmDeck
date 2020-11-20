@@ -92,3 +92,6 @@ function normalizeAgents(agent?: Agent | Agent[]): Agent[] {
   const list = Array.isArray(agent) ? agent : [agent];
   return list.filter(a => hasDriver(a));
 }
+
+export async function querySessions(opts: SessionQueryOpts): Promise<SessionQueryResult> {
+  const resolvedWorkdir = path.resolve(opts.workdir);

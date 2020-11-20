@@ -17,3 +17,6 @@ const AGENT_LABELS: Record<Agent, string> = {
   gemini: 'Gemini CLI',
 };
 
+export type AgentInstallMethod = 'npm' | 'manual';
+
+export interface AgentInstallSpec {
