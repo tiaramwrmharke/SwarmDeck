@@ -1,0 +1,7 @@
+name: Refresh download badge
+
+# Recomputes the combined monthly installs (swarmdeck + pikiclaw) and updates
+# docs/downloads.json, which the README's "installs" badge reads via the
+# shields.io endpoint. Commits only when the rounded value changes, and tags the
+# commit [skip ci] so it never re-triggers the build matrix.
+

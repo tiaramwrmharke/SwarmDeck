@@ -24,3 +24,6 @@ process.stdin.on('data', (d) => {
     if (!line.trim()) continue;
     let m; try { m = JSON.parse(line); } catch { continue; }
     if (m.type !== 'user') continue;
+    out({ type: 'system', subtype: 'init', session_id: SID, model: 'fake-model' });
+    if (MODE === 'healthy') {
+      out({ type: 'stream_event', session_id: SID, event: { type: 'message_start', message: { usage: { input_tokens: 10 } } } });
