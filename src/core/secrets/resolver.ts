@@ -15,3 +15,5 @@ export async function resolveCredential(ref: CredentialRef, opts: ResolveOptions
   const env = opts.env ?? process.env;
   switch (ref.source) {
     case 'keychain': {
+      const value = await readKeychain(ref.account);
+      if (!value) throw new Error(`Keychain entry not found: ${ref.account}`);
