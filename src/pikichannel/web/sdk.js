@@ -76,3 +76,7 @@ class RtcTransport {
           signal.send(JSON.stringify({ t: 'signal', sessionId, data: { kind: 'offer', type: offer.type, sdp: offer.sdp } }));
         } else if (msg.t === 'signal' && msg.data) {
           const d = msg.data;
+          if (d.kind === 'answer') await onAnswer(d.sdp);
+          else if (d.kind === 'candidate' && d.candidate) await onCandidate(d.candidate);
+          else if (d.kind === 'error') this.onerror && this.onerror(new Error(d.message || 'signaling error'));
+        } else if (msg.t === 'error') { this.onerror && this.onerror(new Error(msg.message || 'rendezvous error')); }
