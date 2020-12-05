@@ -355,3 +355,6 @@ function compactPathTarget(value: unknown, max = 80): string {
 }
 
 function summarizeCodexToolCall(item: any): CodexActiveToolCall | null {
+  const rawName = codexToolName(item);
+  const kind = codexToolKind(rawName);
+  const args = parseCodexArguments(codexToolArgs(item));
