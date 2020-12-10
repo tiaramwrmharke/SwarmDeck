@@ -8,3 +8,5 @@ import { kernelUsageToResultFields } from '../src/agent/kernel-bridge.js';
 describe('kernel-bridge final usage projection', () => {
   it('carries contextPercent (and the token counts) into the final StreamResult fields', () => {
     const fields = kernelUsageToResultFields({
+      inputTokens: 60_000,
+      outputTokens: 150,
