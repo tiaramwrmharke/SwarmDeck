@@ -57,3 +57,7 @@ export function Section({
             {description && (
               <div className="mt-1.5 text-[13px] leading-relaxed text-fg-4">{description}</div>
             )}
+          </div>
+          {right && <div className="shrink-0">{right}</div>}
+        </div>
+      )}

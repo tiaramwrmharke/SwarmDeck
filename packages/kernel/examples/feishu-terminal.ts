@@ -29,3 +29,6 @@ export class FeishuSurface implements Surface {
   private io?: LoomIO;
   private unsub?: () => void;
   private readonly bySession = new Map<string, ChatBinding>();
+
+  constructor(private readonly transport: FeishuTransport, private readonly opts: { agent?: string } = {}) {}
+
