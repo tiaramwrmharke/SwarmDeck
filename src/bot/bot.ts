@@ -654,3 +654,6 @@ export class Bot {
     const snap = this.streamSnapshots.get(key);
     this.debug(`[stream-lifecycle] text task=${taskId} key=${key} bytes=${text.length}/${thinking.length} snap=${snap ? snap.phase : 'NONE'}`);
     this.emitStream(key, {
+      type: 'text', text, thinking, activity, plan: plan ?? null, previewMeta: meta ?? null,
+    });
+  }
