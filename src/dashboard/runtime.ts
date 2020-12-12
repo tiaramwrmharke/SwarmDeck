@@ -121,3 +121,6 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
       configured: discordConfigured,
       ready: false,
       validated: false,
+      status: discordConfigured ? 'checking' : 'missing',
+      detail: discordConfigured ? 'Validating Discord credentials…' : 'Discord is not configured.',
+    },
