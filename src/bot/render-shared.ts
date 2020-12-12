@@ -77,3 +77,5 @@ function compactModelLabel(model: string): string {
 }
 
 export function formatFooterParts(
+  agent: Agent,
+  elapsedMs: number,
