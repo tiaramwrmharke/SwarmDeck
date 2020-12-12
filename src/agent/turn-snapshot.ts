@@ -20,3 +20,7 @@ const MAX_SNAPSHOT_BYTES = 512 * 1024;   // per-session cap, single-slot rotatio
 const MAX_TEXT_CHARS = 40_000;           // don't archive megabyte replies verbatim
 const STALE_MS = 30 * 24 * 60 * 60 * 1000;
 
+export interface DeliveredTurn {
+  prompt: string;
+  promptNorm: string;
+  text: string;
