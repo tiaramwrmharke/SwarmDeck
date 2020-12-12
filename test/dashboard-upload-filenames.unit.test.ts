@@ -6,3 +6,5 @@ describe('dashboard upload filenames', () => {
   it('keeps same-named files distinct within one upload batch', () => {
     const used = new Set<string>();
 
+    expect(reserveUploadFileName('image.png', 'image/png', 0, used)).toBe('image.png');
+    expect(reserveUploadFileName('image.png', 'image/png', 1, used)).toBe('image-2.png');
