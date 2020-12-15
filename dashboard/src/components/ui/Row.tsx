@@ -61,3 +61,5 @@ export function Section({
           {right && <div className="shrink-0">{right}</div>}
         </div>
       )}
+      {children}
+    </section>
