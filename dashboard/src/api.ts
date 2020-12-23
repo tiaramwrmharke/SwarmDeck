@@ -135,3 +135,7 @@ export const api = {
   updateAgentAccount: (agent: string, id: string, patch: { label?: string; token?: string }) =>
     json<{ ok: boolean; account?: AgentAccountInfo; error?: string }>(
       `/api/agents/${encodeURIComponent(agent)}/accounts/${encodeURIComponent(id)}`,
+      { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }),
+  removeAgentAccount: (agent: string, id: string) =>
+    json<{ ok: boolean; error?: string }>(
+      `/api/agents/${encodeURIComponent(agent)}/accounts/${encodeURIComponent(id)}`,
