@@ -29,3 +29,4 @@ describe('snapshotGate — monotonic version guard', () => {
     expect(snapshotGate({ ...base, updatedAt: 100, lastAppliedUpdatedAt: 100 })).toBe('apply');
   });
 
+  it('rejects an older snapshot regardless of source (stale REST clobber)', () => {
