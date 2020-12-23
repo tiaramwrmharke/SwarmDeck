@@ -1,0 +1,9 @@
+{
+  "name": "swarmdeck-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Marketing landing page for swarmdeck — built with React Bits.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",

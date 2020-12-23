@@ -11,3 +11,6 @@ export default function BrowserFrame({
   label = 'localhost:3939',
   badge,
   className,
+}: {
+  src?: string;
+  video?: string;
