@@ -67,3 +67,7 @@ const SUBSCRIBE_ALL = '*';
 interface Peer {
   conn: ChannelConnection;
   subs: Set<string>;
+  authed: boolean;
+}
+
+export class PikichannelHost {
