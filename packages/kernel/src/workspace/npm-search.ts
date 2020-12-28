@@ -6,3 +6,5 @@ export interface NpmPackageHit {
   description: string | null;
   homepage: string | null;
   author: string | null;
+  version: string | null;
+}
