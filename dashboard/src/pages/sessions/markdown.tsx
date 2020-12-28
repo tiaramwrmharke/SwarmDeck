@@ -46,3 +46,7 @@ function trimFileToken(value: string): { text: string; trailing: string } {
   return { text, trailing };
 }
 
+export function isFileLocator(value: string): boolean {
+  const text = trimFileToken(value).text;
+  if (!text || isWebUrl(text)) return false;
+  if (hasUrlScheme(text) && !text.startsWith('file://')) return false;
