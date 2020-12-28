@@ -122,3 +122,7 @@
                     - generic [ref=e173]: Claude
                     - generic [ref=e174]: opus-4-8
                     - generic [ref=e175]:
+                      - generic [ref=e176]:
+                        - img [ref=e177]
+                        - text: "3"
+                      - generic [ref=e179]: 46m

@@ -7,3 +7,5 @@ import { getUserConfigPath } from './config/user-config.js';
 // filenames). One JSON line per finished turn — how it ended, not what it said — is enough to
 // answer "who ended this turn and why" after the fact. Appends must never break a turn.
 
+const MAX_AUDIT_BYTES = 2 * 1024 * 1024;
+
