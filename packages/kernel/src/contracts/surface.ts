@@ -49,3 +49,5 @@ export interface ForkSessionResult {
   // The native keep-boundary pinned for the branch; null = none, so the first dispatch seeds.
   anchor: string | null;
   // How that first dispatch will materialize the branch: resume the parent's native session with
+  // a fork flag, or start fresh and replay the copied transcript as a context seed.
+  mode: 'native' | 'seed';

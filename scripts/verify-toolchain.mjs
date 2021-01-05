@@ -36,3 +36,6 @@ if (!packageManager) fail('packageManager must be an exact npm@x.y.z version');
 const expectedNpm = packageManager[1];
 const expectedTypeScript = pkg.devDependencies?.typescript;
 if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(expectedTypeScript ?? '')) {
+  fail('devDependencies.typescript must be an exact version');
+}
+const expectedNodeTypes = pkg.devDependencies?.['@types/node'];
