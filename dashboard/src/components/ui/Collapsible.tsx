@@ -18,3 +18,7 @@ export function CollapsibleCard({
   preview,
   badge,
   collapsedContent,
+  children,
+  className,
+}: {
+  open: boolean;
