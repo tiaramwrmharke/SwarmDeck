@@ -32,3 +32,5 @@ rl.on('line', async (line) => {
   if (m.method === 'session/prompt') {
     const sid = m.params.sessionId;
     note(sid, { sessionUpdate: 'agent_thought_chunk', content: { type: 'text', text: 'thinking ' } });
+    note(sid, { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'Hello ' } });
+    // fs bridge: ask the client to write then read a file, prove the round-trip
