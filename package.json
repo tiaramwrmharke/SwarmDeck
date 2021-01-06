@@ -1,0 +1,26 @@
+{
+  "name": "swarmdeck",
+  "version": "0.4.83",
+  "description": "Put the world's smartest AI agents in your pocket. Command local Claude & Gemini via IM. | 让最好用的 IM 变成你电脑上的顶级 Agent 控制台",
+  "type": "module",
+  "bin": {
+    "swarmdeck": "dist/cli/main.js"
+  },
+  "files": [
+    "dist/",
+    "dashboard/dist/",
+    "packages/kernel/dist/",
+    "packages/kernel/examples/console.html",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "telegram",
+    "ai",
+    "coding",
+    "claude",
+    "codex",
+    "bridge",
+    "cli"
+  ],
+  "author": "Elias Thornbury",
