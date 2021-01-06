@@ -67,3 +67,4 @@ export function categorizeAssistantBlocks(blocks: MessageBlock[]): {
     noticeBlocks: normalized.filter(b => b.type === 'system_notice'),
   };
 }
+
