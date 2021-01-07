@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/*
+ * ─────────────────────────────────────────────────────────────
+ * Design tokens
+ *
+ * Single source of truth for surfaces, edges, foreground, status,
+ * brand accent, ambient glow, radii, typography. Components consume
+ * these via Tailwind theme tokens (mapped in the `@theme` block at
+ * the bottom) or via the typed `tokens` module in `components/ui/tokens.ts`.
+ *
+ * Rules of thumb:
+ *   - Chrome (sidebar, dividers, frame) lives on the SURFACE ladder.
+ *     Stay achromatic.
+ *   - Color appears in exactly three places: status pills, agent
+ *     identity, and the one primary CTA accent. Nowhere else.
+ *   - Ambient streaming pulse uses `--brand-glow-*`, NOT a status colour.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ── Theme variables: dark (default) ── */
+:root {
+  --th-surface: #080a0d;
+
+  /* Surface ladder — content sits on a higher rung than chrome. */
+  --surface-0: #06080b;   /* page bg behind everything */
+  --surface-1: #0a0d12;   /* sidebar / dim chrome */
+  --surface-2: rgba(255,255,255,0.025); /* card / row */
+  --surface-3: rgba(255,255,255,0.055); /* hover / pressed row */
+  --surface-elev: rgba(15,23,42,0.94);  /* modal / dropdown */
+
+  --th-fg: rgba(248,250,252,0.94);
+  --th-fg-2: rgba(248,250,252,0.80);
+  --th-fg-3: rgba(226,232,240,0.66);
+  --th-fg-4: rgba(203,213,225,0.52);
+  --th-fg-5: rgba(148,163,184,0.50);
+  --th-fg-6: rgba(148,163,184,0.22);
+
+  --th-panel: rgba(15,23,42,0.52);
+  --th-panel-h: rgba(15,23,42,0.70);
+  --th-panel-alt: rgba(15,23,42,0.34);
+  --th-inset: rgba(255,255,255,0.05);
+
+  /* Form controls — distinct from --th-inset so inputs/selects read as
+     interactive instead of as a subtle inline highlight surface. */
+  --th-control-bg: rgba(255,255,255,0.06);
+  --th-control-bg-h: rgba(255,255,255,0.10);
+  --th-control-border: rgba(148,163,184,0.28);
+  --th-control-border-h: rgba(148,163,184,0.45);
+
+  --th-edge: rgba(148,163,184,0.18);
+  --th-edge-h: rgba(148,163,184,0.32);
+  /* Hairline — the only allowed divider width. Used on cards, rows, inputs. */
+  --edge-subtle: rgba(148,163,184,0.10);
+  --edge-default: rgba(148,163,184,0.18);
+  --edge-strong: rgba(148,163,184,0.32);
+
+  --th-inset-hl: rgba(255,255,255,0.05);
+  --th-selected-bg: rgba(255,255,255,0.07);
+  --th-selected-bg-h: rgba(255,255,255,0.10);
+
+  --th-primary: #f8fafc;
+  --th-primary-fg: #09090b;
+  --th-primary-h: #ffffff;
+
+  /* Brand — used ONLY on the primary CTA + the ambient streaming pulse.
+     Monochrome by default; glow is the only saturated brand colour. */
+  --brand-accent: #f8fafc;
+  --brand-accent-fg: #09090b;
+  --brand-glow-a: rgba(125,211,252,0.32);  /* cyan */
+  --brand-glow-b: rgba(167,139,250,0.24);  /* violet */
+  --brand-glow-idle: rgba(125,211,252,0);
+
+  --th-sidebar: rgba(8,10,13,0.78);
+  --th-header: rgba(8,10,13,0.74);
+  --th-modal-bg: rgba(10,14,20,0.96);
+  --th-overlay: rgba(2,6,23,0.6);
+  --th-dropdown: rgba(12,16,24,0.98);
+
+  --th-grid-dot: rgba(148,163,184,0.08);
+  --th-grad-start: #f8fafc;
+  --th-grad-mid: #cbd5e1;
+  --th-grad-end: #94a3b8;
+  --th-glow-a: rgba(148,163,184,0.16);
+  --th-glow-b: rgba(96,165,250,0.08);
+  --th-shimmer-a: rgba(255,255,255,0.015);
+  --th-shimmer-b: rgba(148,163,184,0.08);
+  --th-orb1: rgba(148,163,184,0.12);
+  --th-orb2: rgba(96,165,250,0.09);
+  --th-orb3: rgba(59,130,246,0.05);
+  --th-noise: 0.02;
+  --th-card-shadow: 0 8px 30px rgba(2,6,23,0.14);
+
+  /* Status — color appears here, status pills, and the brand CTA only. */
+  --th-ok: #34d399;
+  --th-ok-glow: rgba(52,211,153,0.5);
+  --th-warn: #fbbf24;
+  --th-warn-glow: rgba(251,191,36,0.5);
+  --th-err: #f87171;
+  --th-err-glow: rgba(248,113,113,0.5);
+  --th-info: #7dd3fc;
+  --th-info-glow: rgba(125,211,252,0.45);
+  --th-running: #60a5fa;
+  --th-running-glow: rgba(96,165,250,0.45);
+  --th-idle: rgba(148,163,184,0.45);
+
+  --th-badge-ok-text: #d1fae5;
+  --th-badge-ok-bg: rgba(16,185,129,0.16);
+  --th-badge-ok-border: rgba(52,211,153,0.28);
+  --th-badge-warn-text: #fde68a;
+  --th-badge-warn-bg: rgba(245,158,11,0.16);
+  --th-badge-warn-border: rgba(251,191,36,0.28);
+  --th-badge-err-text: #fecaca;
+  --th-badge-err-bg: rgba(239,68,68,0.16);
+  --th-badge-err-border: rgba(248,113,113,0.28);
+  --th-badge-accent-text: #bae6fd;
+  --th-badge-accent-bg: rgba(14,165,233,0.18);
+  --th-badge-accent-border: rgba(125,211,252,0.28);
+  --th-badge-info-text: #bae6fd;
+  --th-badge-info-bg: rgba(125,211,252,0.14);
