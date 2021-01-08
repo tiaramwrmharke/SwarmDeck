@@ -51,3 +51,5 @@ export const SKILL_REPOS: RecommendedSkillRepo[] = [
     source: 'sickn33/antigravity-awesome-skills',
     category: 'general',
     recommendedScope: 'global',
+    homepage: 'https://github.com/sickn33/antigravity-awesome-skills',
+  },
