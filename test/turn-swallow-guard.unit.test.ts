@@ -124,3 +124,5 @@ process.stdin.on('data', (c) => {
       // The model's closing round comes back EMPTY — the swallowed-reply shape.
       emit({ type: 'result', subtype: 'success', is_error: false, stop_reason: 'end_turn' });
     } else {
+      ONRECOVERY(msg);
+    }
