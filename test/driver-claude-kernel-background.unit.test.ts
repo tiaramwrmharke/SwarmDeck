@@ -45,3 +45,7 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
       { type: 'system', subtype: 'task_started', task_id: 'blrb1jxuz', tool_use_id: 'toolu_a' },
       { type: 'system', subtype: 'task_updated', task_id: 'blrb1jxuz', patch: { status: 'completed' } });
     expect(pendingClaudeBackgroundTasks(s)).toBe(0);
+  });
+
+  it('clears pending on a terminal task_notification', () => {
+    const s = freshState();

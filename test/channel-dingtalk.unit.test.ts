@@ -27,3 +27,6 @@ beforeEach(() => {
   fetchCalls.length = 0;
   global.fetch = vi.fn(async (url: any, init?: any) => {
     fetchCalls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ errcode: 0 }), { status: 200 });
+  }) as any;
+});
