@@ -1,0 +1,33 @@
+# SwarmDeck — docker-compose example
+#
+# Quick start:
+#   1. cp .env.example .env   (then edit credentials — at minimum one IM token
+#                              and one agent API key)
+#   2. docker compose up -d
+#   3. open http://localhost:3939
+#
+# This file ships an opinionated default: a single `swarmdeck` service, two
+# named volumes (config + workspace), no host bind-mounts (so it Just Works on
+# any host OS). For first-party agent OAuth (browser-based login), uncomment
+# the bind mounts that copy `~/.claude`, `~/.codex`, `~/.gemini` from your host.
+#
+# See docs/DOCKER.md for the full reference.
+
+services:
+  swarmdeck:
+    image: ghcr.io/xiaotonng/swarmdeck:latest
+    # To build from a checkout instead of pulling, comment `image:` above and
+    # uncomment the block below.
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: swarmdeck
+    restart: unless-stopped
+    ports:
+      # Web dashboard. Bind to 127.0.0.1 if you don't want it reachable from
+      # outside the host (recommended unless you put a reverse proxy in front).
+      - "3939:3939"
+    environment:
+      # ─── Agent API keys (set whichever ones you actually use) ──────────────
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
