@@ -34,3 +34,5 @@ rl.on('line', async (line) => {
     note(sid, { sessionUpdate: 'agent_thought_chunk', content: { type: 'text', text: 'thinking ' } });
     note(sid, { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'Hello ' } });
     // fs bridge: ask the client to write then read a file, prove the round-trip
+    const target = m.params.prompt.find(b => b.type === 'text' && b.text.startsWith('FILE:')).text.slice(5);
+    await new Promise((res) => { const id = permId++; pending.set(id, res); send({ jsonrpc: '2.0', id, method: 'fs/write_text_file', params: { sessionId: sid, path: target, content: 'written-by-agent' } }); });
