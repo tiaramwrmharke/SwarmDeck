@@ -44,3 +44,6 @@ describe('claude sub-agent lifecycle (background/run_in_background default)', ()
   });
 
   it('a SYNC tool_result settles the sub with report (+ sidecar cost facts)', () => {
+    const { out, s } = run([
+      SPAWN,
+      {
