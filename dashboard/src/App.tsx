@@ -48,3 +48,4 @@ function locationToTab(pathname: string): DashboardTab {
     '/system': 'system',
   };
   return map[pathname] || 'sessions';
+}
