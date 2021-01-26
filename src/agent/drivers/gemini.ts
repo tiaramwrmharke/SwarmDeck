@@ -157,3 +157,4 @@ function geminiToolSummary(name: unknown, parameters: any): string {
 function geminiToolResultSummary(tool: { name: string; summary: string } | undefined, ev: any): string {
   const fallbackSummary = geminiToolSummary(
     tool?.name || ev.tool_name || ev.name || ev.tool,
+    ev.parameters || ev.args || ev.input || {},
