@@ -7,3 +7,6 @@ import type { UniversalSnapshot } from '../protocol/index.js';
 // this: their context comes from the agent's own store via resume+fork.
 
 const FORK_SEED_BUDGET_CHARS = 60_000;
+
+export function buildForkSeed(turns: UniversalSnapshot[], budget = FORK_SEED_BUDGET_CHARS): string | null {
+  const messages: string[] = [];
