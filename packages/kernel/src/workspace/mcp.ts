@@ -25,3 +25,5 @@ export interface McpCatalogEntry {
 
 export interface McpSearchResult {
   name: string;
+  description: string | null;
+  source: 'registry' | 'npm';
