@@ -47,3 +47,5 @@ export interface DiscordContext {
 export type DiscordMessageHandler = (msg: DiscordMessagePayload, ctx: DiscordContext) => Promise<any> | any;
 export type DiscordErrorHandler = (err: Error) => void;
 
+const DISCORD_MAX = DISCORD_LIMITS.maxMessageLength;
+
