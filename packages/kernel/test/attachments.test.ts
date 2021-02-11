@@ -28,3 +28,6 @@ function makePng(width: number, height: number): Buffer {
     crc.writeUInt32BE(zlib.crc32(typed), 0);
     return Buffer.concat([len, typed, crc]);
   };
+  return Buffer.concat([sig, chunk('IHDR', ihdrBody), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+}
+
