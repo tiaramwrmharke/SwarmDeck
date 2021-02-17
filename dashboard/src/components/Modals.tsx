@@ -351,3 +351,5 @@ export function FeishuModal({ open, onClose }: { open: boolean; onClose: () => v
     </Modal>
   );
 }
+
+export function WeixinModal({ open, onClose }: { open: boolean; onClose: () => void }) {
