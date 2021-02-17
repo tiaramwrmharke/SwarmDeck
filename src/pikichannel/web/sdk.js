@@ -80,3 +80,4 @@ class RtcTransport {
           else if (d.kind === 'candidate' && d.candidate) await onCandidate(d.candidate);
           else if (d.kind === 'error') this.onerror && this.onerror(new Error(d.message || 'signaling error'));
         } else if (msg.t === 'error') { this.onerror && this.onerror(new Error(msg.message || 'rendezvous error')); }
+        else if (msg.t === 'close') { this.onclose && this.onclose(); }
