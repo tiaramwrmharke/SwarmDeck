@@ -20,3 +20,7 @@ let inflight: Promise<ModelsDevCatalog> | null = null;
 
 function readDiskCache(): CacheEnvelope | null {
   try {
+    const raw = fs.readFileSync(CACHE_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && parsed.fetchedAt && parsed.data) {
+      return parsed as CacheEnvelope;
