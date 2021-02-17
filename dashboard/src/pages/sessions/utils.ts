@@ -65,3 +65,7 @@ export function latestOwnPlan(planBlocks: MessageBlock[]): StreamPlan | null {
 // That truncated text never equals the full live prompt, so a plain sameUserText dedup
 // fails and the same turn renders twice (truncated history bubble + full live-question
 // bubble). Treat a truncated prefix as the same turn. Gated on a trailing ellipsis + a
+// substantial prefix so unrelated earlier turns never false-match.
+export function streamPromptMatchesTurnText(
+  turnText: string | null | undefined,
+  streamPrompt: string | null | undefined,

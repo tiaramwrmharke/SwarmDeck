@@ -27,3 +27,5 @@ describe('humanizeCodexError — ChatGPT-account rejects third-party models', ()
     const out = humanizeCodexError("The 'kimi-k2' model is not supported when using Codex with a ChatGPT account.");
     expect(out).toContain('kimi-k2');
   });
+
+  it('passes unrelated errors through untouched', () => {
