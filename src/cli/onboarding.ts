@@ -76,3 +76,7 @@ function defaultChannelState(channel: string, tokenProvided: boolean): ChannelSe
       status: tokenProvided ? 'ready' : 'missing',
       detail: tokenProvided ? 'Slack credentials are configured.' : 'Slack is not configured.',
     };
+  }
+  if (channel === 'discord') {
+    return {
+      channel: 'discord',

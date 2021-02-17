@@ -46,3 +46,6 @@ describe('claudeModelStallMs', () => {
   // window is now effort-laddered and errs long (a hung turn showing its spinner longer is the
   // cheap side of the asymmetry).
   it('defaults to 5min for light rungs and 10min for deep-reasoning rungs', () => {
+    delete process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
+    expect(claudeModelStallMs()).toBe(300_000);
+    expect(claudeModelStallMs('low')).toBe(300_000);
