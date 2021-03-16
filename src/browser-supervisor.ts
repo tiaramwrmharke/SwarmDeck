@@ -46,3 +46,7 @@ async function snapshotRemote(remoteUrl: string, now: number): Promise<ManagedBr
     if (cached?.cdpEndpoint === remoteUrl) cached = null;
     log(`remote CDP endpoint ${remoteUrl} not reachable`, 'warn');
     return { cdpEndpoint: null, connectionMode: 'unavailable' };
+  }
+  cached = { cdpEndpoint: remoteUrl, connectionMode: 'attach', validatedAt: now };
+  log(`using remote CDP endpoint ${remoteUrl} (from ${PIKILOOM_BROWSER_CDP_URL_ENV})`);
+  return snapshotFromCache(cached);
