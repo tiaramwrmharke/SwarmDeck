@@ -34,3 +34,7 @@ export function InteractionPromptModal({ snapshot }: Props) {
     }
   };
 
+  const handleSelectOption = async (value: string) => {
+    if (submitting) return;
+    setSubmitting(true);
+    setError(null);
