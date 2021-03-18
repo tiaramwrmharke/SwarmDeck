@@ -1,0 +1,12 @@
+name: Refresh star history
+
+# Regenerates docs/star-history.svg from the repo's stargazer timestamps, which
+# the README's "Star History" chart embeds directly. Self-hosting the SVG avoids
+# star-history.com's shared-token rate limits (503 → broken image). Commits only
+# when the curve changes, and tags the commit [skip ci] so it never re-triggers
+# the build matrix.
+
+on:
+  schedule:
+    - cron: "23 6 * * 1" # weekly · Monday 06:23 UTC
+  workflow_dispatch:
