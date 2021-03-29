@@ -14,3 +14,5 @@ describe('snapshot diff/apply', () => {
     expect(applied.updatedAt).toBe(2);
   });
 
+  it('clears a field across the wire via undefined->null coercion', () => {
+    const a: UniversalSnapshot = { phase: 'streaming', activity: 'working', updatedAt: 1 };
