@@ -30,3 +30,6 @@ function resetEnv() {
   delete process.env.FEISHU_ALLOWED_CHAT_IDS;
   delete process.env.npm_config_yes;
 }
+
+beforeEach(() => {
+  vi.resetModules();
