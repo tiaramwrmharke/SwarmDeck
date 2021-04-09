@@ -30,3 +30,4 @@ describe('projectSessionForList', () => {
     expect(out.lastAnswer!.length).toBe(CAP);
     expect(out.lastMessageText!.length).toBe(CAP);
     expect(out.runDetail!.length).toBe(CAP);
+    expect(out.lastAnswer).toBe(huge.slice(0, CAP));

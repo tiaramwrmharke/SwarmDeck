@@ -86,3 +86,7 @@ export async function queueDashboardSessionTask(request: QueueSessionTaskRequest
   const modelId = typeof request.model === 'string' ? request.model.trim() : '';
   const profileId = resolveProfileIdOverride(request.profileId);
   const { effort: splitEffort, workflow: ultraWorkflow } = splitEffortForAgent(
+    resolvedAgent,
+    typeof request.effort === 'string' ? request.effort : '',
+  );
+  const thinkingEffort = resolvedAgent === 'gemini' ? '' : splitEffort;
