@@ -15,3 +15,5 @@ describe('runTurn (bridge primitive, hermetic)', () => {
   });
 
   it('auto-cancels HITL by default (a one-shot turn has no terminal) — does not hang', async () => {
+    const { snapshot } = await runTurn(new EchoDriver(), { prompt: 'ASK: color?', workdir: process.cwd() });
+    expect(snapshot.text).toBe('You said: (none)');
