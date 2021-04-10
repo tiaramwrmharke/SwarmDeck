@@ -36,3 +36,7 @@ rl.on('line', async (line) => {
     // fs bridge: ask the client to write then read a file, prove the round-trip
     const target = m.params.prompt.find(b => b.type === 'text' && b.text.startsWith('FILE:')).text.slice(5);
     await new Promise((res) => { const id = permId++; pending.set(id, res); send({ jsonrpc: '2.0', id, method: 'fs/write_text_file', params: { sessionId: sid, path: target, content: 'written-by-agent' } }); });
+    const readBack = await new Promise((res) => { const id = permId++; pending.set(id, res); send({ jsonrpc: '2.0', id, method: 'fs/read_text_file', params: { sessionId: sid, path: target } }); });
+    // permission HITL: ask the client; branch the answer into the message
+    const outcome = await new Promise((res) => { const id = permId++; pending.set(id, res); send({ jsonrpc: '2.0', id, method: 'session/request_permission', params: { sessionId: sid, toolCall: { title: 'delete everything' }, options: [{ optionId: 'ok', name: 'Allow', kind: 'allow_once' }, { optionId: 'no', name: 'Reject', kind: 'reject_once' }] } }); });
+    const decision = outcome && outcome.outcome && outcome.outcome.outcome === 'selected' ? outcome.outcome.optionId : 'cancelled';

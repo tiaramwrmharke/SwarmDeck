@@ -33,3 +33,4 @@ process.stdin.on('end', () => process.exit(0));
 
 function ctxCollect(): { ctx: DriverContext; events: DriverEvent[]; abort: AbortController } {
   const abort = new AbortController();
+  const events: DriverEvent[] = [];
