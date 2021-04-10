@@ -232,3 +232,7 @@ app.post('/api/extensions/mcp/health', async (c) => {
 
     const result = await checkMcpHealth(config);
     cacheHealth(id, config, result);
+    return c.json(result);
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || 'internal error' }, 500);
+  }
