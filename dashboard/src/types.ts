@@ -233,3 +233,4 @@ export type LocalBackendId = 'ollama' | 'mlx';
 export type LocalBackendOs = 'darwin' | 'linux' | 'win';
 
 export interface LocalBackendInstallCommand {
+  label?: string;
