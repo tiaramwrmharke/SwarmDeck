@@ -24,3 +24,6 @@ class RewindDriver implements AgentDriver {
     return this.unresolvable ? !this.unresolvable.has(opts.anchor) : true;
   }
   async run(input: AgentTurnInput, ctx: DriverContext): Promise<DriverResult> {
+    this.runs.push(input);
+    ctx.emit({ type: 'session', sessionId: this.nativeId });
+    const text = `reply to: ${input.prompt.slice(0, 40)}`;
