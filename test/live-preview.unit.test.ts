@@ -31,3 +31,5 @@ describe('LivePreview placeholder lifecycle', () => {
         placeholderMessageId: 'placeholder',
         channel,
         renderer,
+        streamEditIntervalMs: 0,
+        startTimeMs: Date.now(),

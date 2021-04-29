@@ -137,3 +137,6 @@ export function codexToolSummary(item: any): { id: string; name: string; summary
     const name = raw ? (raw.split('.').pop() || raw) : 'tool';
     return { id, name, summary: raw ? `Use ${name}` : 'Use tool' };
   }
+  return null;
+}
+
