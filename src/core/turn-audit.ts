@@ -9,3 +9,4 @@ import { getUserConfigPath } from './config/user-config.js';
 
 const MAX_AUDIT_BYTES = 2 * 1024 * 1024;
 
+export interface TurnAuditEntry {
