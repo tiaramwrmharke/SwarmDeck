@@ -8,3 +8,7 @@ function conversation(turns: number): TailMessage[] {
     messages.push({ role: 'assistant', text: `assistant ${i}` });
   }
   return messages;
+}
+
+describe('applyTurnWindow', () => {
+  it('returns a windowed slice with pagination metadata and returns all turns when no window is requested', () => {
