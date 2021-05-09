@@ -15,3 +15,6 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
     return {
       badgeVariant: 'muted',
       badgeContent: t('status.loading'),
+      dotVariant: 'warn',
+      dotPulse: true,
+    };
