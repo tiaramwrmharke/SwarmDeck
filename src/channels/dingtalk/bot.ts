@@ -145,3 +145,5 @@ export class DingtalkBot extends Bot {
         await ctx.reply([
           '/help - Show commands',
           '/new - New session',
+          '/status - Session status',
+          '/host - Host system info',
