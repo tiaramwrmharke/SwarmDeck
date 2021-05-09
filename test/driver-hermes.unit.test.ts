@@ -69,3 +69,6 @@ while True:
         mode_id = params.get("modeId")
         write({"jsonrpc":"2.0","id":rid,"result":{}})
     elif method == "session/prompt":
+        # Capture the received prompt blocks for the test to assert against.
+        capture_path = os.environ.get("HERMES_PROMPT_CAPTURE_PATH")
+        if capture_path:
