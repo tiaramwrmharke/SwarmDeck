@@ -20,3 +20,5 @@ const AGENT_LABELS: Record<Agent, string> = {
 export type AgentInstallMethod = 'npm' | 'manual';
 
 export interface AgentInstallSpec {
+  method: AgentInstallMethod;
+  command: string;
