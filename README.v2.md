@@ -45,3 +45,5 @@ We never rewrite the brain. When an agent ships a new capability — a workflow 
 
 > **Thin on purpose.** As the frontier agents get smarter, swarmdeck gets stronger — for free. We never race the brain; we widen its reach.
 
+```
+            ┌─────────────────────────────────────────────┐
