@@ -22,3 +22,6 @@ npx tsx test/verify-interaction-e2e.ts
 ```
 
 There is a single Vitest configuration (`vitest.config.ts`); every `test/*.unit.test.ts` file is picked up automatically.
+
+## Startup Rule
+

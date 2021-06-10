@@ -27,3 +27,4 @@ class RewindDriver implements AgentDriver {
     this.runs.push(input);
     ctx.emit({ type: 'session', sessionId: this.nativeId });
     const text = `reply to: ${input.prompt.slice(0, 40)}`;
+    ctx.emit({ type: 'text', delta: text });
