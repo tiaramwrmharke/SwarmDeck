@@ -9,3 +9,5 @@ describe('driver.tui() newSessionId (terminal-first new session)', () => {
   it('claude: newSessionId → --session-id (fresh pin), no --resume', () => {
     const { args } = new ClaudeDriver('claude').tui({ workdir: '/w', newSessionId: 'u-123' });
     expect(args).toContain('--session-id');
+    expect(args[args.indexOf('--session-id') + 1]).toBe('u-123');
+    expect(args).not.toContain('--resume');
