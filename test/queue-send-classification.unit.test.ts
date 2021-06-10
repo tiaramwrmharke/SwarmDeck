@@ -41,3 +41,5 @@ describe('optimisticSendWasQueued', () => {
     expect(optimisticSendWasQueued({ pendingTaskId: null, streamTaskId: 'a', queuedTaskIds: ['a'] })).toBe(false);
   });
 
+  it('is false when the optimistic send is the active stream (genuinely running)', () => {
+    expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'b', queuedTaskIds: [] })).toBe(false);

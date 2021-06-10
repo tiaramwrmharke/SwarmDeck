@@ -14,3 +14,7 @@ export const TAGLINE =
 
 export const SUBHEAD =
   'Plug in any agent, any model, and any tool — then drive a swarm of them in parallel from one console: an IM, the Web Dashboard, or the CLI. You might never open a code file again.';
+
+export const AGENTS = ['Claude Code', 'Codex', 'Gemini', 'Hermes'];
+export const MODELS = [
+  'Claude',
