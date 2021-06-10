@@ -65,3 +65,6 @@ export function AccountsPanel({ agentId }: { agentId: string }) {
         const r = await api.updateAgentAccount(agentId, form.id!, { token: form.token });
         if (!r.ok) throw new Error(r.error || 'update failed');
         toast(L('Token 已更新', 'Token updated'));
+      }
+      setForm(null);
+      await refresh();
