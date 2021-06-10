@@ -89,3 +89,4 @@ export const agentMeta: Record<string, AgentMeta> = {
     glow: 'rgba(125,211,252,0.2)',
     border: 'rgba(125,211,252,0.2)',
     advantageKey: 'config.agentAdvantageCodex',
+  },

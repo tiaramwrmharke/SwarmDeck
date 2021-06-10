@@ -9,3 +9,4 @@ export interface ToolResult {
 
 export interface McpToolDef {
   name: string;
+  description: string;
