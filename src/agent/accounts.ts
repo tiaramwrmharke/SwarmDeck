@@ -53,3 +53,4 @@ export function listAccounts(agent: string): AgentAccountRecord[] {
 }
 export function getAccount(agent: string, id: string): AgentAccountRecord | null {
   return validRecords(agent).find(a => a.id === id) || null;
+}
