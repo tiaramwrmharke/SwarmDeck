@@ -299,3 +299,6 @@ export class WeixinBot extends Bot {
       `Agent: ${d.agent}`,
       `Model: ${d.model || '-'}`,
       `Session: ${d.sessionId ? d.sessionId.slice(0, 16) : '(new)'}`,
+      `Tasks: ${d.activeTasksCount}`,
+    ];
+    if (d.running) {
