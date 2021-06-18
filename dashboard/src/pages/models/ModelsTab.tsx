@@ -236,3 +236,7 @@ function getCopy(locale: Locale): Copy {
       validationUnvalidated: '未校验',
       providerOnlyHint: '保存后回到智能体卡片，点击「BYOK」选择具体的模型与推理强度。',
       credentialLabel: '凭据',
+      modelsAvailable: count => `可用 ${count} 个模型`,
+    };
+  }
+  return {
