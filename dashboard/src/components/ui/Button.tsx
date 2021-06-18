@@ -18,3 +18,4 @@ const button = tv({
         'bg-[var(--brand-accent)] text-[var(--brand-accent-fg)]',
         'hover:opacity-90',
       ].join(' '),
+      secondary: [

@@ -44,3 +44,6 @@ export interface McpServerSpec {
   env?: Record<string, string>;
   url?: string;
   headers?: Record<string, string>;
+}
+
+export type DriverEvent =

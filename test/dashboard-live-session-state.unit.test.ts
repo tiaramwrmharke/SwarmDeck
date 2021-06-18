@@ -23,3 +23,4 @@ describe('dashboard live session state helpers', () => {
     });
 
     const base1 = {
+      sessionId: 'sess-1',
