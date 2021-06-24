@@ -277,3 +277,7 @@
               - generic [ref=e338]:
                 - generic [ref=e340]: ZZMARK_48071 请只回复 ok
                 - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
+                    - img
