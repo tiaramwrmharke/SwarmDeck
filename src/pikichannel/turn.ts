@@ -42,3 +42,5 @@ export function resolveTurnConfig(): TurnConfig {
   const apiToken = String(process.env.PIKICHANNEL_TURN_API_TOKEN || cfg.pikichannelTurnApiToken || '').trim();
   const ttlRaw = process.env.PIKICHANNEL_TURN_TTL || (cfg.pikichannelTurnTtl != null ? String(cfg.pikichannelTurnTtl) : '');
   const ttl = Math.max(MIN_TTL, Number.parseInt(ttlRaw, 10) || DEFAULT_TTL);
+  return { keyId, apiToken, ttl };
+}

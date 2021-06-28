@@ -171,3 +171,5 @@ export function normalizeErrorMessage(value: unknown): string {
       || normalizeErrorMessage(record.error)
       || normalizeErrorMessage(record.detail)
       || normalizeErrorMessage(record.type)
+      || normalizeErrorMessage(record.code)
+      || normalizeErrorMessage(record.status);
