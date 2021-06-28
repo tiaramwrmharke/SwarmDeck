@@ -89,3 +89,4 @@
                 - button "Claude opus-4-8 7 23m 插队这个问题还是有啊，你之前是怎么修改的问题很多 Two new bugs reported, both pointing at the WS/transport path:" [ref=e654] [cursor=pointer]:
                   - generic [ref=e129]:
                     - img [ref=e130]
+                    - generic [ref=e131]: Claude
