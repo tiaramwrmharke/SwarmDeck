@@ -60,3 +60,6 @@ Options:
   -m, --model <model>   Model to use / highlight
   -w, --workdir <dir>   Working directory  [default: current process cwd]
   -s, --session <id>    Session ID (for tail; omit to use latest session)
+  -n <count>            Number of messages to show  [default: 4]
+  --timeout <seconds>   Max seconds per request  [default: ${DEFAULT_RUN_TIMEOUT_S}]
+  -h, --help            Print this help
