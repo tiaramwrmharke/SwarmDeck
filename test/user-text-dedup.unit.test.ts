@@ -33,3 +33,4 @@ describe('sameUserText (image-dedup whitespace robustness)', () => {
     expect(sameUserText('  hello   world \n', 'hello world')).toBe(true);
     expect(sameUserText('line1\n\nline2', 'line1 line2')).toBe(true);
   });
+
