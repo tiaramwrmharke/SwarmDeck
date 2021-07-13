@@ -11,3 +11,5 @@ describe('driver.tui() newSessionId (terminal-first new session)', () => {
     expect(args).toContain('--session-id');
     expect(args[args.indexOf('--session-id') + 1]).toBe('u-123');
     expect(args).not.toContain('--resume');
+  });
+
