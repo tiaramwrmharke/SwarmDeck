@@ -16,3 +16,5 @@ export interface ChannelTransport {
   start(onConnection: (conn: ChannelConnection) => void): void;
   stop(): void;
 }
+
+export abstract class BaseConnection implements ChannelConnection {
