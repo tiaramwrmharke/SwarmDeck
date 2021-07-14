@@ -9,3 +9,4 @@
 // what actually isolates an account. codex has no equivalent token, so it is not supported
 // here yet (single account only).
 //
+// Dependency-free (no imports) so any @swarmdeck/kernel consumer inherits account switching.

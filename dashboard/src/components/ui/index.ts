@@ -6,3 +6,5 @@ export { Badge, Dot, CountBadge, type BadgeTone, type DotTone } from './Badge';
 export { Button, type ButtonProps, type ButtonTone, type ButtonSize, type ButtonShape } from './Button';
 export { Input, Label, type InputProps } from './Input';
 export { Select, IconPicker } from './Select';
+export { ModelSelect } from './ModelSelect';
+export { Modal, ModalHeader, type ModalSize } from './Modal';

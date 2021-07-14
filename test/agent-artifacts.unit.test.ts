@@ -51,3 +51,7 @@ describe('delivered-artifact manifest', () => {
     expect(rec!.path).not.toBe(src);
     expect(fs.existsSync(rec!.path)).toBe(true);
     expect(fs.readFileSync(rec!.path, 'utf-8')).toBe('PDF-CONTENT');
+
+    fs.rmSync(src);
+    expect(fs.existsSync(rec!.path)).toBe(true);
+  });
