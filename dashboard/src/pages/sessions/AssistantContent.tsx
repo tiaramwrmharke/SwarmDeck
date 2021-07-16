@@ -68,3 +68,6 @@ export function categorizeAssistantBlocks(blocks: MessageBlock[]): {
   };
 }
 
+export function SystemNoticeSection({ blocks, t }: { blocks: MessageBlock[]; t: (k: string) => string }) {
+  const text = blocks.map(b => b.content).filter(Boolean).join('\n\n').trim();
+  if (!text) return null;
