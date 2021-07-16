@@ -9,3 +9,6 @@ if (!filePath) {
   process.exit(1);
 }
 
+const positiveIntEnv = (name, fallback) => {
+  const raw = String(process.env[name] || '').trim();
+  if (!raw) return fallback;

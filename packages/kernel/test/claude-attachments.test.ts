@@ -42,3 +42,4 @@ describe('claudeUserMessage (kernel)', () => {
   });
 
   it('represents a non-image / unreadable file as a text note, never crashing', () => {
+    const pdf = path.join(tmp, 'doc.pdf');
