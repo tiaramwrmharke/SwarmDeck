@@ -85,3 +85,5 @@ describe('resolveSendFilePath', () => {
   });
 });
 
+describe('resolveGuiIntegrationConfig', () => {
+  it('resolves managed-profile defaults, env overrides, legacy alias, and remote-CDP implicit enable', () => {
