@@ -12,3 +12,4 @@ export default function Layers() {
         <p className="mt-4 text-neutral-400">
           A single orchestration core owns routing, memory, observability, and the bot lifecycle —
           so any terminal can talk to any agent, on any model, through any tool.
+        </p>
