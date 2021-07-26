@@ -33,3 +33,5 @@ export {
   allowedAttachmentRoots,
   decodeAttachmentPathParam,
   sessionAttachmentsDir,
+  codexHome,
+  type AttachAgentImageOpts,
