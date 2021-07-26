@@ -22,3 +22,5 @@ export function CollapsibleCard({
   className,
 }: {
   open: boolean;
+  onToggle: () => void;
+  dot?: { color: string; pulse?: boolean };
