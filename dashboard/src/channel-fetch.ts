@@ -13,3 +13,6 @@ function sameOriginApiPath(input: RequestInfo | URL): string | null {
     if (u.origin !== window.location.origin) return null;
     if (!u.pathname.startsWith('/api/')) return null;
     return u.pathname + u.search;
+  } catch {
+    return null;
+  }
