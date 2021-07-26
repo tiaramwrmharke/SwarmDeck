@@ -23,3 +23,7 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
     it(`${agent}: every label equals its id`, () => {
       const levels = effortOptionsFor(agent);
       expect(levels.length).toBeGreaterThan(0);
+      for (const l of levels) {
+        expect(l.label).toBe(l.id);
+        expect(l.label).toBe(effortLabel(l.id));
+      }
