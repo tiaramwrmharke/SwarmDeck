@@ -44,3 +44,5 @@ export interface SkillMeta {
 }
 
 /**
+ * Parse a SKILL.md's frontmatter (label/name + description + mcp_requires), falling back
+ * to the first `# heading` for the label. Exported so an app scanning additional skill
