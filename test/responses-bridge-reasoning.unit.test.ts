@@ -21,3 +21,6 @@ async function runBridge(sseLines: string[]): Promise<Array<{ type: string; data
     res.writeHead(200, { 'content-type': 'text/event-stream' });
     for (const l of sseLines) res.write(`data: ${l}\n\n`);
     res.write('data: [DONE]\n\n');
+    res.end();
+  });
+  await new Promise<void>(r => upstream!.listen(0, '127.0.0.1', () => r()));
