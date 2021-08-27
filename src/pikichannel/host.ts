@@ -71,3 +71,5 @@ interface Peer {
 }
 
 export class PikichannelHost {
+  private peers = new Set<Peer>();
+  private unsubscribers: Array<() => void> = [];

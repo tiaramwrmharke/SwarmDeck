@@ -19,3 +19,4 @@ const button = tv({
         'hover:opacity-90',
       ].join(' '),
       secondary: [
+        'border border-[var(--edge-default)] bg-transparent text-fg-2',
