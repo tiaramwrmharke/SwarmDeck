@@ -45,3 +45,4 @@ export function imageDimensions(buf: Buffer): { width: number; height: number } 
     return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
   }
   if (buf.length >= 10 && (buf.subarray(0, 6).toString('latin1') === 'GIF87a' || buf.subarray(0, 6).toString('latin1') === 'GIF89a')) {
+    return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
