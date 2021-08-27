@@ -81,3 +81,4 @@ export function formatFooterParts(
   elapsedMs: number,
   meta?: StreamPreviewMeta | null,
   contextPercent?: number | null,
+  decorations?: FooterDecorations,
