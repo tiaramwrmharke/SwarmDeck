@@ -68,3 +68,5 @@ export class SlackChannel extends Channel {
   private socketClient: SocketModeClient | null = null;
   private botUserId: string | null = null;
   private running = false;
+  private listenResolve: (() => void) | null = null;
+
