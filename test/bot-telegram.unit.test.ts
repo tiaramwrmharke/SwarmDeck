@@ -219,3 +219,7 @@ describe('TelegramBot', () => {
       const defaultBot = createBot().bot;
       const defaultExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as any);
       const defaultStopKeepAliveSpy = vi.spyOn(defaultBot as any, 'stopKeepAlive').mockImplementation(() => {});
+      spawnMock.mockClear();
+      spawnMock.mockReturnValue({ pid: 4321, unref: vi.fn() } as any);
+
+      try {
