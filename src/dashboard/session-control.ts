@@ -90,3 +90,6 @@ export async function queueDashboardSessionTask(request: QueueSessionTaskRequest
     typeof request.effort === 'string' ? request.effort : '',
   );
   const thinkingEffort = resolvedAgent === 'gemini' ? '' : splitEffort;
+  const workflowEnabled = ultraWorkflow || request.workflow === true;
+
+  const goalCmd = parseGoalSlash(request.prompt || '');
