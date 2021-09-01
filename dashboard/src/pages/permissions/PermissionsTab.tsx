@@ -39,3 +39,6 @@ const PERMISSIONS: PermissionMeta[] = [
     labelKey: 'perm.screenRecording',
     reasonZh: '用于截图与界面分析',
     reasonEn: 'For screenshots and UI inspection',
+    guidePathKey: 'perm.pathScreenRecording',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
