@@ -25,3 +25,4 @@ PACKAGE_VERSION=$(node -p "require('./package.json').version")
 LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | head -n 1 || true)
 LATEST_TAG_VERSION=${LATEST_TAG#v}
 BASE_VERSION=$(node -e "
+  const versions = process.argv.slice(1).filter(Boolean);

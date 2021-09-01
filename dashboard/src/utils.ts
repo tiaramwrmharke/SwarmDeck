@@ -90,3 +90,6 @@ export const agentMeta: Record<string, AgentMeta> = {
     border: 'rgba(125,211,252,0.2)',
     advantageKey: 'config.agentAdvantageCodex',
   },
+  gemini: {
+    label: 'Gemini CLI',
+    shortLabel: 'Gemini',
