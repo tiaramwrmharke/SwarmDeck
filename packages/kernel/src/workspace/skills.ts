@@ -46,3 +46,5 @@ export interface SkillMeta {
 /**
  * Parse a SKILL.md's frontmatter (label/name + description + mcp_requires), falling back
  * to the first `# heading` for the label. Exported so an app scanning additional skill
+ * stores (e.g. an agent's own ~/.claude/skills) reads them with the same rules.
+ */

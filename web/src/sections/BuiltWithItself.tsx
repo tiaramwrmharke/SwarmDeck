@@ -9,3 +9,4 @@ export default function BuiltWithItself() {
   return (
     <section id="built" className="relative scroll-mt-24 border-y border-white/5 bg-white/[0.015]">
       <div className="mx-auto max-w-6xl px-6 py-24">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
