@@ -82,3 +82,5 @@ export interface AttachAgentImageOpts {
   captionKind?: 'prompt' | 'caption';
   phase?: 'commentary' | 'final_answer';
   inlineThresholdBytes?: number;
+}
+
