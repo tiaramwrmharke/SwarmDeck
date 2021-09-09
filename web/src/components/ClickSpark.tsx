@@ -36,3 +36,7 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    let resizeTimeout: ReturnType<typeof setTimeout>;
