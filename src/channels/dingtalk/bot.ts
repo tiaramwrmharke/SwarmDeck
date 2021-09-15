@@ -147,3 +147,4 @@ export class DingtalkBot extends Bot {
           '/new - New session',
           '/status - Session status',
           '/host - Host system info',
+          '/agent [codex|claude|gemini] - Switch agent',
