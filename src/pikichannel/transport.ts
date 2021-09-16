@@ -21,3 +21,4 @@ export abstract class BaseConnection implements ChannelConnection {
   abstract readonly id: string;
   abstract readonly kind: TransportKind;
   remote?: string;
+

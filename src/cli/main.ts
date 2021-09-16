@@ -195,3 +195,6 @@ async function handleMcpServeMode(): Promise<boolean> {
     await import('../agent/mcp/session-server.js');
     return true;
   }
+  return false;
+}
+
