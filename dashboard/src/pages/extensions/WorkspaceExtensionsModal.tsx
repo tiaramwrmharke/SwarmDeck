@@ -9,3 +9,6 @@ function L(locale: string, zh: string, en: string): string {
 export function WorkspaceExtensionsModal({
   open,
   onClose,
+  workdir,
+}: {
+  open: boolean;

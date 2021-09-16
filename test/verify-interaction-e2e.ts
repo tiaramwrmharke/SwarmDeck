@@ -31,3 +31,5 @@ class TestBot extends Bot {
         {
           id: 'approval',
           header: 'Shell Command Approval',
+          prompt: 'Allow execution of: rm -rf /tmp/test-dir',
+          options: [
