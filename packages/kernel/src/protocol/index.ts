@@ -49,3 +49,4 @@ export interface UniversalUsage {
   outputTokens: number | null;
   cachedInputTokens: number | null;
   contextUsedTokens?: number | null;
+  contextPercent: number | null;
