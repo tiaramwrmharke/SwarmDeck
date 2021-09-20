@@ -101,3 +101,6 @@ export async function awaitAgentUpdateIdle(agent: string, timeoutMs: number): Pr
 }
 
 function updaterLockPath(): string {
+  return path.join(os.homedir(), STATE_DIR_NAME, 'agent-auto-update.lock');
+}
+
