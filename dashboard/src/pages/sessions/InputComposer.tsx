@@ -294,3 +294,5 @@ export const InputComposer = memo(function InputComposer({ session, workdir, onS
     api.sendSessionMessage(workdir, targetAgent, targetSessionId, prompt, {
       attachments,
       model: targetModel,
+      profileId: targetProfileId,
+      effort: targetEffort,
