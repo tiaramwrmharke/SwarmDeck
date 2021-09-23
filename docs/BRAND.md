@@ -10,3 +10,6 @@ deep-cyan variant for light backgrounds.
 | `logo.png` | icon — the knot | 502×512 |
 | `logo-wordmark.png` | knot + `swarmdeck` | 1000×229 |
 | `logo-word.png` | `swarmdeck` word only | 792×187 |
+
+Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
+
