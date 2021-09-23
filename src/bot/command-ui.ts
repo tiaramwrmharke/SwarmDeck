@@ -131,3 +131,6 @@ export function decodeCommandAction(data: string): CommandAction | null {
   }
   if (data.startsWith('sess:')) {
     const sessionId = data.slice(5);
+    if (!sessionId) return null;
+    return { kind: 'session.switch', sessionId };
+  }
