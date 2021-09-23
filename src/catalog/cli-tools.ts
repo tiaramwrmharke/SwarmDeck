@@ -73,3 +73,5 @@ export const CLI_TOOLS: RecommendedCli[] = [
       darwin: [{ label: 'npm', cmd: 'npm i -g vercel' }],
       linux:  [{ label: 'npm', cmd: 'npm i -g vercel' }],
       win:    [{ label: 'npm', cmd: 'npm i -g vercel' }],
+    },
+    auth: {
