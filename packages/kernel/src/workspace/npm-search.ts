@@ -8,3 +8,4 @@ export interface NpmPackageHit {
   author: string | null;
   version: string | null;
 }
+

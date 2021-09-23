@@ -66,3 +66,5 @@ function getLinuxBatteryData(): HostBatteryData | null {
       if (!fs.existsSync(capacityPath)) continue;
 
       const capacity = fs.readFileSync(capacityPath, 'utf-8').trim();
+      if (!capacity) continue;
+
