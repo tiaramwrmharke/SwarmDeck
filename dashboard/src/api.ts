@@ -139,3 +139,7 @@ export const api = {
   removeAgentAccount: (agent: string, id: string) =>
     json<{ ok: boolean; error?: string }>(
       `/api/agents/${encodeURIComponent(agent)}/accounts/${encodeURIComponent(id)}`,
+      { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) }),
+  setActiveAgentAccount: (agent: string, accountId: string | null) =>
+    post<{ ok: boolean; activeAccountId?: string | null; error?: string }>(
+      `/api/agents/${encodeURIComponent(agent)}/active-account`, { accountId }),
