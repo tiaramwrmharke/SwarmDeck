@@ -22,3 +22,5 @@ export type AgentInstallMethod = 'npm' | 'manual';
 export interface AgentInstallSpec {
   method: AgentInstallMethod;
   command: string;
+  docsUrl?: string;
+  note?: string;
