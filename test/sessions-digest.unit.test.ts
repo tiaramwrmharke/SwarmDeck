@@ -9,3 +9,5 @@ describe('formatSessionsDigestText', () => {
       total: 0,
       entries: [],
     };
+    expect(formatSessionsDigestText(data)).toContain('No sessions in demo-app');
+  });
