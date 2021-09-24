@@ -108,3 +108,7 @@ interface ApplyUserConfigOptions {
   clearMissing?: boolean;
   notify?: boolean;
 }
+
+interface SyncUserConfigOptions {
+  intervalMs?: number;
+  overrides?: Partial<UserConfig>;
