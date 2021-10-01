@@ -70,3 +70,5 @@ export function setGoal(
   const goal: ThreadGoal = {
     goalId: `goal_${crypto.randomBytes(6).toString('hex')}`,
     objective,
+    status: 'active',
+    tokenBudget,
