@@ -127,3 +127,6 @@ const useAnimationLoop = (
   const rafRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number | null>(null);
   const offsetRef = useRef(0);
+  const velocityRef = useRef(0);
+
+  useEffect(() => {
