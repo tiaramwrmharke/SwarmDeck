@@ -36,3 +36,7 @@ export function getProvider(id: string): ProviderConfig | null {
   return layer.providers?.[id] || null;
 }
 
+export async function addProvider(input: AddProviderInput): Promise<ProviderConfig> {
+  if (!input.apiKey && !input.credentialRef) {
+    throw new Error('addProvider requires either apiKey or credentialRef');
+  }
