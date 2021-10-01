@@ -36,3 +36,6 @@ beforeEach(() => {
   spawnMock.mockReset();
   spawnMock.mockReturnValue({ pid: 4321, unref: vi.fn() } as any);
   execFileSyncMock.mockReset();
+  execFileSyncMock.mockReturnValue('');
+  resetEnv();
+});
