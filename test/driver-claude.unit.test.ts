@@ -113,3 +113,7 @@ describe('Claude usage resolution', () => {
       fs.mkdirSync(telemetryDir, { recursive: true });
       fs.writeFileSync(path.join(telemetryDir, 'events.json'), JSON.stringify({
         event_type: 'ClaudeCodeInternalEvent',
+        event_data: {
+          event_name: 'tengu_claudeai_limits_status_changed',
+          client_timestamp: new Date(Date.now() - 60_000).toISOString(),
+          model: 'claude-opus-4-7',

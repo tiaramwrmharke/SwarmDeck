@@ -140,3 +140,4 @@ export function codexToolSummary(item: any): { id: string; name: string; summary
   return null;
 }
 
+/** Project one app-server item into the kernel's rich, expandable tool-call shape. */
