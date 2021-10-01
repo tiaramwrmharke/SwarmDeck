@@ -27,3 +27,6 @@ export default function Stats() {
       PACKAGES.map((pkg) =>
         fetch(`https://api.npmjs.org/downloads/point/last-month/${pkg}`, { signal: ac.signal })
           .then((r) => r.json())
+          .then((d) => (typeof d?.downloads === 'number' ? d.downloads : 0))
+          .catch(() => 0),
+      ),
