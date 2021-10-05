@@ -41,3 +41,6 @@ export class WebSurface implements Surface {
 
   get port(): number | null {
     const a = this.wss?.address();
+    return a && typeof a === 'object' ? a.port : null;
+  }
+
