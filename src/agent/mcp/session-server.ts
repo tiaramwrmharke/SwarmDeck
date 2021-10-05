@@ -51,3 +51,5 @@ const TOOL_MODULES: McpToolModule[] = [
   ...(AVAILABLE.has('workspace') ? [workspaceTools] : []),
   ...(IS_CODEX ? [] : [goalTools]),
   ...(IS_CODEX ? [] : [awaitResumeTools]),
+  ...(AVAILABLE.has('ask-user') ? [askUserTools] : []),
+];
