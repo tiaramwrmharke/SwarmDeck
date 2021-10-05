@@ -45,3 +45,4 @@ export interface LoomConfig {
   systemPromptBase?: string;
   log?: (msg: string) => void;
 }
+
