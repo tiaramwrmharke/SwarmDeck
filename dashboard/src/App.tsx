@@ -49,3 +49,5 @@ function locationToTab(pathname: string): DashboardTab {
   };
   return map[pathname] || 'sessions';
 }
+
+function PageWrapper({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
