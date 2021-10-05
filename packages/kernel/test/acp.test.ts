@@ -40,3 +40,6 @@ rl.on('line', async (line) => {
     // permission HITL: ask the client; branch the answer into the message
     const outcome = await new Promise((res) => { const id = permId++; pending.set(id, res); send({ jsonrpc: '2.0', id, method: 'session/request_permission', params: { sessionId: sid, toolCall: { title: 'delete everything' }, options: [{ optionId: 'ok', name: 'Allow', kind: 'allow_once' }, { optionId: 'no', name: 'Reject', kind: 'reject_once' }] } }); });
     const decision = outcome && outcome.outcome && outcome.outcome.outcome === 'selected' ? outcome.outcome.optionId : 'cancelled';
+    note(sid, { sessionUpdate: 'tool_call', toolCallId: 'tc1', title: 'edit', status: 'in_progress' });
+    note(sid, { sessionUpdate: 'tool_call_update', toolCallId: 'tc1', status: 'completed' });
+    note(sid, { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'model=' + model + ' mcp=' + mcpCount + ' perm=' + decision + ' file=' + (readBack && readBack.content) } });

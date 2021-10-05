@@ -53,3 +53,6 @@ const TOOL_MODULES: McpToolModule[] = [
   ...(IS_CODEX ? [] : [awaitResumeTools]),
   ...(AVAILABLE.has('ask-user') ? [askUserTools] : []),
 ];
+
+const ALL_TOOLS = TOOL_MODULES.flatMap(m => m.tools);
+
