@@ -11,3 +11,6 @@ describe('formatSessionsDigestText', () => {
     };
     expect(formatSessionsDigestText(data)).toContain('No sessions in demo-app');
   });
+
+  it('renders recent sessions with agent totals and switch hints', () => {
+    const data: SessionsDigestData = {
