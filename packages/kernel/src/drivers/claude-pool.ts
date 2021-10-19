@@ -39,3 +39,6 @@ interface ParkedClaude {
   fingerprint: string;
   parkedAt: number;
   idleTimer: ReturnType<typeof setTimeout>;
+  onClose: () => void;
+  drain: () => void;
+}
