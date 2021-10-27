@@ -34,3 +34,5 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
 });
+
+describe('DingtalkChannel', () => {

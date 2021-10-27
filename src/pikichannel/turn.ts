@@ -44,3 +44,6 @@ export function resolveTurnConfig(): TurnConfig {
   const ttl = Math.max(MIN_TTL, Number.parseInt(ttlRaw, 10) || DEFAULT_TTL);
   return { keyId, apiToken, ttl };
 }
+
+function manualIceServers(): IceServer[] | null {
+  const raw = process.env.PIKICHANNEL_ICE_SERVERS;
