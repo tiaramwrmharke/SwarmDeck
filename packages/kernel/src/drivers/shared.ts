@@ -41,3 +41,7 @@ export function sigterm(proc: ChildProcess | null | undefined): void {
  *  Override with PIKILOOM_REAP_GRACE_MS. */
 const REAP_GRACE_DEFAULT_MS = 15_000;
 export function reapGraceMs(): number {
+  const raw = Number(process.env.PIKILOOM_REAP_GRACE_MS);
+  return Number.isFinite(raw) && raw >= 0 ? raw : REAP_GRACE_DEFAULT_MS;
+}
+/** How long it may then take to honour SIGTERM before it earns a SIGKILL.
