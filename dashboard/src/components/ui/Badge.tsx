@@ -22,3 +22,5 @@ const TONE_VARS: Record<BadgeTone, CSSProperties> = {
   info: {
     borderColor: 'var(--th-badge-info-border)',
     backgroundColor: 'var(--th-badge-info-bg)',
+    color: 'var(--th-badge-info-text)',
+  },
