@@ -34,3 +34,6 @@ describe('snapshotGate — monotonic version guard', () => {
     expect(snapshotGate({ ...base, source: 'ws', updatedAt: 90, lastAppliedUpdatedAt: 100 })).toBe('reject-stale');
   });
 });
+
+describe('snapshotGate — null is "no info"', () => {
+  it('rejects a null while a local send is in flight (symptom: just-sent swallowed)', () => {
