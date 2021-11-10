@@ -22,3 +22,7 @@ export abstract class BaseConnection implements ChannelConnection {
   abstract readonly kind: TransportKind;
   remote?: string;
 
+  private messageCb: ((frame: string) => void) | null = null;
+  private closeCb: (() => void) | null = null;
+  private closed = false;
+
