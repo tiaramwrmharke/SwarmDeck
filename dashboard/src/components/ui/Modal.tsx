@@ -30,3 +30,4 @@ export function Modal({ open, onClose, size, wide, panelStyle, children }: Modal
   }, [open, onClose]);
 
   if (!open) return null;
+  if (typeof document === 'undefined') return null;
