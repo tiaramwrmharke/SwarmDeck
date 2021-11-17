@@ -38,3 +38,5 @@ export function HeaderAccountMenu({ agent, nativeGauge, nativeUsage, t }: {
   // its own cadence or it freezes at the mount value. Probe fresh on open, every 5 min while the
   // tab is visible, and whenever the tab regains focus — server-side debounce keeps this cheap.
   useEffect(() => {
+    void load(true);
+    const id = window.setInterval(() => { if (!document.hidden) void load(true); }, 5 * 60_000);
