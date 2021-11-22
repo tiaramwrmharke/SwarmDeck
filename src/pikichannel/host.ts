@@ -73,3 +73,7 @@ interface Peer {
 export class PikichannelHost {
   private peers = new Set<Peer>();
   private unsubscribers: Array<() => void> = [];
+  private started = false;
+  private lastFull = new Map<string, UniversalSnapshot>();
+  private lastSeq = new Map<string, number>();
+
