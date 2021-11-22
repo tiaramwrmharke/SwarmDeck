@@ -21,3 +21,5 @@ describe('agent update gate', () => {
     const start = Date.now();
     await awaitAgentUpdateIdle('__vitest_a__', 10_000);
     expect(Date.now() - start).toBeLessThan(50);
+  });
+
