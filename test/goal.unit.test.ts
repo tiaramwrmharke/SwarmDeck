@@ -40,3 +40,7 @@ describe('goal state CRUD and accountTurn budget enforcement', () => {
     setGoal(workdir, AGENT, sid, { objective: 'do thing' });
     expect(pauseGoal(workdir, AGENT, sid)?.status).toBe('paused');
     expect(resumeGoal(workdir, AGENT, sid)?.status).toBe('active');
+    expect(completeGoal(workdir, AGENT, sid)?.status).toBe('complete');
+    clearGoal(workdir, AGENT, sid);
+    expect(readGoal(workdir, AGENT, sid)).toBeNull();
+
