@@ -47,3 +47,7 @@ export function createEmptyHumanLoopAnswer(): HumanLoopAnswerState {
   return {
     selectedValue: null,
     freeformText: null,
+    awaitingFreeform: false,
+    skipped: false,
+  };
+}

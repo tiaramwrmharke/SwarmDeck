@@ -21,3 +21,7 @@ const LOG_LEVEL_WEIGHT: Record<LogLevel, number> = {
 const DEFAULT_LOG_LEVEL: LogLevel = 'info';
 const DEFAULT_LOG_MAX_LINES = 5000;
 const DEFAULT_LOG_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_LOG_TRIM_EVERY_WRITES = 200;
+
+function positiveIntEnv(name: string, fallback: number): number {
+  const raw = String(process.env[name] || '').trim();
