@@ -40,3 +40,5 @@ RUN npm install --global --no-audit --no-fund "npm@${NPM_VERSION}" \
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates git python3 build-essential \
  && rm -rf /var/lib/apt/lists/*
+
+# Install with full deps so tsc + vite are available.

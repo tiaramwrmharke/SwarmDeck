@@ -55,3 +55,4 @@ export interface ForkSessionResult {
   // agent refused, which are therefore absent from the branch. Empty on a normal fork. The
   // caller owns what happens next: a UI typically hands the first prompt back to its composer.
   droppedTaskIds: string[];
+}
