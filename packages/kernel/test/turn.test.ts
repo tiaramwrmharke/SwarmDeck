@@ -20,3 +20,6 @@ describe('runTurn (bridge primitive, hermetic)', () => {
   });
 
   it('exposes a mid-turn steer handle', async () => {
+    let steer: ((p: string) => Promise<boolean>) | undefined;
+    const done = runTurn(new EchoDriver(), { prompt: 'HOLD', workdir: process.cwd() }, { onSteer: fn => { steer = fn; } });
+    await new Promise(r => setTimeout(r, 50));
