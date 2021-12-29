@@ -170,3 +170,7 @@ export class Hub implements LoomIO {
     const cutIsTail = requested === turns.length - 1 && !keptNothing;
 
     // Pin the native keep-boundary at fork time: explicit override (only when the cut landed
+    // where the caller asked — an override names ONE turn) → the caller's per-turn anchor map
+    // → the kept turn's recorded anchor → the parent's CURRENT tail (tail cuts only). A mid cut
+    // that can't be anchored falls back to a seed fork — a tail-anchored native fork there would
+    // silently absorb the dropped turns, which is worse than the seed's lower fidelity.
