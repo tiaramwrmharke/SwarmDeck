@@ -90,3 +90,6 @@ function useThrottledValue<T>(value: T, intervalMs: number): T {
 }
 
 export function LivePreview({
+  stream,
+  t,
+  workdir,
