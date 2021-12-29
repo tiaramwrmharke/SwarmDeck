@@ -275,3 +275,7 @@ function getCopy(locale: Locale): CopyPack {
       modelPickerEmpty: '没有可选模型',
       modelPickerEmptyHint: '该智能体的官方模型列表为空，且你还没有登记任何"我的模型"。',
       saveChanges: '保存',
+      saving: '保存中…',
+      saved: '已保存',
+      configError: '保存失败',
+      externalNativeNote: path => `Hermes 当前从 ${path || '~/.hermes/config.yaml'} 读取这些值；切换为某个 BYOK 供应商可由 swarmdeck 接管。`,
