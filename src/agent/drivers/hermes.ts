@@ -104,3 +104,5 @@ function applySessionUpdate(state: StreamState, update: any): boolean {
     case 'usage_update': {
       if (typeof update.size === 'number') state.contextWindow = update.size;
       if (typeof update.used === 'number') state.contextUsedTokens = update.used;
+      return true;
+    }
