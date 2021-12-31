@@ -27,3 +27,7 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
         expect(l.label).toBe(l.id);
         expect(l.label).toBe(effortLabel(l.id));
       }
+      expect(levels.map(l => l.label)).not.toContain('Very High');
+    });
+  }
+
