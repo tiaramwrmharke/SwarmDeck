@@ -34,3 +34,6 @@ async function fetchStarredAt() {
     const batch = await res.json();
     if (!Array.isArray(batch) || batch.length === 0) break;
     for (const s of batch) if (s?.starred_at) dates.push(new Date(s.starred_at).getTime());
+    if (batch.length < 100) break;
+  }
+  return dates.sort((a, b) => a - b);
