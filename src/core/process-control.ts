@@ -56,3 +56,6 @@ export interface ProcessRuntimeRegistration {
   label?: string;
   prepareForRestart?: () => void | Promise<void>;
   buildRestartEnv?: () => Record<string, string>;
+}
+
+export interface ProcessRestartResult {
