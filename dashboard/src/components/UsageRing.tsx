@@ -8,3 +8,6 @@ export const USAGE_TONE_COLOR: Record<UsageTone, string> = {
 
 export function UsageRing({ percent, tone, trackTone, alert = false, size = 14 }: {
   percent: number;
+  tone: UsageTone;
+  trackTone?: UsageTone;
+  alert?: boolean;
