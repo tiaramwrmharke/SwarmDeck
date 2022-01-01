@@ -148,3 +148,6 @@ export class DingtalkBot extends Bot {
           '/status - Session status',
           '/host - Host system info',
           '/agent [codex|claude|gemini] - Switch agent',
+          '/models [name|#] - Switch model',
+          '/mode [plan|code] - Toggle plan mode (claude only)',
+          '/switch [path] - Change workdir',

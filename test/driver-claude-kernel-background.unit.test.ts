@@ -53,3 +53,4 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
       { type: 'system', subtype: 'task_started', task_id: 'bna8ekfwh', tool_use_id: 'toolu_b' },
       { type: 'system', subtype: 'task_notification', task_id: 'bna8ekfwh', status: 'stopped', output_file: '' });
     expect(pendingClaudeBackgroundTasks(s)).toBe(0);
+  });
