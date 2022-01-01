@@ -39,3 +39,7 @@ export class LivePreview {
   readonly initialText: string;
 
   private readonly agent: Agent;
+  private readonly chatId: ChatId;
+  private readonly placeholderMessageId: number | string | null;
+  private readonly channel: PreviewChannel;
+  private readonly renderer: LivePreviewRenderer;
