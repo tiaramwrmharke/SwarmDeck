@@ -5,3 +5,4 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "moduleResolution": "bundler",
