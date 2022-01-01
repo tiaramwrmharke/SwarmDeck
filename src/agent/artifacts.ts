@@ -37,3 +37,4 @@ function manifestPath(agent: Agent, sessionId: string): string {
   return path.join(sessionAttachmentsDir(agent, sessionId), 'delivered.jsonl');
 }
 
+function deliveredDir(agent: Agent, sessionId: string): string {
