@@ -26,3 +26,7 @@ const CHARS_PER_TOKEN = 4;
 export type HandoverMode = 'verbatim' | 'tail' | 'empty';
 
 export interface CompactForHandoverOpts {
+  fromAgent: Agent;
+  fromSessionId: string;
+  workdir: string;
+  toAgent: Agent;
