@@ -28,3 +28,6 @@ const FIXTURE = `
         </div>
         <p class="flex text-neutral-500">
           <span><span x-test-pull-count>116.3M</span><span class="hidden sm:flex">&nbsp;Pulls</span></span>
+          <span>Updated&nbsp;</span><span x-test-updated>1 year ago</span>
+        </p>
+      </div>
