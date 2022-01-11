@@ -356,3 +356,4 @@ export function WeixinModal({ open, onClose }: { open: boolean; onClose: () => v
   const state = useStore(s => s.state);
   const toast = useStore(s => s.toast);
   const reloadUntil = useStore(s => s.reloadUntil);
+  const locale = useStore(s => s.locale);
