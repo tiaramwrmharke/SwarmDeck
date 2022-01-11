@@ -91,3 +91,6 @@ describe('Bot interaction handler via submitSessionTask (dashboard path)', () =>
 
     const promptState = bot.interactionPrompt(promptId);
     expect(promptState).toBeTruthy();
+    expect(promptState!.title).toBe('User Input Required');
+    expect(promptState!.questions).toHaveLength(1);
+
