@@ -16,3 +16,7 @@ describe('snapshot diff/apply', () => {
 
   it('clears a field across the wire via undefined->null coercion', () => {
     const a: UniversalSnapshot = { phase: 'streaming', activity: 'working', updatedAt: 1 };
+    const b: UniversalSnapshot = { phase: 'done', activity: undefined, updatedAt: 2 };
+    const patch = diffSnapshot(a, b);
+    // must survive JSON round-trip (undefined would be dropped by JSON.stringify)
+    const wire = JSON.parse(JSON.stringify(patch));
