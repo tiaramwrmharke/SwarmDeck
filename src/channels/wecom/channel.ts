@@ -144,3 +144,7 @@ export class WeComChannel extends Channel {
       await sleep(delayMs);
     }
   }
+
+  disconnect(): void {
+    this.running = false;
+    this.stopHeartbeat();

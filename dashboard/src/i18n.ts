@@ -288,3 +288,7 @@ const zhCN: Record<string, string> = {
   'hub.plan': '计划',
   'hub.planProgress': '{done}/{total} 项任务已完成',
   'hub.planDone': '已完成',
+  'hub.planInProgress': '进行中',
+  'hub.summary': '总结',
+  'hub.nextAction': '下一步',
+  'hub.noSummary': '暂无总结',
