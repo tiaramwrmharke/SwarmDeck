@@ -8,3 +8,7 @@ export function FileChip({
   caption,
 }: {
   url: string;
+  fileName: string;
+  fileSize?: number;
+  caption?: string;
+}) {
