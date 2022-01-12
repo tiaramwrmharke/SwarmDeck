@@ -26,3 +26,7 @@ export abstract class BaseConnection implements ChannelConnection {
   private closeCb: (() => void) | null = null;
   private closed = false;
 
+  onMessage(cb: (frame: string) => void): void { this.messageCb = cb; }
+  onClose(cb: () => void): void {
+    this.closeCb = cb;
+    if (this.closed) cb();
