@@ -767,3 +767,5 @@ function skillCountSummary(item: SkillCatalogItem, locale: string): string {
 }
 
 function SkillConnectedCard({
+  item, locale, animationDelay, onClick, onUpdate, updating,
+}: {
