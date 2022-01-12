@@ -25,3 +25,7 @@ describe('parseGitStatusV2', () => {
       '# branch.upstream origin/feature/x',
       '# branch.ab +2 -1',
       '1 M. N... 100644 100644 100644 aaa bbb staged.txt',
+      '1 .M N... 100644 100644 100644 aaa bbb unstaged.txt',
+      '1 MM N... 100644 100644 100644 aaa bbb both.txt',
+      'u UU N... 100644 100644 100644 100644 aaa bbb ccc conflict.txt',
+      '? untracked.txt',

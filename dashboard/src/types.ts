@@ -234,3 +234,5 @@ export type LocalBackendOs = 'darwin' | 'linux' | 'win';
 
 export interface LocalBackendInstallCommand {
   label?: string;
+  cmd: string;
+}
