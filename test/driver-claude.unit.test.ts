@@ -117,3 +117,5 @@ describe('Claude usage resolution', () => {
           event_name: 'tengu_claudeai_limits_status_changed',
           client_timestamp: new Date(Date.now() - 60_000).toISOString(),
           model: 'claude-opus-4-7',
+          additional_metadata: JSON.stringify({ status: 'allowed_warning', hoursTillReset: 39 }),
+        },
