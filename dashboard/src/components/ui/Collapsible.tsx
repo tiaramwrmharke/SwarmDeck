@@ -24,3 +24,5 @@ export function CollapsibleCard({
   open: boolean;
   onToggle: () => void;
   dot?: { color: string; pulse?: boolean };
+  label: string;
+  preview?: ReactNode;

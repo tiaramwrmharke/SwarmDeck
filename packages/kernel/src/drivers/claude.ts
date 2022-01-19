@@ -271,3 +271,5 @@ export class ClaudeDriver implements AgentDriver {
       // terminal shows a clear "resend to continue" note instead of a dead spinner. Armed for the initial
       // wait (after prompt delivery) and after a tool_result, and re-armed (if idle) on an API-error
       // event; cleared the moment the model emits REAL output.
+      const armModelStall = () => {
+        clearModelStall();
