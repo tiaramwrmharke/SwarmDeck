@@ -137,3 +137,4 @@ export function decodeCommandAction(data: string): CommandAction | null {
   if (data.startsWith('agacc:')) {
     const rest = data.slice(6);
     const sep = rest.indexOf(':');
+    if (sep < 0) return null;
