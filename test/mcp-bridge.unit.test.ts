@@ -87,3 +87,6 @@ describe('resolveSendFilePath', () => {
 
 describe('resolveGuiIntegrationConfig', () => {
   it('resolves managed-profile defaults, env overrides, legacy alias, and remote-CDP implicit enable', () => {
+    expect(resolveGuiIntegrationConfig({} as any, {})).toEqual({
+      browserEnabled: false,
+      browserProfileDir: getManagedBrowserProfileDir(),
