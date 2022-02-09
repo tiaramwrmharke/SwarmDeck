@@ -10,3 +10,6 @@ export default function Channels() {
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Terminal layer</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
             Seven native IM channels. Plus the Web.
+          </h2>
+          <p className="mt-4 text-neutral-400">
+            Run one, several, or all of them at once. Each channel is strictly isolated at the code level — adding a
