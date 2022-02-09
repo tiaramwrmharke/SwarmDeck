@@ -13,3 +13,7 @@ describe('responses-bridge toChatRequest — tool translation', () => {
         fn('update_plan'),
         { type: 'namespace', name: 'multi_agent_v1', tools: [fn('spawn_agent'), fn('wait_agent')] },
         { type: 'namespace', name: 'mcp__everme', tools: [fn('mem_search')] },
+        { type: 'web_search' },
+        { type: 'image_generation' },
+      ],
+    };
