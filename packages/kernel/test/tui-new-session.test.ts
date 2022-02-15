@@ -13,3 +13,5 @@ describe('driver.tui() newSessionId (terminal-first new session)', () => {
     expect(args).not.toContain('--resume');
   });
 
+  it('claude: sessionId → --resume (existing session)', () => {
+    const { args } = new ClaudeDriver('claude').tui({ workdir: '/w', sessionId: 's-9' });

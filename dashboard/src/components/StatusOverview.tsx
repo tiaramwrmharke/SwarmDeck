@@ -25,3 +25,4 @@ export function StatusOverview({
   const t = createT(locale);
   const runtimeStatus = resolveAppStatusBadge(state, t);
   const channels = state?.setupState?.channels || [];
+  const readyChannels = channels.filter(channel => channel.ready).length;
