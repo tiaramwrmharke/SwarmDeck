@@ -8,3 +8,6 @@ import {
   LEGACY_ENV_PREFIXES,
 } from './constants.js';
 
+export function hydrateLegacyEnv(): void {
+  for (const legacy of LEGACY_ENV_PREFIXES) {
+    for (const [key, value] of Object.entries(process.env)) {

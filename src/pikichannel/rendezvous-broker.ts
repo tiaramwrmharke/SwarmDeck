@@ -29,3 +29,7 @@ export class RendezvousBroker {
     if (ws.readyState === ws.OPEN) { try { ws.send(JSON.stringify(msg)); } catch {  } }
   }
 
+  private onConnection(ws: WebSocket): void {
+    let myNodeId: string | null = null;
+    const mySessions = new Set<string>();
+
