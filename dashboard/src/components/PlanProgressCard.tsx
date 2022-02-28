@@ -15,3 +15,4 @@ function replaceVars(template: string, vars: Record<string, string>): string {
   return output;
 }
 
+function StepIcon({ status }: { status: StreamPlan['steps'][number]['status'] }) {

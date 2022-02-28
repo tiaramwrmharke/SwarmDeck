@@ -15,3 +15,4 @@ export function UsageBars({ usage, emptyText, className = '' }: {
 }) {
   const t = createT(useStore(s => s.locale));
   const windows = usage?.ok ? usage.windows : [];
+  if (!windows.length) {
