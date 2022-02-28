@@ -21,3 +21,6 @@ export interface CliInstallSpec {
   win?: CliInstallCommand[];
   docs?: string;
 }
+
+export interface CliAuthSpec {
+  type: CliAuthType;
