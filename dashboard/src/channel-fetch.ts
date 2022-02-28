@@ -16,3 +16,7 @@ function sameOriginApiPath(input: RequestInfo | URL): string | null {
   } catch {
     return null;
   }
+}
+
+window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  if (!isRemote()) return originalFetch(input as RequestInfo, init);
