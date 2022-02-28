@@ -11,3 +11,6 @@ export function makeTmpDir(prefix: string): string {
 export function captureEnv(keys: readonly string[]): EnvSnapshot {
   return Object.fromEntries(keys.map(key => [key, process.env[key]]));
 }
+
+export function restoreEnv(snapshot: EnvSnapshot): void {
+  for (const [key, value] of Object.entries(snapshot)) {
