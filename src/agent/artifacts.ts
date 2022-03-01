@@ -38,3 +38,6 @@ function manifestPath(agent: Agent, sessionId: string): string {
 }
 
 function deliveredDir(agent: Agent, sessionId: string): string {
+  return path.join(sessionAttachmentsDir(agent, sessionId), 'delivered');
+}
+
