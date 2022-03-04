@@ -59,3 +59,4 @@ function PageWrapper({ title, description, children }: { title: string; descript
             <h2 className="text-lg font-semibold tracking-tight text-fg">{title}</h2>
             {description && <div className="mt-0.5 text-[13px] leading-relaxed text-fg-4">{description}</div>}
           </div>
+        </div>
