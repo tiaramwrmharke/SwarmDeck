@@ -72,3 +72,4 @@ export function setGoal(
     objective,
     status: 'active',
     tokenBudget,
+    tokensUsed: 0,
