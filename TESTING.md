@@ -25,3 +25,7 @@ There is a single Vitest configuration (`vitest.config.ts`); every `test/*.unit.
 
 ## Startup Rule
 
+If a test or validation step needs to launch `swarmdeck` itself, use `npm run dev`.
+
+- `npm run dev` is the local-only startup path
+- It runs with `--no-daemon`, so it stays on the checked-out source tree
