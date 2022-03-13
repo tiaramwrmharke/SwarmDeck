@@ -130,3 +130,5 @@ process.stdin.on('data', (c) => {
 });
 function ONRECOVERY(msg) {
 ${onRecovery}
+}
+process.stdin.on('end', () => process.exit(0));
