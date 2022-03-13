@@ -45,3 +45,7 @@ interface WsLikeTransport extends ChannelTransport {
 
 function readWebAsset(name: string): string {
   const file = path.join(import.meta.dirname, 'web', name);
+  return fs.readFileSync(file, 'utf8');
+}
+
+export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
