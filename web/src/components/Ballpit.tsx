@@ -165,3 +165,6 @@ class X {
   }
 
   #updateCamera() {
+    this.camera.aspect = this.size.width / this.size.height;
+    if (this.camera.isPerspectiveCamera && this.cameraFov) {
+      if (this.cameraMinAspect && this.camera.aspect < this.cameraMinAspect) {

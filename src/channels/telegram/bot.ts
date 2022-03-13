@@ -384,3 +384,4 @@ export class TelegramBot extends Bot {
     await ctx.answerCallback(result.callbackText ?? undefined);
     await ctx.editReply(ctx.messageId, renderCommandNoticeHtml(result.notice), { parseMode: 'HTML' });
     if (result.session) this.registerSessionMessage(ctx.chatId, ctx.messageId, result.session);
+    if (result.previewSession) {
