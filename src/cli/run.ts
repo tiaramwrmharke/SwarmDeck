@@ -63,3 +63,7 @@ Options:
   -n <count>            Number of messages to show  [default: 4]
   --timeout <seconds>   Max seconds per request  [default: ${DEFAULT_RUN_TIMEOUT_S}]
   -h, --help            Print this help
+
+Examples:
+  npm run command -- claude-run -p "Hello world"
+  npm run command -- codex-run -m o3 "Explain this repo"

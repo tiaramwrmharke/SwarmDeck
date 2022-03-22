@@ -118,3 +118,6 @@ interface BackendStatus {
   baseURL: string;
   openAIBaseURL: string;
   models: DetectedModel[];
+  existingProviderId: string | null;
+  homepage: string;
+  install: InstallSpec;
