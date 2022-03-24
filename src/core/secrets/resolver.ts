@@ -17,3 +17,5 @@ export async function resolveCredential(ref: CredentialRef, opts: ResolveOptions
     case 'keychain': {
       const value = await readKeychain(ref.account);
       if (!value) throw new Error(`Keychain entry not found: ${ref.account}`);
+      return value;
+    }
