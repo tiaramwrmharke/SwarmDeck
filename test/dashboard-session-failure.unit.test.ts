@@ -7,3 +7,5 @@ describe('dashboard session failure display', () => {
     expect(liveStreamFailureLabelKey({
       phase: 'done',
       text: 'Partial answer before the agent failed.',
+      thinking: '',
+      error: 'Claude exited before completing the turn.',

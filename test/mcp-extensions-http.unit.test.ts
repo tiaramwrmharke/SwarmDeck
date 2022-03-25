@@ -44,3 +44,7 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
           mcp: {
             generic: {
               type: 'http',
+              url: 'https://example.com/mcp',
+              enabled: true,
+            },
+          },
