@@ -324,3 +324,6 @@ export interface ClaudeScreenInfo {
  * Default-deny: anything not high-confidence returns 'unknown', because mislabelling a real freeze
  * as a clearable/idle state would convert a self-healing stall (auto-resume) into a silently
  * dropped turn — ambiguity must bias to the freeze path.
+ */
+export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
+  if (typeof screen !== 'string' || !screen) return { state: 'unknown', affirmativeKey: null, sample: '' };

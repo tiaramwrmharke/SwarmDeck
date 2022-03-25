@@ -31,3 +31,4 @@ const tools: McpToolModule['tools'] = [
             },
             required: ['label'],
           },
+        },
