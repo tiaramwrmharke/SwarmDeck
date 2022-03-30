@@ -105,3 +105,7 @@ describe('Gemini usage resolution', () => {
 });
 
 describe('Gemini session tail', () => {
+  const originalHome = process.env.HOME;
+
+  beforeEach(() => {
+    vi.resetModules();

@@ -22,3 +22,4 @@ export default function InAction() {
           ratioW={1280}
           ratioH={800}
           badge="N agents · N panes"
+        />
