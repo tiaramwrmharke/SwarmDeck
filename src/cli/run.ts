@@ -67,3 +67,5 @@ Options:
 Examples:
   npm run command -- claude-run -p "Hello world"
   npm run command -- codex-run -m o3 "Explain this repo"
+  npm run command -- claude-run -m sonnet --timeout 60 -p "What is 1+1?"
+  npm run command -- claude-tail

@@ -78,3 +78,6 @@ const LONG_USER_TEXT_CHAR_THRESHOLD = 1500;
 const LONG_USER_TEXT_LINE_THRESHOLD = 16;
 const COLLAPSED_PREVIEW_LINES = 8;
 
+function previewFromText(text: string): string {
+  const lines = text.split('\n');
+  if (lines.length <= COLLAPSED_PREVIEW_LINES) return text;
