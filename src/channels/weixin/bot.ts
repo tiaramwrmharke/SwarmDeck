@@ -302,3 +302,7 @@ export class WeixinBot extends Bot {
       `Tasks: ${d.activeTasksCount}`,
     ];
     if (d.running) {
+      lines.push(`Running: ${fmtUptime(Date.now() - d.running.startedAt)}`);
+    }
+    for (const line of buildUsageOverviewLines(d.usageOverview)) lines.push(line.text);
+    await ctx.reply(lines.join('\n'));
