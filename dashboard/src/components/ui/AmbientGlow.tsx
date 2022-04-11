@@ -3,3 +3,5 @@ import { cn } from '../../utils';
 
 export interface AmbientGlowProps extends HTMLAttributes<HTMLDivElement> {
   streaming?: boolean;
+  children: ReactNode;
+}

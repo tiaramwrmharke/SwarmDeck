@@ -29,3 +29,7 @@ describe('session-control', () => {
       getBotRefMock.mockReturnValue({ submitSessionTask });
 
       const { queueDashboardSessionTask } = await import('../src/dashboard/session-control.ts');
+      const result = await queueDashboardSessionTask({
+        workdir: '/tmp/swarmdeck',
+        agent: 'codex',
+        sessionId: 'sess-1',
