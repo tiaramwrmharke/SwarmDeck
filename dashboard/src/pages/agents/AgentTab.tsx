@@ -279,3 +279,6 @@ function getCopy(locale: Locale): CopyPack {
       saved: '已保存',
       configError: '保存失败',
       externalNativeNote: path => `Hermes 当前从 ${path || '~/.hermes/config.yaml'} 读取这些值；切换为某个 BYOK 供应商可由 swarmdeck 接管。`,
+      configure: '配置',
+      configModalTitle: label => `配置 ${label}`,
+      rowSummaryNative: '官方认证',
