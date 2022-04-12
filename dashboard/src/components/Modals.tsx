@@ -357,3 +357,4 @@ export function WeixinModal({ open, onClose }: { open: boolean; onClose: () => v
   const toast = useStore(s => s.toast);
   const reloadUntil = useStore(s => s.reloadUntil);
   const locale = useStore(s => s.locale);
+  const t = useMemo(() => createT(locale), [locale]);
