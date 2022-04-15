@@ -198,3 +198,5 @@ export const SessionPanel = memo(function SessionPanel({
     composerSelectionRef.current = sel;
   }, []);
 
+  useEffect(() => {
+    if (initialPendingConsumedRef.current || !hasInitialPending) return;

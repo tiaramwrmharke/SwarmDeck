@@ -173,3 +173,6 @@ export function normalizeErrorMessage(value: unknown): string {
       || normalizeErrorMessage(record.type)
       || normalizeErrorMessage(record.code)
       || normalizeErrorMessage(record.status);
+    if (preferred) return preferred;
+    try { return JSON.stringify(value).trim(); } catch {}
+  }
