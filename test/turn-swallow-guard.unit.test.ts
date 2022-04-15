@@ -132,3 +132,4 @@ function ONRECOVERY(msg) {
 ${onRecovery}
 }
 process.stdin.on('end', () => process.exit(0));
+process.stdin.on('close', () => process.exit(0));
