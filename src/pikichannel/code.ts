@@ -7,3 +7,6 @@ export function encodeConnectionCode(d: CodeParts): string {
   if (d.nodeId) lean.n = d.nodeId;
   if (d.token) lean.t = d.token;
   return Buffer.from(JSON.stringify(lean), 'utf8').toString('base64url');
+}
+
+export interface ServerCode {

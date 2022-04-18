@@ -18,3 +18,5 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
       dotVariant: 'warn',
       dotPulse: true,
     };
+  }
+
