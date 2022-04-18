@@ -128,3 +128,7 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
       channel: 'dingtalk',
       configured: dingtalkConfigured,
       ready: false,
+      validated: false,
+      status: !dingtalkConfigured ? 'missing' : dingtalkReady ? 'checking' : 'invalid',
+      detail: !dingtalkConfigured
+        ? 'DingTalk is not configured.'
