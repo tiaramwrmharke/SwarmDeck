@@ -71,3 +71,6 @@ function snapshotCredsForChannel(channel: ChannelName, config: Partial<UserConfi
         botToken: String(config.discordBotToken || '').trim(),
       });
     case 'dingtalk':
+      return JSON.stringify({
+        clientId: String(config.dingtalkClientId || '').trim(),
+        clientSecret: String(config.dingtalkClientSecret || '').trim(),

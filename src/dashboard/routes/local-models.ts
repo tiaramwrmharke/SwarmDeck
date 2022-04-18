@@ -121,3 +121,6 @@ interface BackendStatus {
   existingProviderId: string | null;
   homepage: string;
   install: InstallSpec;
+  runHint: InstallCommand;
+  pullCommandTemplate: string;
+  supportedOnThisOs: boolean;
