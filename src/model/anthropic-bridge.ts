@@ -76,3 +76,6 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
     let body: any = {};
     try { body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); } catch { body = {}; }
     if (route === 'messages/count_tokens') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ input_tokens: estimateTokens(body) }));
+      return;

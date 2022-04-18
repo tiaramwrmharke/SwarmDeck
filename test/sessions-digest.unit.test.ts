@@ -15,3 +15,4 @@ describe('formatSessionsDigestText', () => {
   it('renders recent sessions with agent totals and switch hints', () => {
     const data: SessionsDigestData = {
       workspaceName: 'demo-app',
+      agentTotals: { codex: 2, claude: 1 },
