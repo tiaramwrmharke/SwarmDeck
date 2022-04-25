@@ -19,3 +19,4 @@ function getSessionRuntime(bot: SessionLookupBot, session: SessionLookupInfo): S
   const sessionId = session.sessionId || null;
   if (!sessionId) return null;
   return bot.sessionStates.get(`${session.agent}:${sessionId}`) || null;
+}
