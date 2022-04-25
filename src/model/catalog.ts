@@ -24,3 +24,5 @@ function readDiskCache(): CacheEnvelope | null {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && parsed.fetchedAt && parsed.data) {
       return parsed as CacheEnvelope;
+    }
+  } catch {}
