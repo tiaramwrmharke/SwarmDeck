@@ -16,3 +16,5 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
   const agents = agentStatus?.agents ?? [];
 
   const nodes = agents.flatMap(agent => {
+    const gauge = usageGauge(agent.usage);
+    // claude / codex: render the account switcher (it manages its own visibility + usage).

@@ -158,3 +158,7 @@ function readClaudeMeta(filePath: string, stat: fs.Stats): { title: string | nul
     let lastUser: string | null = null;
     let headAssistant: string | null = null;
     let turns = 0;
+    let head = '';
+    try {
+      head = readRegion(filePath, 0, Math.min(HEAD_BYTES, Math.max(65536, size)));
+    } catch { return { title: null, model: null, preview: null, turns: 0 }; }
