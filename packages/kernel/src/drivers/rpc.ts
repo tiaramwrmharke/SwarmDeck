@@ -20,3 +20,6 @@ export interface StdioRpcOptions {
   label?: string;                 // name used in error messages; defaults to command
 }
 
+const STDERR_TAIL_LINES = 20;
+
+export class StdioRpcClient {
