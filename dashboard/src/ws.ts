@@ -85,3 +85,4 @@ function channelToSnapshot(key: string, u: any): any {
   return {
     sessionId: u.sessionId ?? sessionId,
     phase: u.phase,
+    taskId: u.taskId ?? null,

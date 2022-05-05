@@ -9,3 +9,5 @@ describe('formatFooterParts — BYOK profile name + provider', () => {
       provider: '豆包 (Volcengine Ark)',
       profileName: '豆包 Seed 2.1',
     });
+    expect(parts.identity).toBe('codex · 豆包 Seed 2.1');
+    expect(parts.identity).not.toContain('doubao-seed-2-1-pro');

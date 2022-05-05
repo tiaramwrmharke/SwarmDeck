@@ -118,3 +118,6 @@
   --th-badge-accent-border: rgba(125,211,252,0.28);
   --th-badge-info-text: #bae6fd;
   --th-badge-info-bg: rgba(125,211,252,0.14);
+  --th-badge-info-border: rgba(125,211,252,0.30);
+  --th-badge-running-text: #dbeafe;
+  --th-badge-running-bg: rgba(96,165,250,0.16);

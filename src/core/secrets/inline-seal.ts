@@ -10,3 +10,5 @@ const VERSION_TAG = 'v1';
 function readOrCreateSalt(): Buffer {
   try {
     const raw = fs.readFileSync(SALT_FILE);
+    if (raw.length >= 32) return raw.subarray(0, 32);
+  } catch {}
