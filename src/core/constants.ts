@@ -29,3 +29,7 @@ export const LEGACY_ENV_PREFIXES = ['PIKICLAW_'] as const;
 export const MANAGED_BROWSER_PROFILE_SUBPATH = path.join(STATE_DIR_NAME, 'browser', 'chrome-profile');
 
 export const PLAYWRIGHT_MCP_PACKAGE_NAME = '@playwright/mcp';
+export const PLAYWRIGHT_MCP_PACKAGE_VERSION = '0.0.75';
+export const PLAYWRIGHT_MCP_PACKAGE_SPEC = `${PLAYWRIGHT_MCP_PACKAGE_NAME}@${PLAYWRIGHT_MCP_PACKAGE_VERSION}`;
+export const PLAYWRIGHT_MCP_BROWSER_ARGS = ['--browser', 'chrome', '--viewport-size', '1920x1080'] as const;
+// Chrome 150+ sets navigator.webdriver=true whenever remote debugging is on, which trips
