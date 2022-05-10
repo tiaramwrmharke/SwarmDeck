@@ -23,3 +23,5 @@ export default function InAction() {
           ratioH={800}
           badge="N agents · N panes"
         />
+        <p className="mt-3 text-center text-sm text-neutral-400">
+          Three agents on three tasks at once, then a six-pane grid — each pane keeps its own agent, model, and history.
