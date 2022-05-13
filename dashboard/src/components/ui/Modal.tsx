@@ -31,3 +31,5 @@ export function Modal({ open, onClose, size, wide, panelStyle, children }: Modal
 
   if (!open) return null;
   if (typeof document === 'undefined') return null;
+
+  const resolvedSize: ModalSize = size ?? (wide ? 'lg' : 'sm');
