@@ -138,3 +138,4 @@ export function decodeCommandAction(data: string): CommandAction | null {
     const rest = data.slice(6);
     const sep = rest.indexOf(':');
     if (sep < 0) return null;
+    try {

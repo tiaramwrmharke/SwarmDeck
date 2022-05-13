@@ -32,3 +32,7 @@ export interface RecommendedMcpServer {
   id: string;
   name: string;
   description: string;
+  descriptionZh: string;
+  category: McpCategory;
+  recommendedScope: RecommendedScope;
+  transport: McpTransportSpec;
