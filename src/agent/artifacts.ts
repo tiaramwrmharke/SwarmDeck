@@ -41,3 +41,4 @@ function deliveredDir(agent: Agent, sessionId: string): string {
   return path.join(sessionAttachmentsDir(agent, sessionId), 'delivered');
 }
 
+function sanitizeName(name: string): string {
