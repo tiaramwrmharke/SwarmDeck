@@ -13,3 +13,4 @@ npm --prefix web run dev        # local preview at http://localhost:4321
 ---
 
 ## Recommended: Cloudflare Pages (free, git auto-deploy, global CDN, free SSL)
+
