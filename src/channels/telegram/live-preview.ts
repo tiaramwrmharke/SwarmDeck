@@ -43,3 +43,5 @@ export class LivePreview {
   private readonly placeholderMessageId: number | string | null;
   private readonly channel: PreviewChannel;
   private readonly renderer: LivePreviewRenderer;
+  private readonly streamEditIntervalMs: number;
+  private readonly startTimeMs: number;
