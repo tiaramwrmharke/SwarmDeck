@@ -17,3 +17,6 @@ const catalog: Catalog = {
 };
 const waitFor = async (pred: () => boolean, ms = 6000) => {
   const t0 = Date.now();
+  while (!pred()) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 10)); }
+};
+

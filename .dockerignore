@@ -18,3 +18,6 @@ dashboard/node_modules
 
 # Git internals (the image doesn't need history).
 .git
+.gitignore
+.gitattributes
+
