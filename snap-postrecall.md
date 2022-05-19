@@ -124,3 +124,4 @@
                     - generic [ref=e175]:
                       - generic [ref=e176]:
                         - img [ref=e177]
+                        - text: "3"

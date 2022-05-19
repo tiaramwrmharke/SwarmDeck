@@ -93,3 +93,5 @@ export const agentMeta: Record<string, AgentMeta> = {
   gemini: {
     label: 'Gemini CLI',
     shortLabel: 'Gemini',
+    color: '#c4b5fd',
+    bg: 'rgba(196,181,253,0.12)',
