@@ -32,3 +32,6 @@ const tools: McpToolModule['tools'] = [
             required: ['label'],
           },
         },
+        allow_freeform: {
+          type: 'boolean',
+          description: 'When options are supplied, also accept freeform text (default true).',

@@ -31,3 +31,7 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
     });
   }
 
+  it('codex exposes the xhigh rung as "xhigh"', () => {
+    expect(effortOptionsFor('codex').find(l => l.id === 'xhigh')?.label).toBe('xhigh');
+  });
+
