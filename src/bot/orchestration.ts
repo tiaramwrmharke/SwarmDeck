@@ -28,3 +28,4 @@ export function buildKnownChatEnv(
   knownChatIds: Iterable<ChatId>,
   envName: string,
 ): Record<string, string> {
+  const ids = new Set<string>();

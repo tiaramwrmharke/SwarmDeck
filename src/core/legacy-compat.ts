@@ -11,3 +11,6 @@ import {
 export function hydrateLegacyEnv(): void {
   for (const legacy of LEGACY_ENV_PREFIXES) {
     for (const [key, value] of Object.entries(process.env)) {
+      if (value === undefined) continue;
+      if (!key.startsWith(legacy)) continue;
+      const mapped = ENV_PREFIX + key.slice(legacy.length);
