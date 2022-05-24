@@ -16,3 +16,7 @@ export class EchoDriver implements AgentDriver {
 
   // A hermetic raw-PTY "TUI": prints a banner, echoes input, exits on 'Q'. Lets the
   // Lane R passthrough path be exercised without a real agent.
+  tui(input: { workdir: string; env?: Record<string, string> }): { command: string; args: string[]; cwd: string; env?: Record<string, string> } {
+    return { command: process.execPath, args: ['-e', ECHO_TUI], cwd: input.workdir, env: input.env };
+  }
+
