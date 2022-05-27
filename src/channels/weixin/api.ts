@@ -141,3 +141,5 @@ function combineAbortSignals(
   if (!external) return timeout;
   if (external.aborted) {
     timeout.dispose();
+    return { signal: external, dispose: () => {} };
+  }

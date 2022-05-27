@@ -47,3 +47,4 @@ export interface LoomConfig {
 }
 
 export interface Loom {
+  readonly io: LoomIO;
