@@ -40,3 +40,5 @@ export function HeaderAccountMenu({ agent, nativeGauge, nativeUsage, t }: {
   useEffect(() => {
     void load(true);
     const id = window.setInterval(() => { if (!document.hidden) void load(true); }, 5 * 60_000);
+    const onVisibility = () => { if (!document.hidden) void load(true); };
+    document.addEventListener('visibilitychange', onVisibility);

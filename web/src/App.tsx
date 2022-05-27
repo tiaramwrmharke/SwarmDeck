@@ -8,3 +8,5 @@ import Stats from '@/sections/Stats';
 import UsedBy from '@/sections/UsedBy';
 import Orchestrator from '@/sections/Orchestrator';
 import Swarm from '@/sections/Swarm';
+import InAction from '@/sections/InAction';
+import Channels from '@/sections/Channels';
