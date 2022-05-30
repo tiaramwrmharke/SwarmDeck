@@ -6,3 +6,5 @@ export function makeStreamResult(
 ): StreamResult {
   return {
     ok: true,
+    message: 'ok',
+    thinking: null,

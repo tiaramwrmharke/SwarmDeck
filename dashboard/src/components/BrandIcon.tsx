@@ -20,3 +20,4 @@ import deepseekLogo from '../assets/brands/deepseek.ico';
 import qwenLogo from '../assets/brands/qwen.png';
 import doubaoLogo from '../assets/brands/doubao.png';
 import glmLogo from '../assets/brands/glm.png';
+import minimaxLogo from '../assets/brands/minimax.ico';
