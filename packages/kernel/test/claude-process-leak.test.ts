@@ -45,3 +45,6 @@ process.stdin.on('end', () => process.exit(0));
 /** Ignores stdin EOF and SIGTERM entirely, and never emits a `result` — so its turn never
  *  settles. Models a CLI wedged in its post-`result` transcript flush or by an MCP server that
  *  hangs its own shutdown, which is the state only SIGKILL ends. */
+const STUBBORN = `#!/usr/bin/env node
+require('node:fs').writeFileSync(process.env.PID_FILE, String(process.pid));
+process.on('SIGTERM', () => {});

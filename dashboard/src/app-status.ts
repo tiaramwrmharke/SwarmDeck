@@ -20,3 +20,7 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
     };
   }
 
+  if (state.ready && state.bot?.connected) {
+    return {
+      badgeVariant: 'ok',
+      badgeContent: t('status.running'),
