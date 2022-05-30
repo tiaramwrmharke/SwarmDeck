@@ -40,3 +40,6 @@ beforeEach(() => {
   resetEnv();
 });
 
+afterEach(() => {
+  process.env = { ...ORIGINAL_ENV };
+});

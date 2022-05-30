@@ -12,3 +12,5 @@ import {
   PEEKABOO_NPX_PACKAGE,
   PEEKABOO_MCP_ARGV,
   PEEKABOO_WARM_ARGV,
+  ensurePeekabooWarm,
+} from '../src/agent/mcp/bridge.js';
