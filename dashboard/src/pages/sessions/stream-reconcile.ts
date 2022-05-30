@@ -15,3 +15,7 @@ export interface SnapshotGateInput {
   holdExpired?: boolean;
 }
 
+export type SnapshotGateDecision = 'apply' | 'reject-stale' | 'reject-null';
+
+export function snapshotGate(input: SnapshotGateInput): SnapshotGateDecision {
+  if (input.isNull) {

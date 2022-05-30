@@ -19,3 +19,4 @@ export const colors = {
     default: 'var(--edge-default)',
     strong: 'var(--edge-strong)',
   },
+  status: {
