@@ -68,3 +68,7 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     expect(out[0].model).toBe('claude-opus-4-8');
     expect(out[0].preview).toBe('done');
   });
+
+  // A CLI maintenance pass over its own store (claude 2.1.220 backfilled a `last-prompt` index record
+  // into every transcript) rewrites every mtime to one instant. Ordering must survive that, or months
+  // of history collapse into an arbitrary tie and `limit` cuts the genuinely-recent rows.
