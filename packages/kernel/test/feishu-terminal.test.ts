@@ -14,3 +14,7 @@ class FakeFeishuTransport implements FeishuTransport {
   private cb?: (m: InboundFeishuMessage) => void;
   onMessage(cb: (m: InboundFeishuMessage) => void): void { this.cb = cb; }
   async send(chatId: string, text: string): Promise<string> { const id = `m${this.sent.length + 1}`; this.sent.push({ chatId, id, text }); return id; }
+  async edit(id: string, text: string): Promise<void> { this.edits.push({ id, text }); }
+  inbound(chatId: string, text: string): void { this.cb?.({ chatId, text, messageId: `in-${Date.now()}` }); }
+  rendered(): string[] { return [...this.sent.map(s => s.text), ...this.edits.map(e => e.text)]; }
+}
