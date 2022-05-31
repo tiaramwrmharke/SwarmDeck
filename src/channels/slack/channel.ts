@@ -70,3 +70,7 @@ export class SlackChannel extends Channel {
   private running = false;
   private listenResolve: (() => void) | null = null;
 
+  private readonly messageHandlers = new Set<SlackMessageHandler>();
+  private readonly errorHandlers = new Set<SlackErrorHandler>();
+
+  private readonly seenEventIds = new Set<string>();
