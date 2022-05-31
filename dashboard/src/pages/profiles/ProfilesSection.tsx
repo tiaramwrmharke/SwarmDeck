@@ -123,3 +123,7 @@ function getCopy(locale: Locale): Copy {
     sectionHint: 'Register the models you actually use as named shortcuts. A pure selection list — agents pick from here, but who picks what does not bubble back into this view.',
     addLabel: 'Add model',
     empty: 'No models registered yet',
+    emptyHint: 'Connect a provider below first, then come back here to pin the few you actually use.',
+    addModalTitle: 'Add Model',
+    editModalTitle: 'Edit Model',
+    fieldName: 'Display name',

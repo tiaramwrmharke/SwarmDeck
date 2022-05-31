@@ -24,3 +24,5 @@ export function buildSkillCommandName(skillName: string): string | null {
   if (cmdName.length > 32) return null;
   return cmdName;
 }
+
+export function indexSkillsByCommand(skills: SkillInfo[]): Map<string, SkillInfo> {
