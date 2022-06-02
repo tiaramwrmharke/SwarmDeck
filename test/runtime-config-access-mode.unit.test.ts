@@ -20,3 +20,4 @@ describe('resolveClaudeAccessMode', () => {
       else process.env[k] = saved[k];
     }
   });
+
