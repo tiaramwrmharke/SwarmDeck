@@ -11,3 +11,6 @@ export function TabsList({ children, className }: { children: ReactNode; classNa
 
 export function TabsTrigger({
   active,
+  children,
+  className,
+  ...props
