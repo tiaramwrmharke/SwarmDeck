@@ -11,3 +11,5 @@ function geminiRun(events: any[]): DriverEvent[] {
 function hermesRun(updates: any[]): DriverEvent[] {
   const out: DriverEvent[] = []; const s: any = { text: '', reasoning: '' }; const tools = new Set<string>();
   for (const u of updates) applyAcpUpdate(u, s, tools, (e) => out.push(e));
+  return out;
+}
