@@ -107,3 +107,5 @@ function updaterLockPath(): string {
 function normalizeBooleanEnv(value: string | undefined): boolean | null {
   const text = String(value || '').trim();
   if (!text) return null;
+  if (/^(1|true|yes|on)$/i.test(text)) return true;
+  if (/^(0|false|no|off)$/i.test(text)) return false;
