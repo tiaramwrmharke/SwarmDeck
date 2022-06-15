@@ -21,3 +21,6 @@ const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 5000) => {
     await new Promise(r => setTimeout(r, 5));
   }
 };
+
+describe('session history / transcript (hermetic)', () => {
+  let tmp: string;
