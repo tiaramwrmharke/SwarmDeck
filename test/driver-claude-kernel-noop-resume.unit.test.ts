@@ -39,3 +39,4 @@ describe('isClaudeSlashCommand', () => {
     expect(isClaudeSlashCommand('/my-command')).toBe(true);
     expect(isClaudeSlashCommand('/plugin:skill')).toBe(true);
     expect(isClaudeSlashCommand('  /compact')).toBe(true); // leading whitespace tolerated
+    expect(isClaudeSlashCommand('/compact\nmore')).toBe(true); // first line only
