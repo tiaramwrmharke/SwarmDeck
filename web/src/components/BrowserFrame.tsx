@@ -14,3 +14,6 @@ export default function BrowserFrame({
 }: {
   src?: string;
   video?: string;
+  alt: string;
+  ratioW: number;
+  ratioH: number;
