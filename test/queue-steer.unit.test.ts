@@ -13,3 +13,7 @@ function simulateRunOrder(queuedIds: string[], deferIds: string[]): string[] {
     const head = chain.shift()!;
     if (deferred.has(head)) {
       deferred.delete(head);
+      chain.push(head);
+    } else {
+      runOrder.push(head);
+    }
