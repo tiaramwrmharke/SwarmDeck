@@ -74,3 +74,4 @@ export class SlackChannel extends Channel {
   private readonly errorHandlers = new Set<SlackErrorHandler>();
 
   private readonly seenEventIds = new Set<string>();
+  private readonly seenEventQueue: string[] = [];
