@@ -112,3 +112,6 @@ interface ApplyUserConfigOptions {
 interface SyncUserConfigOptions {
   intervalMs?: number;
   overrides?: Partial<UserConfig>;
+  log?: (message: string) => void;
+}
+
