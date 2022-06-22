@@ -43,3 +43,7 @@ describe('claudeUserMessage (kernel)', () => {
 
   it('represents a non-image / unreadable file as a text note, never crashing', () => {
     const pdf = path.join(tmp, 'doc.pdf');
+    fs.writeFileSync(pdf, 'not an image');
+    const content = JSON.parse(claudeUserMessage('hi', [pdf, path.join(tmp, 'missing.png')])).message.content;
+    expect(content.some((b: any) => b.type === 'image')).toBe(false);
+    expect(content.filter((b: any) => b.type === 'text' && b.text.startsWith('[Attached file:')).length).toBe(2);
