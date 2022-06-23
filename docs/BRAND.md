@@ -13,3 +13,4 @@ deep-cyan variant for light backgrounds.
 
 Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
 
+## Color by background

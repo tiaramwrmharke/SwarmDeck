@@ -13,3 +13,4 @@ const MAIN = [
   'createLoom', 'Hub', 'SessionRunner', 'runTurn', 'PtyBridge', 'ptyAvailable', 'attachTui',
   // default ports
   'FsSessionStore', 'NullModelResolver', 'NoopToolProvider', 'PassthroughSystemPromptBuilder',
+  'AutoCancelInteractionHandler', 'DeferToTerminalInteractionHandler', 'NoopCatalog', 'defaultBaseDir',
