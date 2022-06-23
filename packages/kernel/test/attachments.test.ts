@@ -31,3 +31,4 @@ function makePng(width: number, height: number): Buffer {
   return Buffer.concat([sig, chunk('IHDR', ihdrBody), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
 
+// Whether THIS machine can actually resize (darwin sips, or ImageMagick on PATH).
