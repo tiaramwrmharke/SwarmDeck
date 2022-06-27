@@ -21,3 +21,4 @@ const input = tv({
     tone: {
       default: [
         'bg-transparent border-[var(--edge-default)]',
+        'hover:border-[var(--edge-strong)]',
