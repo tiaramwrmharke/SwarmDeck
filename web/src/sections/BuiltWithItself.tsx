@@ -10,3 +10,5 @@ export default function BuiltWithItself() {
     <section id="built" className="relative scroll-mt-24 border-y border-white/5 bg-white/[0.015]">
       <div className="mx-auto max-w-6xl px-6 py-24">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Built with itself</p>

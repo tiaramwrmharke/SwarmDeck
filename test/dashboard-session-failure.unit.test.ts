@@ -9,3 +9,5 @@ describe('dashboard session failure display', () => {
       text: 'Partial answer before the agent failed.',
       thinking: '',
       error: 'Claude exited before completing the turn.',
+    })).toBe('hub.streamErrored');
+
