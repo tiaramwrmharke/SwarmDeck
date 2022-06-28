@@ -49,3 +49,7 @@ describe('formatUsageWindowsSummary', () => {
       label: '<1m ago',
       usedPercent: null,
       remainingPercent: null,
+      resetAt: '2026-06-30T02:05:00.000Z',
+      resetAfterSeconds: null,
+      status: 'warning',
+    }];
