@@ -40,3 +40,7 @@ vi.mock('discord.js', () => {
     });
   }
   class FakeClient {
+    user = { id: 'BOT_USER', username: 'swarmdeck', displayName: 'swarmdeck' };
+    channels = {
+      cache: new Map<string, FakeChannel>(),
+      fetch: vi.fn(async (id: string) => {
