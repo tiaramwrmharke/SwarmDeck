@@ -13,3 +13,5 @@ const ALL_INSTALLED: AgentInfo[] = [
 const ONLY_CLAUDE: AgentInfo[] = [
   info('claude', true), info('codex', false), info('gemini', false), info('hermes', false),
 ];
+const NONE_INSTALLED: AgentInfo[] = [
+  info('claude', false), info('codex', false), info('gemini', false), info('hermes', false),
