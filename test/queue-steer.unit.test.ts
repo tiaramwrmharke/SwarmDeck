@@ -17,3 +17,5 @@ function simulateRunOrder(queuedIds: string[], deferIds: string[]): string[] {
     } else {
       runOrder.push(head);
     }
+  }
+  return runOrder;
