@@ -6,3 +6,4 @@ const OUT = new URL('../docs/downloads.json', import.meta.url);
 
 async function monthlyInstalls(pkg) {
   try {
+    const res = await fetch(`https://api.npmjs.org/downloads/point/last-month/${pkg}`);

@@ -54,3 +54,6 @@ export async function startDashboard(opts: DashboardOptions = {}): Promise<Dashb
 
   let pikichannel: PikichannelHandle | null = null;
   try {
+    pikichannel = await mountPikichannel(app);
+  } catch (err) {
+    runtime.warn(`[pikichannel] mount failed: ${(err as Error)?.message || err}`);
