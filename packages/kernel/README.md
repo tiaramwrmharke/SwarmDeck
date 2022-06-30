@@ -90,3 +90,5 @@ const loom = createLoom({
   // optional ports — override any one to swap storage / credentials / tools / prompts:
   // sessionStore, modelResolver, toolProvider, systemPromptBuilder, catalog, interactionHandler
 });
+await loom.start();
+
