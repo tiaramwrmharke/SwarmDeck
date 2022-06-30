@@ -31,3 +31,7 @@ export function usageTone(usage: UsageResult | null): UsageTone {
 export function displayableUsageWindows(usage: UsageResult | null): UsageWindowInfo[] {
   if (!usage?.ok) return [];
   return usage.windows.filter(window => window.usedPercent != null);
+}
+
+export function worstUsageWindow(usage: UsageResult | null): UsageWindowInfo | null {
+  let worst: UsageWindowInfo | null = null;

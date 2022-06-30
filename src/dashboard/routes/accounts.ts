@@ -39,3 +39,4 @@ app.get('/api/agents/:agent/accounts', async (c) => {
   // send on every hover. Account rows and the default-login quota come from the same pass.
   // `force=1` = the user clicked the explicit refresh button: also bypass the failure backoff.
   // Must only ever come from a deliberate click, never a hover — the endpoints behind it
+  // rate-limit aggressive polling.
