@@ -40,3 +40,6 @@ app.get('/api/agents/:agent/accounts', async (c) => {
   // `force=1` = the user clicked the explicit refresh button: also bypass the failure backoff.
   // Must only ever come from a deliberate click, never a hover — the endpoints behind it
   // rate-limit aggressive polling.
+  const fresh = c.req.query('fresh') === '1';
+  const force = c.req.query('force') === '1';
+  const snap = await getAccountsUsageSnapshot(agent, { fresh, force });
