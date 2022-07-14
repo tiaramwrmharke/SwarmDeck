@@ -43,3 +43,5 @@ const vertex =  `
   uniform mat4 viewMatrix;
   uniform mat4 projectionMatrix;
   uniform float uTime;
+  uniform float uSpread;
+  uniform float uBaseSize;
