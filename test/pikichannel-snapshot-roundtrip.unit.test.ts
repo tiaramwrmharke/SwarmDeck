@@ -26,3 +26,7 @@ function maximalSnapshot(): any {
       promptId: 'h1', kind: 'user-input', title: 'T', hint: 'hint', currentIndex: 0,
       questions: [{ id: 'ask-user', header: 'H', prompt: 'pick', options: [{ label: 'A', description: 'd', value: 'A' }], allowFreeform: true }],
     }],
+    previewMeta: {
+      inputTokens: 5, outputTokens: 6, cachedInputTokens: 1, contextUsedTokens: 100,
+      contextPercent: 12, turnOutputTokens: 6, providerName: 'anthropic', generatingImages: 1,
+      toolCalls: [{ id: 'c1', name: 'Read', summary: 'Read x', input: '{}', result: 'ok', status: 'done' }],
