@@ -14,3 +14,7 @@ export class CliSurface implements Surface {
 
   async start(io: LoomIO): Promise<void> {
     const out = this.opts.output || process.stdout;
+    let sessionKey: string | undefined;          // conversation continuity across lines
+    let pendingPromptId: string | null = null;   // a HITL question awaiting an answer from this terminal
+    let lastQueued = 0;
+
