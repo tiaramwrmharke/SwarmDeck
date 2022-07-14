@@ -132,3 +132,6 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
       status: !dingtalkConfigured ? 'missing' : dingtalkReady ? 'checking' : 'invalid',
       detail: !dingtalkConfigured
         ? 'DingTalk is not configured.'
+        : dingtalkReady
+          ? 'Validating DingTalk credentials…'
+          : 'Both Client ID and Client Secret are required.',

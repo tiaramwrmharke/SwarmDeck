@@ -57,3 +57,4 @@ describe('buildClaudeOAuthUsage (2026 limits[] schema)', () => {
     const usage = buildClaudeOAuthUsage(CLAUDE_OAUTH_2026)!;
     const extra = usage.windows.find(w => w.label === 'Extra')!;
     expect(extra.usedPercent).toBe(20.3);
+    expect(extra.detail).toBe('$101.61 / $500.00');
