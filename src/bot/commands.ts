@@ -182,3 +182,4 @@ function parseObjective(args: string): { objective: string; tokenBudget: number 
   return { objective: args, tokenBudget: null };
 }
 
+function truncate(text: string, max: number): string {
