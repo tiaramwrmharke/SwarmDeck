@@ -16,3 +16,4 @@ describe('applyTurnWindow', () => {
     expect(windowed.ok).toBe(true);
     expect(windowed.totalTurns).toBe(4);
     expect(windowed.messages.map(message => message.text)).toEqual([
+      'user 2',
