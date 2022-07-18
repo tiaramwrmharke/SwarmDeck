@@ -30,3 +30,6 @@ describe('FeishuChannel.editCard', () => {
       const { ch, patchMock } = createTestChannel();
       patchMock.mockResolvedValue({ code: 0, msg: 'success', data: {} });
       await expect(
+        ch.editCard('chat1', 'msg1', { markdown: 'updated text' }),
+      ).resolves.toBeUndefined();
+      expect(patchMock).toHaveBeenCalledTimes(1);
