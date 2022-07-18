@@ -13,3 +13,5 @@ export interface McpToolDef {
   inputSchema: {
     type: 'object';
     properties: Record<string, unknown>;
+    required?: string[];
+  };
