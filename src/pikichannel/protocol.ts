@@ -57,3 +57,5 @@ export interface UniversalArtifact {
 
 export interface UniversalInteraction {
   promptId: string;
+  kind: 'user-input' | 'permission' | 'confirmation';
+  title: string;
