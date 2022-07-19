@@ -11,3 +11,6 @@ describe('formatFooterParts — BYOK profile name + provider', () => {
     });
     expect(parts.identity).toBe('codex · 豆包 Seed 2.1');
     expect(parts.identity).not.toContain('doubao-seed-2-1-pro');
+    expect(parts.runtime).toContain('high');
+    expect(parts.runtime).toContain('via 豆包 (Volcengine Ark)');
+  });
