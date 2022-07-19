@@ -19,3 +19,6 @@ export type SnapshotGateDecision = 'apply' | 'reject-stale' | 'reject-null';
 
 export function snapshotGate(input: SnapshotGateInput): SnapshotGateDecision {
   if (input.isNull) {
+    if ((input.localStreamPending || input.holdsActiveState) && !input.holdExpired) return 'reject-null';
+    return 'apply';
+  }
