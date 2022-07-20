@@ -84,3 +84,6 @@ export interface AttachAgentImageOpts {
   inlineThresholdBytes?: number;
 }
 
+export function attachAgentImage(opts: AttachAgentImageOpts): MessageBlock | null {
+  const abs = path.resolve(opts.imagePath);
+  let stat: fs.Stats;
