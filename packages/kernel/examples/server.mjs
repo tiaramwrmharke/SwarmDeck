@@ -5,3 +5,4 @@
 //
 //   node packages/kernel/examples/server.mjs            # real claude on :3941
 //   CONSOLE_REAL=0 PORT=3942 node .../server.mjs         # hermetic echo driver
+import http from 'node:http';
