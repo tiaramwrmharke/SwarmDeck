@@ -43,3 +43,4 @@ rl.on('line', async (line) => {
     note(sid, { sessionUpdate: 'tool_call', toolCallId: 'tc1', title: 'edit', status: 'in_progress' });
     note(sid, { sessionUpdate: 'tool_call_update', toolCallId: 'tc1', status: 'completed' });
     note(sid, { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'model=' + model + ' mcp=' + mcpCount + ' perm=' + decision + ' file=' + (readBack && readBack.content) } });
+    note(sid, { sessionUpdate: 'usage_update', size: 100000, used: 4242 });
