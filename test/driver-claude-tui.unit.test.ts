@@ -139,3 +139,4 @@ describe('Claude TUI driver — upfront session-id promotion', () => {
     expect(seenResume).toEqual([]);
   }, 20_000);
 });
+
