@@ -13,3 +13,6 @@ export function encodeClient(msg: ClientMessage, _fmt: WireFormat = DEFAULT_WIRE
 }
 
 function frameToText(raw: string | Buffer | ArrayBuffer): string {
+  if (typeof raw === 'string') return raw;
+  if (Buffer.isBuffer(raw)) return raw.toString('utf8');
+  return Buffer.from(new Uint8Array(raw)).toString('utf8');

@@ -15,3 +15,6 @@ import path from 'node:path';
 
 export type LoomScope = 'global' | 'workspace';
 
+export interface LoomPaths {
+  /** The bare name (no leading dot), e.g. 'swarmdeck'. */
+  readonly stateDirName: string;
