@@ -15,3 +15,5 @@ export interface CliCatalogItem {
   install: CliInstallSpec;
   auth: CliAuthSpec;
   state: CliState;
+  version?: string;
+  authDetail?: string;

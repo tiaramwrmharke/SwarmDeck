@@ -17,3 +17,6 @@ export default function BrowserFrame({
   alt: string;
   ratioW: number;
   ratioH: number;
+  cropTop?: number;
+  label?: string;
+  badge?: string;
