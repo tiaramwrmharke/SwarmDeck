@@ -23,3 +23,7 @@ export const LOCAL_MODELS: LocalModelEntry[] = [
     description: 'Compact coding-tuned model; a strong 16 GB Mac default for agent loops.',
     descriptionZh: '面向代码的小模型，16GB Mac 上跑 agent 的稳健选择。',
     ollamaTag: 'qwen2.5-coder:7b',
+    mlxModel: 'mlx-community/Qwen2.5-Coder-7B-Instruct-4bit',
+    homepage: 'https://qwenlm.github.io/blog/qwen2.5-coder/',
+  },
+  {
