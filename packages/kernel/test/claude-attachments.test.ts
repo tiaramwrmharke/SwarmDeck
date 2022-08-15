@@ -47,3 +47,5 @@ describe('claudeUserMessage (kernel)', () => {
     const content = JSON.parse(claudeUserMessage('hi', [pdf, path.join(tmp, 'missing.png')])).message.content;
     expect(content.some((b: any) => b.type === 'image')).toBe(false);
     expect(content.filter((b: any) => b.type === 'text' && b.text.startsWith('[Attached file:')).length).toBe(2);
+    expect(content[content.length - 1]).toEqual({ type: 'text', text: 'hi' });
+  });
