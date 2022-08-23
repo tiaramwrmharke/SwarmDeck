@@ -48,3 +48,5 @@ if (( _should_detach )); then
   # Agent tool runners can clean up the shell's remaining child process tree
   # after this parent exits. Launch the worker in a new session from a short
   # Python parent so it is reparented before the tool runner performs cleanup.
+  if command -v python3 >/dev/null 2>&1; then
+    _bg_pid=$(python3 - "$0" "${LOG_FILE}" "$(pwd)" "$@" <<'PY'
