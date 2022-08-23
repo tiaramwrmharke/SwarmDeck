@@ -8,3 +8,5 @@ export function makeStreamResult(
     ok: true,
     message: 'ok',
     thinking: null,
+    plan: null,
+    sessionId: 'sess-1',

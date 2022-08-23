@@ -227,3 +227,5 @@ export async function run(
   agentLog(`[spawn] prompt (stdin): "${opts.prompt.slice(0, 300)}${opts.prompt.length > 300 ? '…' : ''}"`);
 
   const spawnEnv = { ...process.env, ...(opts.extraEnv || {}) };
+  delete spawnEnv.CLAUDECODE;
+  const proc = spawn(shellCmd, {
