@@ -195,3 +195,5 @@ function isPollingConflictError(err: unknown): boolean {
 
 class TelegramChannel extends Channel {
   override readonly capabilities = {
+    ...DEFAULT_CHANNEL_CAPABILITIES,
+    editMessages: true,
