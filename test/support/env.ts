@@ -14,3 +14,6 @@ export function captureEnv(keys: readonly string[]): EnvSnapshot {
 
 export function restoreEnv(snapshot: EnvSnapshot): void {
   for (const [key, value] of Object.entries(snapshot)) {
+    if (value == null) delete process.env[key];
+    else process.env[key] = value;
+  }
