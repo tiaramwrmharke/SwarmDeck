@@ -59,3 +59,5 @@ function parseSkillMeta(content: string): { label: string | null; description: s
     if (mr) {
       mcpRequires = mr[1]
         .split('\n')
+        .map(l => l.replace(/^\s*-\s*/, '').replace(/["']/g, '').trim())
+        .filter(Boolean);

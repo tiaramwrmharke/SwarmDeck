@@ -26,3 +26,6 @@ export function buildSkillCommandName(skillName: string): string | null {
 }
 
 export function indexSkillsByCommand(skills: SkillInfo[]): Map<string, SkillInfo> {
+  const indexed = new Map<string, SkillInfo>();
+  for (const skill of skills) {
+    const cmdName = buildSkillCommandName(skill.name);

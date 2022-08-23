@@ -14,3 +14,4 @@ const MAIN = [
   // default ports
   'FsSessionStore', 'NullModelResolver', 'NoopToolProvider', 'PassthroughSystemPromptBuilder',
   'AutoCancelInteractionHandler', 'DeferToTerminalInteractionHandler', 'NoopCatalog', 'defaultBaseDir',
+  // drivers & surfaces
