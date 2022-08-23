@@ -45,3 +45,7 @@ export class LivePreview {
   private readonly renderer: LivePreviewRenderer;
   private readonly streamEditIntervalMs: number;
   private readonly startTimeMs: number;
+  private readonly canEditMessages: boolean;
+  private readonly canSendTyping: boolean;
+  private readonly messageThreadId?: number;
+  private readonly parseMode: string;

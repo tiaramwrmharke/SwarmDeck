@@ -41,3 +41,6 @@ function runArgv(argv: string[], timeoutMs: number): Promise<{ ok: boolean; stdo
 }
 
 function which(binary: string): string | null {
+  const isWin = process.platform === 'win32';
+  const exts = isWin ? (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';') : [''];
+  const sep = isWin ? ';' : ':';

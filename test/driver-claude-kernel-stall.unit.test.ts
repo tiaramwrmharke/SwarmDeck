@@ -52,3 +52,4 @@ describe('claudeModelStallMs', () => {
     expect(claudeModelStallMs('medium')).toBe(300_000);
     for (const effort of ['high', 'xhigh', 'max', 'ultra']) expect(claudeModelStallMs(effort)).toBe(600_000);
   });
+  it('honors a positive env override regardless of effort', () => {
