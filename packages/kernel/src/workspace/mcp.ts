@@ -27,3 +27,7 @@ export interface McpSearchResult {
   name: string;
   description: string | null;
   source: 'registry' | 'npm';
+  npmPackage?: string | null;
+  homepage?: string | null;
+}
+
