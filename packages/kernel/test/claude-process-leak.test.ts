@@ -48,3 +48,6 @@ process.stdin.on('end', () => process.exit(0));
 const STUBBORN = `#!/usr/bin/env node
 require('node:fs').writeFileSync(process.env.PID_FILE, String(process.pid));
 process.on('SIGTERM', () => {});
+process.stdin.resume();
+process.stdin.on('end', () => {});
+setInterval(() => {}, 1000);
