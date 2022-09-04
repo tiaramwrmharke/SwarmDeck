@@ -22,3 +22,5 @@ export interface ProviderConfig {
   extraHeaders?: Record<string, string>;
   validation?: ProviderValidationStatus | null;
   createdAt: string;
+  updatedAt: string;
+}
