@@ -42,3 +42,6 @@ const PERMISSIONS: PermissionMeta[] = [
     guidePathKey: 'perm.pathScreenRecording',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="5.5" width="11.5" height="10" rx="2.4" />
+        <path d="m17.5 8.4 2.7-1.5v7.2l-2.7-1.5" />
+        <circle cx="9.75" cy="10.5" r="1.1" fill="currentColor" stroke="none" />
