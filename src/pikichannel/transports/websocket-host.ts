@@ -14,3 +14,6 @@ class WsConnection extends BaseConnection {
     super();
     this.id = `ws-${++connCounter}`;
     this.remote = remote;
+
+    ws.on('message', (raw) => {
+      const data = raw as unknown;
