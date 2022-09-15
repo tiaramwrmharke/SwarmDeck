@@ -244,3 +244,6 @@ function getCopy(locale: Locale): Copy {
     sectionHint: 'Connect your own model providers. Keys are encrypted in the OS keychain and can be bound to any agent.',
     addLabel: 'Add provider',
     validate: 'Validate',
+    validating: 'Validating',
+    edit: 'Edit',
+    remove: 'Remove',
