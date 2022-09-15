@@ -23,3 +23,5 @@ export default function App() {
       <div id="top" className="relative min-h-screen bg-[#05060a] text-neutral-200">
         {isDesktop && (
           <SafeWebGL>
+            <SplashCursor DYE_RESOLUTION={1024} SPLAT_RADIUS={0.22} />
+          </SafeWebGL>
