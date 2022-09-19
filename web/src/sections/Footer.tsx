@@ -9,3 +9,5 @@ export default function Footer() {
             Start orchestrating in one command.
           </h2>
           <div className="mx-auto mt-6 inline-flex items-center gap-3 rounded-xl border border-white/12 bg-black/40 px-5 py-3 font-mono text-sm text-neutral-200">
+            <span className="text-neutral-500">$</span>
+            {INSTALL_CMD}
