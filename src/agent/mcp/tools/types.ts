@@ -15,3 +15,5 @@ export interface McpToolDef {
     properties: Record<string, unknown>;
     required?: string[];
   };
+}
+
