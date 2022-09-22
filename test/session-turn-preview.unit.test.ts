@@ -29,3 +29,4 @@ describe('extractLastSessionTurn', () => {
     ]);
     expect(turn?.userText).toBe('帮我梳理一下 server-side src 的结构');
     expect(turn?.assistantText).toContain('后台 agent');
+    expect(turn?.assistantText).toContain('四层');
