@@ -35,3 +35,7 @@ export default function Stats() {
         const total = counts.reduce((sum, n) => sum + n, 0);
         setDownloads(total > 0 ? total : FALLBACK_DOWNLOADS);
       })
+      .catch(() => setDownloads(FALLBACK_DOWNLOADS))
+      .finally(() => clearTimeout(timer));
+    return () => {
+      clearTimeout(timer);
