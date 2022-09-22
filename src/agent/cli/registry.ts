@@ -24,3 +24,7 @@ export interface CliInstallSpec {
 
 export interface CliAuthSpec {
   type: CliAuthType;
+  statusArgv?: string[];
+  statusReadyPattern?: string;
+  loginArgv?: string[];
+  logoutArgv?: string[];
