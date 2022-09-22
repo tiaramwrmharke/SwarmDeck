@@ -55,3 +55,5 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
     expect(pendingClaudeBackgroundTasks(s)).toBe(0);
   });
 
+  it('keeps pending on a NON-terminal task_updated (progress only)', () => {
+    const s = freshState();
