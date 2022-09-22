@@ -14,3 +14,4 @@ function loadPty(): any | null {
 export function ptyAvailable(): boolean { return !!loadPty(); }
 
 export interface PtyOpenOpts { cols?: number; rows?: number }
+export interface PtyExit { exitCode: number; signal?: number }
