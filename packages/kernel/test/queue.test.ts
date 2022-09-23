@@ -13,3 +13,5 @@ function watchAll(io: LoomIO) {
   const unsub = io.subscribe((_k, s) => updates.push(structuredClone(s)));
   return { updates, unsub };
 }
+const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 6000) => {
+  const t0 = Date.now();
