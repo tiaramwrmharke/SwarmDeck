@@ -142,3 +142,7 @@ describe('Claude TUI driver — upfront session-id promotion', () => {
 
 describe('Claude TUI driver — terminal limit notices', () => {
   it('detects synthetic + screen-only limit notices but ignores ordinary rate-limit prose', async () => {
+    const { detectClaudeTuiTerminalLimitNotice } = await import('../src/agent/drivers/claude-tui.ts');
+    const notice = detectClaudeTuiTerminalLimitNotice({
+      model: '<synthetic>',
+      content: [{ type: 'text', text: "You've hit your session limit · resets 9:40pm (Asia/Shanghai)" }],
