@@ -11,3 +11,7 @@ export function hasConfiguredChannelToken(
       return !!(config.telegramBotToken || tokenOverride);
     case 'feishu':
       return !!((config.feishuAppId && config.feishuAppSecret) || tokenOverride);
+    case 'weixin':
+      return !!(
+        config.channels?.includes('weixin')
+        && config.weixinBaseUrl
