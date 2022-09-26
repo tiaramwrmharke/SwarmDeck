@@ -6,3 +6,4 @@
 
 ## Related issue
 
+<!-- Link the issue this PR addresses, e.g. "Closes #123" or "Part of #456" -->
