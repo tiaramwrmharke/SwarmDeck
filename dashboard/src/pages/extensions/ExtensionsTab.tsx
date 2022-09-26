@@ -774,3 +774,4 @@ function SkillConnectedCard({
   animationDelay?: string;
   onClick: () => void;
   onUpdate?: () => void;
+  updating?: boolean;
