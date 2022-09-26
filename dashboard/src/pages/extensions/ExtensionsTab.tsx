@@ -771,3 +771,6 @@ function SkillConnectedCard({
 }: {
   item: SkillCatalogItem;
   locale: string;
+  animationDelay?: string;
+  onClick: () => void;
+  onUpdate?: () => void;
