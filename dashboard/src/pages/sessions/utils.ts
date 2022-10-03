@@ -73,3 +73,6 @@ export function streamPromptMatchesTurnText(
   if (sameUserText(turnText, streamPrompt)) return true;
   const turn = normalizeUserText(turnText);
   const prompt = normalizeUserText(streamPrompt);
+  if (!turn || !prompt || turn.length >= prompt.length) return false;
+  if (!/(?:\.\.\.|…)$/.test(turn)) return false;
+  const core = turn.replace(/(?:\s*(?:\.\.\.|…))+$/, '').trim();
