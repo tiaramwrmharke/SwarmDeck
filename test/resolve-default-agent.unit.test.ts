@@ -15,3 +15,5 @@ const ONLY_CLAUDE: AgentInfo[] = [
 ];
 const NONE_INSTALLED: AgentInfo[] = [
   info('claude', false), info('codex', false), info('gemini', false), info('hermes', false),
+];
+
