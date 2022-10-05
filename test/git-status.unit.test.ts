@@ -33,3 +33,6 @@ describe('parseGitStatusV2', () => {
     const g = parseGitStatusV2(out);
     expect(g.ahead).toBe(2);
     expect(g.behind).toBe(1);
+    expect(g.staged).toBe(2);
+    expect(g.unstaged).toBe(3);
+    expect(g.untracked).toBe(1);
