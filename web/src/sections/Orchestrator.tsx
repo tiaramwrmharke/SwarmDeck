@@ -33,3 +33,5 @@ const ACTIONS: Node[] = [
   { icon: LuMonitor, label: 'Desktop' },
   { icon: LuServer, label: 'MCP Tools' },
 ];
+
+const PIPELINE = ['Entry Points', 'Bot Runtime', 'Agent Driver', 'Model Routing', 'MCP Bridge', 'Workspace Actions'];
