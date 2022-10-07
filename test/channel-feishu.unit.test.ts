@@ -33,3 +33,4 @@ describe('FeishuChannel.editCard', () => {
         ch.editCard('chat1', 'msg1', { markdown: 'updated text' }),
       ).resolves.toBeUndefined();
       expect(patchMock).toHaveBeenCalledTimes(1);
+    }
