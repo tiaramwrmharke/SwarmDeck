@@ -13,3 +13,5 @@ export interface TurnAuditEntry {
   agent: string;
   sessionId: string | null;
   ok: boolean;
+  stopReason: string | null;
+  incomplete: boolean;
