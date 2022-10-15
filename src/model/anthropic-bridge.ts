@@ -79,3 +79,5 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ input_tokens: estimateTokens(body) }));
       return;
+    }
+    handleMessages(req, res, upstreamBase, body).catch(err => {
