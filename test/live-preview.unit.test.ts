@@ -34,3 +34,6 @@ describe('LivePreview placeholder lifecycle', () => {
         streamEditIntervalMs: 0,
         startTimeMs: Date.now(),
         canEditMessages: true,
+        canSendTyping: false,
+        log: () => {},
+      });
