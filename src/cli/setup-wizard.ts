@@ -66,3 +66,6 @@ function createTerminalIO(): PromptIO {
       });
     },
     close() {
+      void rl.close();
+    },
+  };
