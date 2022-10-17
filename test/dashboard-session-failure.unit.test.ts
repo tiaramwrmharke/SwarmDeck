@@ -11,3 +11,4 @@ describe('dashboard session failure display', () => {
       error: 'Claude exited before completing the turn.',
     })).toBe('hub.streamErrored');
 
+    const detail = "You're now using usage credits · Your session limit resets 5pm (Asia/Shanghai)";
