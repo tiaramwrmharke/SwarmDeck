@@ -49,3 +49,5 @@ export class LivePreview {
   private readonly canSendTyping: boolean;
   private readonly messageThreadId?: number;
   private readonly parseMode: string;
+  private readonly keyboard: any;
+  private readonly model: string | null;
