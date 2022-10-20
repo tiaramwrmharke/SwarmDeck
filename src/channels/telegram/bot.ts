@@ -387,3 +387,4 @@ export class TelegramBot extends Bot {
     if (result.previewSession) {
       await this.previewCurrentSessionTurn(ctx.chatId, result.previewSession.agent, result.previewSession.sessionId);
     }
+  }
