@@ -22,3 +22,4 @@ export class RtcConnection extends BaseConnection {
     super();
     this.id = `rtc-${++connCounter}`;
     this.remote = remote || 'webrtc-peer';
+    channel.onmessage = (ev: any) => this.emitMessage(coerceFrame(ev?.data));
