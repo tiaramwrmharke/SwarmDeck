@@ -37,3 +37,4 @@ describe('snapshotGate — monotonic version guard', () => {
 
 describe('snapshotGate — null is "no info"', () => {
   it('rejects a null while a local send is in flight (symptom: just-sent swallowed)', () => {
+    expect(snapshotGate({ ...base, isNull: true, localStreamPending: true })).toBe('reject-null');
