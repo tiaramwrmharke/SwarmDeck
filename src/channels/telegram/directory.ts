@@ -29,3 +29,7 @@ class PathRegistry {
   }
 
   resolve(id: number): string | undefined {
+    return this.idToPath.get(id);
+  }
+}
+

@@ -76,3 +76,7 @@ export function streamPromptMatchesTurnText(
   if (!turn || !prompt || turn.length >= prompt.length) return false;
   if (!/(?:\.\.\.|…)$/.test(turn)) return false;
   const core = turn.replace(/(?:\s*(?:\.\.\.|…))+$/, '').trim();
+  // Compare a slightly shortened prefix so a cut landing mid-token (and whitespace
+  // re-normalization at the boundary) doesn't defeat the match.
+  const probeLen = core.length - 4;
+  if (probeLen < 32) return false;
