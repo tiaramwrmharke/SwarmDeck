@@ -146,3 +146,7 @@ describe('Claude TUI driver — terminal limit notices', () => {
     const notice = detectClaudeTuiTerminalLimitNotice({
       model: '<synthetic>',
       content: [{ type: 'text', text: "You've hit your session limit · resets 9:40pm (Asia/Shanghai)" }],
+    });
+    expect(notice).toContain("You've hit your session limit");
+    expect(detectClaudeTuiTerminalLimitNotice(
+      "You're now using usage credits · Your session limit resets 3pm(Asia/Shanghai)",
