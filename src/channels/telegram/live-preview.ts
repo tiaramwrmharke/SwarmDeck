@@ -51,3 +51,4 @@ export class LivePreview {
   private readonly parseMode: string;
   private readonly keyboard: any;
   private readonly model: string | null;
+  private readonly effort: string | null;

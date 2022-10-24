@@ -6,3 +6,5 @@ export interface AmbientGlowProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
+export const AmbientGlow = forwardRef<HTMLDivElement, AmbientGlowProps>(function AmbientGlow(
+  { streaming, className, children, ...rest },
