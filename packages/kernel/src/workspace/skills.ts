@@ -48,3 +48,5 @@ export interface SkillMeta {
  * to the first `# heading` for the label. Exported so an app scanning additional skill
  * stores (e.g. an agent's own ~/.claude/skills) reads them with the same rules.
  */
+export function parseSkillMeta(content: string): SkillMeta {
+  let label: string | null = null;

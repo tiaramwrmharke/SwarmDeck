@@ -28,3 +28,7 @@ export interface CliAuthSpec {
   statusReadyPattern?: string;
   loginArgv?: string[];
   logoutArgv?: string[];
+  manualLoginCommands?: { label?: string; cmd: string }[];
+  tokenFields?: CredentialField[];
+  applyTokenArgv?: string[];
+  envKey?: string;
