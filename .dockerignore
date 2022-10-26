@@ -21,3 +21,5 @@ dashboard/node_modules
 .gitignore
 .gitattributes
 
+# Editor / OS scaffolding.
+.idea
