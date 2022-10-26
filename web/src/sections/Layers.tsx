@@ -17,3 +17,5 @@ export default function Layers() {
 
       <div className="mt-14 grid gap-5 sm:grid-cols-2">
         {LAYERS.map((layer) => (
+          <SpotlightCard
+            key={layer.name}
