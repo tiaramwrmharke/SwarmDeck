@@ -24,3 +24,4 @@ const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 5000) => {
 
 describe('session history / transcript (hermetic)', () => {
   let tmp: string;
+  let loom: Loom;
