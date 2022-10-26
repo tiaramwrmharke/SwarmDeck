@@ -20,3 +20,6 @@ function getSessionRuntime(bot: SessionLookupBot, session: SessionLookupInfo): S
   if (!sessionId) return null;
   return bot.sessionStates.get(`${session.agent}:${sessionId}`) || null;
 }
+
+function resolveIsRunning(session: SessionLookupInfo, runtime: SessionRuntime | null): { isRunning: boolean; isStale: boolean } {
+  if (runtime?.runningTaskIds.size) return { isRunning: true, isStale: false };
