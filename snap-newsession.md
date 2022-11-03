@@ -177,3 +177,6 @@
               - img [ref=e257]
             - button "三窗口" [ref=e260] [cursor=pointer]:
               - img [ref=e261]
+            - button "六窗口" [ref=e265] [cursor=pointer]:
+              - img [ref=e266]
+          - button "添加工作区" [ref=e273] [cursor=pointer]:
