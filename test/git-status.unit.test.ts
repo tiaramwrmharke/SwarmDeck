@@ -36,3 +36,4 @@ describe('parseGitStatusV2', () => {
     expect(g.staged).toBe(2);
     expect(g.unstaged).toBe(3);
     expect(g.untracked).toBe(1);
+    expect(g.changed).toBe(6);
