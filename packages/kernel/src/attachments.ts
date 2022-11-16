@@ -46,3 +46,6 @@ export function imageDimensions(buf: Buffer): { width: number; height: number } 
   }
   if (buf.length >= 10 && (buf.subarray(0, 6).toString('latin1') === 'GIF87a' || buf.subarray(0, 6).toString('latin1') === 'GIF89a')) {
     return { width: buf.readUInt16LE(6), height: buf.readUInt16LE(8) };
+  }
+  if (buf.length >= 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+    // JPEG: walk segments to the first SOF (skips arbitrarily large EXIF/APPn blocks).
