@@ -6,3 +6,4 @@ export type {
 
 export {
   getModelsDevCatalog, getCatalogProvider, getCatalogModel, searchCatalogProviders,
+} from './catalog.js';
