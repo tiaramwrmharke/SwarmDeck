@@ -100,3 +100,7 @@ layout), each environment keeps its own independent session history.
 > - When you `docker pull` a newer swarmdeck image, the codex CLI baked into
 >   the image (see §5) may be newer than the host's. Either pin the
 >   `CODEX_VERSION` build-arg to match the host, or upgrade the host's codex
+>   at the same time.
+> - If you only need OAuth credentials (and don't need to share session
+>   history), mount **just** the auth file read-only — this avoids the db
+>   entirely:
