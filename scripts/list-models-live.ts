@@ -8,3 +8,5 @@ function hasCmd(cmd: string): boolean {
   try {
     execSync(`which ${cmd}`, { stdio: 'ignore' });
     return true;
+  } catch {
+    return false;
