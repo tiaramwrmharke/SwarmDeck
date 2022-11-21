@@ -160,3 +160,4 @@ export class SlackBot extends Bot {
         ].join('\n'));
         return true;
       case 'new': {
+        this.resetConversationForChat(ctx.chatId);
