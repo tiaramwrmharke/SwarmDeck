@@ -24,3 +24,4 @@ const tools: McpToolModule['tools'] = [
             'Short, human-readable note on what is still running and what you will report back (e.g. "rebuilding + restarting swarmdeck, will confirm after it comes back up").',
         },
       },
+      required: ['reason'],
