@@ -775,3 +775,6 @@ function SkillConnectedCard({
   onClick: () => void;
   onUpdate?: () => void;
   updating?: boolean;
+}) {
+  return (
+    <button

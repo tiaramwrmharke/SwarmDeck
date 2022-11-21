@@ -46,3 +46,7 @@ function projectInteractions(snap: StreamSnapshot): UniversalInteraction[] | und
       type: q.type,
       choices: Array.isArray(q.options ?? q.choices)
         ? (q.options ?? q.choices).map((c: any) => ({ label: String(c.label ?? c), description: c.description ?? undefined, value: c.value ?? c.label }))
+        : undefined,
+      allowFreeform: q.allowFreeform,
+      allowEmpty: q.allowEmpty,
+    })),
