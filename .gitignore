@@ -15,3 +15,5 @@ dashboard-*.png
 /*.jpg
 /*.jpeg
 .playwright-mcp/
+**/.playwright-mcp/
+# Antigravity CLI local project state (symlink farm into ~/.gemini); machine-local.

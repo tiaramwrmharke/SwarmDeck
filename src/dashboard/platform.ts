@@ -55,3 +55,7 @@ function requestScreenRecordingPermission(): boolean {
     DASHBOARD_PERMISSION_TIMEOUTS.screenRecordingRequest,
   ) !== null;
 }
+
+function openPermissionSettings(permission: DashboardPermissionKey): boolean {
+  const pane = permissionPaneUrls[permission];
+  if (!pane) return false;
