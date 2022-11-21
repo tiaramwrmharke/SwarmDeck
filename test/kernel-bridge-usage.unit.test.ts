@@ -19,3 +19,7 @@ describe('kernel-bridge final usage projection', () => {
       inputTokens: 60_000,
       outputTokens: 150,
       cachedInputTokens: 12_000,
+      cacheCreationInputTokens: null,
+      contextWindow: null,
+      contextUsedTokens: 72_150,
+      contextPercent: 7.5,
