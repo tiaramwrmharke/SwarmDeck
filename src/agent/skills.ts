@@ -61,3 +61,7 @@ function parseSkillMeta(content: string): { label: string | null; description: s
         .split('\n')
         .map(l => l.replace(/^\s*-\s*/, '').replace(/["']/g, '').trim())
         .filter(Boolean);
+    }
+  }
+  if (!label) {
+    const hm = content.match(/^#\s+(.+)$/m);

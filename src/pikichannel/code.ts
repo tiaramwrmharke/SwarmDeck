@@ -10,3 +10,6 @@ export function encodeConnectionCode(d: CodeParts): string {
 }
 
 export interface ServerCode {
+  mode: 'direct' | 'remote' | 'none';
+  code: string;
+  detail: string;
