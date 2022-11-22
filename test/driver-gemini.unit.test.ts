@@ -111,3 +111,6 @@ describe('Gemini session tail', () => {
     vi.resetModules();
     process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-tail-'));
   });
+
+  afterEach(() => {
+    if (originalHome == null) delete process.env.HOME;
