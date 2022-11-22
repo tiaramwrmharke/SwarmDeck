@@ -15,3 +15,7 @@ function watchAll(io: LoomIO) {
 }
 const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 6000) => {
   const t0 = Date.now();
+  while (!(await pred())) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 5)); }
+};
+
+describe('per-session serial queue (hermetic)', () => {

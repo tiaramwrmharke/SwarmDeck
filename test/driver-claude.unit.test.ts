@@ -119,3 +119,7 @@ describe('Claude usage resolution', () => {
           model: 'claude-opus-4-7',
           additional_metadata: JSON.stringify({ status: 'allowed_warning', hoursTillReset: 39 }),
         },
+      }));
+
+      execSyncMock.mockImplementation((cmd: string) => {
+        if (cmd.includes('security find-generic-password')) {
