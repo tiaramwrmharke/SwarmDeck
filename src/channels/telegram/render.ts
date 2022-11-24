@@ -98,3 +98,6 @@ function formatCommandButtonLabel(button: CommandActionButton, maxChars = 24): s
   return truncateMiddle(`${prefix}${button.label}`.trim(), maxChars);
 }
 
+export function renderCommandNoticeHtml(notice: CommandNotice): string {
+  const lines = [`<b>${escapeHtml(notice.title)}</b>`];
+  if (notice.value) {
