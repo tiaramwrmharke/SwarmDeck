@@ -7,3 +7,7 @@ type Selection<V extends VariantMap> = {
 export interface TvConfig<V extends VariantMap> {
   base?: string;
   variants: V;
+  defaults?: Partial<{ [K in keyof V]: keyof V[K] }>;
+}
+
+export interface TvResult<V extends VariantMap> {
