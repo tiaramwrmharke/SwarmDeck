@@ -125,3 +125,5 @@
                       - generic [ref=e176]:
                         - img [ref=e177]
                         - text: "3"
+                      - generic [ref=e179]: 37m
+                  - generic [ref=e182]: 你帮我打开浏览器，然后把飞书后台我的机器人（盛大机器人那个）改一下机器人菜单配置，改成图里这样
