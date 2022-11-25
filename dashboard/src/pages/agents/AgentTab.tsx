@@ -282,3 +282,5 @@ function getCopy(locale: Locale): CopyPack {
       configure: '配置',
       configModalTitle: label => `配置 ${label}`,
       rowSummaryNative: '官方认证',
+      rowSummaryNoModel: '未选模型',
+      rowSummaryNoEffort: '默认强度',
