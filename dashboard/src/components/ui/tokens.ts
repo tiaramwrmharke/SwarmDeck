@@ -20,3 +20,5 @@ export const colors = {
     strong: 'var(--edge-strong)',
   },
   status: {
+    ok: 'var(--th-ok)',
+    warn: 'var(--th-warn)',
