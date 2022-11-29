@@ -57,3 +57,5 @@ function buildHeaders(provider: ProviderConfig, apiKey: string): Record<string, 
   if (provider.extraHeaders) Object.assign(base, provider.extraHeaders);
   return base;
 }
+
+function modelsUrl(provider: ProviderConfig, apiKey: string): string {

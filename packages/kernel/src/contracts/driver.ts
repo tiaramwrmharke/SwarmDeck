@@ -47,3 +47,7 @@ export interface McpServerSpec {
 }
 
 export type DriverEvent =
+  | { type: 'session'; sessionId: string }
+  | { type: 'text'; delta: string }
+  | { type: 'reasoning'; delta: string }
+  | { type: 'tool'; call: UniversalToolCall }

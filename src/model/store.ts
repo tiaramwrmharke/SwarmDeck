@@ -40,3 +40,7 @@ export async function addProvider(input: AddProviderInput): Promise<ProviderConf
   if (!input.apiKey && !input.credentialRef) {
     throw new Error('addProvider requires either apiKey or credentialRef');
   }
+  const id = randomUUID();
+  const credential: CredentialRef = input.credentialRef
+    ? input.credentialRef
+    : await persistSecret(`provider/${id}`, input.apiKey!);
