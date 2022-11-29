@@ -26,3 +26,6 @@ describe('dashboard live session state helpers', () => {
       sessionId: 'sess-1',
       agent: 'codex',
       runState: 'completed' as const,
+      running: false,
+      runUpdatedAt: null,
+      runDetail: 'old detail',
