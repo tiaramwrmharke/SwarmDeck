@@ -37,3 +37,5 @@ describe('LivePreview placeholder lifecycle', () => {
         canSendTyping: false,
         log: () => {},
       });
+
+      expect(preview.isPlaceholderAbandoned()).toBe(false);

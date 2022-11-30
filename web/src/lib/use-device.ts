@@ -4,3 +4,5 @@ export function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const big = window.matchMedia('(min-width: 1024px) and (pointer: fine)');
