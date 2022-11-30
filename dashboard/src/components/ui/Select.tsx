@@ -56,3 +56,6 @@ export function Select({
     document.addEventListener('mousedown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown, true);
     return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
