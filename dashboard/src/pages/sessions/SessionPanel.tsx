@@ -200,3 +200,6 @@ export const SessionPanel = memo(function SessionPanel({
 
   useEffect(() => {
     if (initialPendingConsumedRef.current || !hasInitialPending) return;
+    initialPendingConsumedRef.current = true;
+    if (initialPendingPrompt && !pendingPrompt) setPendingPrompt(initialPendingPrompt);
+    if (initialPendingImageUrls && initialPendingImageUrls.length && !pendingImageUrls.length) {
