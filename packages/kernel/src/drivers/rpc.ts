@@ -29,3 +29,7 @@ export class StdioRpcClient {
   private notifyCb?: (method: string, params: any) => void;
   private requestCb?: (method: string, params: any, id: number | string) => any | Promise<any>;
   private closeCb?: () => void;
+  private readonly stderrTail: string[] = [];
+  private readonly label: string;
+
+  constructor(private readonly opts: StdioRpcOptions) {
