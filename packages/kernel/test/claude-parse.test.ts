@@ -94,3 +94,6 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
       // The update's id lives in the TaskCreate store → the plan reflects the store AFTER it.
       { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu1', name: 'TaskUpdate', input: { taskId: '1', status: 'completed' } }] } },
     ]);
+    const planEvents = events.filter(e => e.type === 'plan') as any[];
+    expect(planEvents[planEvents.length - 1].plan.steps).toEqual([
+      { text: 'store task', status: 'completed' },

@@ -1,3 +1,4 @@
 {
   "mcpServers": {
     "playwright": {
+      "command": "npx @playwright/mcp"
