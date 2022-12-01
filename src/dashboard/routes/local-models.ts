@@ -124,3 +124,7 @@ interface BackendStatus {
   runHint: InstallCommand;
   pullCommandTemplate: string;
   supportedOnThisOs: boolean;
+}
+
+async function probeOllama(spec: BackendSpec): Promise<{ detected: boolean; version?: string; models: DetectedModel[] }> {
+  type VersionRes = { version: string };

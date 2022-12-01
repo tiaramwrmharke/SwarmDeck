@@ -80,3 +80,6 @@ export function streamPromptMatchesTurnText(
   // re-normalization at the boundary) doesn't defeat the match.
   const probeLen = core.length - 4;
   if (probeLen < 32) return false;
+  return prompt.startsWith(core.slice(0, probeLen));
+}
+
