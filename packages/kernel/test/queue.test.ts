@@ -19,3 +19,6 @@ const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 6000) => {
 };
 
 describe('per-session serial queue (hermetic)', () => {
+  let tmp: string;
+  let loom: Loom;
+  beforeEach(async () => {

@@ -93,3 +93,4 @@ export function LivePreview({
   stream,
   t,
   workdir,
+}: {
