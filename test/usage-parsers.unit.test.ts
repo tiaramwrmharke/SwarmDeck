@@ -62,3 +62,5 @@ describe('buildClaudeOAuthUsage (2026 limits[] schema)', () => {
   });
 
   it('maps upstream severity onto window status ahead of percent thresholds', () => {
+    const data = {
+      ...CLAUDE_OAUTH_2026,
