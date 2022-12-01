@@ -86,3 +86,4 @@ function channelToSnapshot(key: string, u: any): any {
     sessionId: u.sessionId ?? sessionId,
     phase: u.phase,
     taskId: u.taskId ?? null,
+    queuedTaskIds: Array.isArray(u.queued) ? u.queued.map((q: any) => q.taskId) : [],

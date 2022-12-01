@@ -159,3 +159,6 @@ export class WeComBot extends Bot {
           '/mode [plan|code] - Toggle plan mode (claude only)',
           '/switch [path] - Change workdir',
           '/workspaces [#] - Pick saved workspace',
+          '/sessions [new|#] - List/switch sessions',
+          '/digest - Recent session digest',
+          '/skills - List project skills',
