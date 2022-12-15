@@ -30,3 +30,6 @@ export abstract class BaseConnection implements ChannelConnection {
   onClose(cb: () => void): void {
     this.closeCb = cb;
     if (this.closed) cb();
+  }
+
+  protected emitMessage(frame: string): void {

@@ -42,3 +42,7 @@ interface ParkedClaude {
   onClose: () => void;
   drain: () => void;
 }
+
+/** End a no-longer-poolable process the same way a graceful settle does. */
+function destroyClaudeChild(child: ChildProcess): void {
+  // group: the parked process came from the driver's detached spawn, so a wedged one
