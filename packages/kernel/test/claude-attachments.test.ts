@@ -49,3 +49,6 @@ describe('claudeUserMessage (kernel)', () => {
     expect(content.filter((b: any) => b.type === 'text' && b.text.startsWith('[Attached file:')).length).toBe(2);
     expect(content[content.length - 1]).toEqual({ type: 'text', text: 'hi' });
   });
+
+  it('is text-only when there are no attachments (unchanged behaviour)', () => {
+    const content = JSON.parse(claudeUserMessage('plain')).message.content;
