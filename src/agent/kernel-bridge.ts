@@ -73,3 +73,7 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
   };
   // Any registered generic ACP agent (OpenCode, …) -> the kernel's AcpDriver.
   const acp = acpAgentConfig(opts.agent);
+  if (acp) {
+    return { driver: new kernel.AcpDriver({ id: opts.agent, command: acp.command, args: acp.args }), input: { ...common, model: opts.model ?? null } };
+  }
+  switch (opts.agent) {
