@@ -17,3 +17,5 @@ Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
 
 | Background | fill | edge |
 |-----------|------|------|
+| dark | `#45e0f5` (cyan) | `#144349` |
+| light / white | `#0e7490` (deep cyan) | `#06333c` |
