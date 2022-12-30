@@ -281,3 +281,7 @@
                     - img
                   - button "重跑":
                     - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e342]:
+                - generic [ref=e344]: 图片测试：请只回复 ok
