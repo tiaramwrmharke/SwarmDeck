@@ -16,3 +16,6 @@ function snapWithInteraction(): any {
         id: 'ask-user',
         header: 'Scope',
         prompt: 'Which option?',
+        options: [
+          { label: 'A', description: 'first', value: 'A' },
+          { label: 'B', description: 'second', value: 'B' },
