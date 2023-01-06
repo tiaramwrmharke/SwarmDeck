@@ -37,3 +37,5 @@ class TestBot extends Bot {
             { label: 'Deny', description: 'Block this command', value: 'deny' },
             { label: 'Allow All', description: 'Auto-approve for this session', value: 'allow-all' },
           ],
+          allowFreeform: true,
+          allowEmpty: false,
