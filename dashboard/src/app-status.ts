@@ -24,3 +24,6 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
     return {
       badgeVariant: 'ok',
       badgeContent: t('status.running'),
+      dotVariant: 'ok',
+      dotPulse: true,
+    };
