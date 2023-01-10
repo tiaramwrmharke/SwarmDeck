@@ -60,3 +60,7 @@ function getInitialLocale(): Locale {
     const stored = localStorage.getItem('swarmdeck-locale');
     if (stored === 'en' || stored === 'zh-CN') return stored;
   } catch {}
+  return 'zh-CN';
+}
+
+interface StoreState {
