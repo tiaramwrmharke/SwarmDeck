@@ -71,3 +71,6 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
     cliId: cli.id,
     startedAt: Date.now(),
     events,
+    done: false,
+    ok: false,
+    exitCode: null,
