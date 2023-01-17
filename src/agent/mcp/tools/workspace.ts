@@ -49,3 +49,6 @@ function summarizeSendFileArgs(filePath: string, caption: string, kind?: string)
     `path=${JSON.stringify(filePath || '')}`,
     `kind=${JSON.stringify(kind || 'auto')}`,
     `caption=${JSON.stringify(caption || '')}`,
+  ].join(' ');
+  return text.length <= 240 ? text : `${text.slice(0, 237).trimEnd()}...`;
+}
