@@ -162,3 +162,7 @@ export class WeComBot extends Bot {
           '/sessions [new|#] - List/switch sessions',
           '/digest - Recent session digest',
           '/skills - List project skills',
+          '/stop - Stop current task',
+          '/restart - Restart swarmdeck',
+        ].join('\n'));
+        return true;
