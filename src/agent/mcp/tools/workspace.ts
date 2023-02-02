@@ -52,3 +52,6 @@ function summarizeSendFileArgs(filePath: string, caption: string, kind?: string)
   ].join(' ');
   return text.length <= 240 ? text : `${text.slice(0, 237).trimEnd()}...`;
 }
+
+function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolResult {
+  const subdir = typeof args?.subdirectory === 'string' ? args.subdirectory : '';
