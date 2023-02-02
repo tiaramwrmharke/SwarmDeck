@@ -15,3 +15,5 @@ export function ptyAvailable(): boolean { return !!loadPty(); }
 
 export interface PtyOpenOpts { cols?: number; rows?: number }
 export interface PtyExit { exitCode: number; signal?: number }
+
+// A pseudo-terminal bridge around an agent's interactive process. Carries raw TUI bytes
