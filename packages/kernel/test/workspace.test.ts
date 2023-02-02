@@ -72,3 +72,5 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
   // A CLI maintenance pass over its own store (claude 2.1.220 backfilled a `last-prompt` index record
   // into every transcript) rewrites every mtime to one instant. Ordering must survive that, or months
   // of history collapse into an arbitrary tie and `limit` cuts the genuinely-recent rows.
+  it('clocks claude sessions by their in-file timestamps, not a bulk-rewritten mtime', () => {
+    const workdir = path.join(tmp, 'proj');
