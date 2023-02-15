@@ -21,3 +21,4 @@ describe('snapshot diff/apply', () => {
     // must survive JSON round-trip (undefined would be dropped by JSON.stringify)
     const wire = JSON.parse(JSON.stringify(patch));
     expect(wire.set).toHaveProperty('activity', null);
+    const applied = applySnapshotPatch(a, wire);
