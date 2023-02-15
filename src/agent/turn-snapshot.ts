@@ -24,3 +24,6 @@ export interface DeliveredTurn {
   prompt: string;
   promptNorm: string;
   text: string;
+  model: string | null;
+}
+

@@ -39,3 +39,7 @@ export default function Stats() {
       .finally(() => clearTimeout(timer));
     return () => {
       clearTimeout(timer);
+      ac.abort();
+    };
+  }, []);
+
