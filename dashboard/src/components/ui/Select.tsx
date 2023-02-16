@@ -63,3 +63,7 @@ export function Select({
 
   useLayoutEffect(() => {
     if (!open) return undefined;
+    const updatePosition = () => {
+      const trigger = rootRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();

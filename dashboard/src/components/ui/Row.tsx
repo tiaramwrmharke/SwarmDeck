@@ -66,3 +66,5 @@ export function Section({
   );
 }
 
+interface RowComposition {
+  Lead: typeof RowLead;
