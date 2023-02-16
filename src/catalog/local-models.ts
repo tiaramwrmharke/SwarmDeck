@@ -27,3 +27,4 @@ export const LOCAL_MODELS: LocalModelEntry[] = [
     homepage: 'https://qwenlm.github.io/blog/qwen2.5-coder/',
   },
   {
+    id: 'llama-3.3-8b',
