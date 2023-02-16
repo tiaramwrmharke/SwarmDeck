@@ -146,3 +146,5 @@ export const api = {
   getModelProviders: () => json<{ ok: boolean; providers?: Array<{ id: string; name: string; kind: string; baseURL: string }> }>('/api/models/providers'),
   getModelProfiles: () => json<{ ok: boolean; profiles?: Array<{ id: string; name: string; providerId: string; modelId: string; effort?: string | null }> }>('/api/models/profiles'),
   getModelAgentBindings: () => json<{ ok: boolean; bindings?: Array<{ agent: string; activeProfileId: string | null }> }>('/api/models/agents'),
+  getSessions: () => json<Record<string, { sessions: unknown[] }>>('/api/sessions'),
+  getSessionsPage: (agent: string, page = 0, limit = 6, opts: ApiRequestOptions = {}) =>

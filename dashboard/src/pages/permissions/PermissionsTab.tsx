@@ -48,3 +48,6 @@ const PERMISSIONS: PermissionMeta[] = [
       </svg>
     ),
   },
+  {
+    key: 'fullDiskAccess',
+    labelKey: 'perm.fullDiskAccess',
