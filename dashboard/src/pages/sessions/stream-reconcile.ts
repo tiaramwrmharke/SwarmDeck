@@ -22,3 +22,4 @@ export function snapshotGate(input: SnapshotGateInput): SnapshotGateDecision {
     if ((input.localStreamPending || input.holdsActiveState) && !input.holdExpired) return 'reject-null';
     return 'apply';
   }
+  const updatedAt = typeof input.updatedAt === 'number' ? input.updatedAt : 0;
