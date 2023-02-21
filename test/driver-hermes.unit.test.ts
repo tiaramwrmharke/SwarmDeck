@@ -72,3 +72,6 @@ while True:
         # Capture the received prompt blocks for the test to assert against.
         capture_path = os.environ.get("HERMES_PROMPT_CAPTURE_PATH")
         if capture_path:
+            try:
+                with open(capture_path, "w") as f:
+                    json.dump(params.get("prompt"), f)
