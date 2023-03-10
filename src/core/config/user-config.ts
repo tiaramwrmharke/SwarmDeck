@@ -119,3 +119,5 @@ type UserConfigChangeListener = (config: Partial<UserConfig>, changedKeys: strin
 
 const MANAGED_ENV_KEYS = [
   'PIKILOOM_CHANNEL',
+  'PIKILOOM_WORKDIR',
+  'DEFAULT_AGENT',
