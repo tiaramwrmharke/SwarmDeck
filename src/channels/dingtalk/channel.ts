@@ -64,3 +64,7 @@ export class DingtalkChannel extends Channel {
   };
 
   readonly knownChats = new Set<string>();
+
+  private readonly clientId: string;
+  private readonly clientSecret: string;
+  private readonly allowedChatIds?: Set<string>;
