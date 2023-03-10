@@ -59,3 +59,5 @@ export interface ProcessRuntimeRegistration {
 }
 
 export interface ProcessRestartResult {
+  ok: boolean;
+  restarting: boolean;

@@ -47,3 +47,6 @@ function okFetch(body: unknown, status = 201) {
 
 beforeEach(() => {
   __resetTurnCacheForTest();
+  cfgRef.value = { version: 1 };
+  for (const k of TURN_ENV) { savedEnv[k] = process.env[k]; delete process.env[k]; }
+});
