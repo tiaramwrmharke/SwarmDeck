@@ -65,3 +65,4 @@ export function toAcpMcpServers(servers: Record<string, any> | undefined): any[]
 export class AcpClient extends EventEmitter {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private nextId = 1;
+  private pending = new Map<number | string, Pending>();

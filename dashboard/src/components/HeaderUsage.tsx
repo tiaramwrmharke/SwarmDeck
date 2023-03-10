@@ -18,3 +18,7 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
   const nodes = agents.flatMap(agent => {
     const gauge = usageGauge(agent.usage);
     // claude / codex: render the account switcher (it manages its own visibility + usage).
+    if (agent.installed && ACCOUNT_AGENTS.has(agent.agent)) {
+      return [<HeaderAccountMenu key={agent.agent} agent={agent.agent} nativeGauge={gauge} nativeUsage={agent.usage} t={t} />];
+    }
+    // other agents: the original read-only usage ring + tooltip.
