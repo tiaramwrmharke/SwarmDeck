@@ -37,3 +37,4 @@ async function fetchStarredAt() {
     if (batch.length < 100) break;
   }
   return dates.sort((a, b) => a - b);
+}
