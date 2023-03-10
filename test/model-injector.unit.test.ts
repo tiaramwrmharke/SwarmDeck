@@ -66,3 +66,6 @@ describe('resolveAgentInjection — Claude BYOK ANTHROPIC_BASE_URL', () => {
 
   it('maps Kimi (Moonshot) to /anthropic', async () => {
     const inj = await bindClaude('openai-compatible', 'https://api.moonshot.cn/v1', 'kimi-k2');
+    expect(inj.env.ANTHROPIC_BASE_URL).toBe('https://api.moonshot.cn/anthropic');
+  });
+
