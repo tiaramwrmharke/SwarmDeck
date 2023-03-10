@@ -38,3 +38,4 @@ export function InteractionPromptModal({ snapshot }: Props) {
     if (submitting) return;
     setSubmitting(true);
     setError(null);
+    try {
