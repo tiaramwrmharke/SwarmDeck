@@ -34,3 +34,7 @@ done < <(git ls-files -c -o --exclude-standard | sort -u)
 violations=0
 
 # ── 1. Forbidden filename / directory patterns ──────────────────────────
+forbidden_paths=(
+  '\.playwright-mcp/'                         # browser MCP debug logs
+  '(^|/)\.env$'                                # .env at root or nested
+  '(^|/)\.env\.[^/]*$'                         # .env.local, .env.production, etc.

@@ -68,3 +68,4 @@ export class DingtalkChannel extends Channel {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly allowedChatIds?: Set<string>;
+
