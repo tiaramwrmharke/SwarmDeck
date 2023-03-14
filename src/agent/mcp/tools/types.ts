@@ -19,3 +19,6 @@ export interface McpToolDef {
 
 export interface McpToolModule {
   tools: McpToolDef[];
+  handle(name: string, args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> | ToolResult;
+}
+
