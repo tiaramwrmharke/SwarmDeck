@@ -16,3 +16,6 @@ export function UsageBars({ usage, emptyText, className = '' }: {
   const t = createT(useStore(s => s.locale));
   const windows = usage?.ok ? usage.windows : [];
   if (!windows.length) {
+    return <div className={`text-[11px] leading-relaxed text-fg-5 ${className}`}>{usage?.error || emptyText}</div>;
+  }
+  return (

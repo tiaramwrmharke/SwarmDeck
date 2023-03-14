@@ -25,3 +25,5 @@ const tools: McpToolModule['tools'] = [
         },
       },
       required: ['reason'],
+    },
+  },
