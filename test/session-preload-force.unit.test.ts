@@ -17,3 +17,6 @@ vi.mock('../dashboard/src/api', () => ({
 
 import { loadSessionMessages } from '../dashboard/src/session-preload.ts';
 
+function query(sessionId: string) {
+  return { workdir: '/w', agent: 'claude', sessionId, rich: true, turnOffset: 0, turnLimit: 12 };
+}
