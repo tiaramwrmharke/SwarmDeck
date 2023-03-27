@@ -332,3 +332,7 @@ export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
   const ds = stripped.replace(/\s+/g, '').toLowerCase();
 
   if (ds.includes('bypasspermissionsmode') && ds.includes('yes,iaccept') && ds.includes('no,exit')) {
+    return { state: 'bypass-startup', affirmativeKey: '2', sample };
+  }
+
+  if (detectClaudeModelError(ds)) return { state: 'model-error', affirmativeKey: null, sample };
