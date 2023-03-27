@@ -33,3 +33,4 @@ describe('session-control', () => {
         workdir: '/tmp/swarmdeck',
         agent: 'codex',
         sessionId: 'sess-1',
+        prompt: 'check',
