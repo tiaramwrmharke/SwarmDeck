@@ -69,3 +69,5 @@ describe('resolveAgentInjection — Claude BYOK ANTHROPIC_BASE_URL', () => {
     expect(inj.env.ANTHROPIC_BASE_URL).toBe('https://api.moonshot.cn/anthropic');
   });
 
+  it('maps Zhipu/GLM to /api/anthropic', async () => {
+    const inj = await bindClaude('openai-compatible', 'https://open.bigmodel.cn/api/paas/v4', 'glm-4.6');

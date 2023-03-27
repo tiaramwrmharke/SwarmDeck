@@ -74,3 +74,5 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
     done: false,
     ok: false,
     exitCode: null,
+    backlog: [],
+  };
