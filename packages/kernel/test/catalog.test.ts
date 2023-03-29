@@ -12,3 +12,6 @@ describe('catalog / discovery', () => {
   });
 
   it('default catalog is empty (kernel bakes in zero model/effort/tool/skill knowledge)', async () => {
+    const loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo' });
+    expect(await loom.io.listModels('echo')).toEqual([]);
+    expect(await loom.io.listEffort('echo')).toEqual([]);

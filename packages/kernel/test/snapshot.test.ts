@@ -22,3 +22,6 @@ describe('snapshot diff/apply', () => {
     const wire = JSON.parse(JSON.stringify(patch));
     expect(wire.set).toHaveProperty('activity', null);
     const applied = applySnapshotPatch(a, wire);
+    expect(applied.activity).toBeNull();
+    expect(applied.phase).toBe('done');
+  });

@@ -35,3 +35,7 @@ const ACTIONS: Node[] = [
 ];
 
 const PIPELINE = ['Entry Points', 'Bot Runtime', 'Agent Driver', 'Model Routing', 'MCP Bridge', 'Workspace Actions'];
+
+function NodeCard({ icon: Icon, label }: Node) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 backdrop-blur transition hover:border-white/25 hover:bg-white/[0.06]">
