@@ -39,3 +39,5 @@ export function InteractionPromptModal({ snapshot }: Props) {
     setSubmitting(true);
     setError(null);
     try {
+      const res = await api.interactionSelectOption(snapshot.promptId, value);
+      if (!res.ok) { setError(res.error || 'Failed to submit selection.'); return; }

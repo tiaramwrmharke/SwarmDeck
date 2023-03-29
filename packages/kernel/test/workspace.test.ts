@@ -74,3 +74,6 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
   // of history collapse into an arbitrary tie and `limit` cuts the genuinely-recent rows.
   it('clocks claude sessions by their in-file timestamps, not a bulk-rewritten mtime', () => {
     const workdir = path.join(tmp, 'proj');
+    const projDir = path.join(tmp, '.claude', 'projects', encodeClaudeProjectDir(workdir));
+    fs.mkdirSync(projDir, { recursive: true });
+    const transcript = (prompt: string, ts: string) => [
