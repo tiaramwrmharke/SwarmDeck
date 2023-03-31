@@ -33,3 +33,6 @@ export class RendezvousBroker {
     let myNodeId: string | null = null;
     const mySessions = new Set<string>();
 
+    ws.on('message', (raw) => {
+      let m: any; try { m = JSON.parse(String(raw)); } catch { return; }
+      switch (m?.t) {
