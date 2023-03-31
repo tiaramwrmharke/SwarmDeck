@@ -32,3 +32,5 @@ If a test or validation step needs to launch `swarmdeck` itself, use `npm run de
 - It rewrites `~/.swarmdeck/dev/dev.log` on each launch
 - Do not kill or reuse the long-lived production/self-bootstrap `npx swarmdeck@latest` process on this machine as part of dev testing
 
+## Environment Setup
+
