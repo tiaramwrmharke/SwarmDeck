@@ -30,3 +30,4 @@ async function runBridge(sseLines: string[]): Promise<Array<{ type: string; data
   const url = `http://127.0.0.1:${port}/u/${upstreamToken(upstreamBase)}/responses`;
   const resp = await fetch(url, {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
