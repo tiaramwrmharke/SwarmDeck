@@ -223,3 +223,5 @@ describe('TelegramBot', () => {
       spawnMock.mockReturnValue({ pid: 4321, unref: vi.fn() } as any);
 
       try {
+        (defaultBot as any).performRestart();
+        expect(shutdownSpy).toHaveBeenCalledTimes(1);
