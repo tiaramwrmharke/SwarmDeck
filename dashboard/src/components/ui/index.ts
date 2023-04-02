@@ -9,3 +9,5 @@ export { Select, IconPicker } from './Select';
 export { ModelSelect } from './ModelSelect';
 export { Modal, ModalHeader, type ModalSize } from './Modal';
 export { TabsList, TabsTrigger } from './Tabs';
+export { Tooltip, type TooltipProps } from './Tooltip';
+export { ChevronIcon, CollapsibleCard } from './Collapsible';
