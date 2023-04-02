@@ -37,3 +37,5 @@ const tools: McpToolModule['tools'] = [
           description: 'When options are supplied, also accept freeform text (default true).',
         },
       },
+      required: ['question'],
+    },

@@ -50,3 +50,5 @@ beforeEach(() => {
   cfgRef.value = { version: 1 };
   for (const k of TURN_ENV) { savedEnv[k] = process.env[k]; delete process.env[k]; }
 });
+
+afterEach(() => {
