@@ -47,3 +47,4 @@ export function resolveTurnConfig(): TurnConfig {
 
 function manualIceServers(): IceServer[] | null {
   const raw = process.env.PIKICHANNEL_ICE_SERVERS;
+  if (!raw) return null;
