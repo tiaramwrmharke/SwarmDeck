@@ -81,3 +81,6 @@ export default function Orb({
       const float K1 = 0.333333333;
       const float K2 = 0.166666667;
       vec3 i = floor(p + (p.x + p.y + p.z) * K1);
+      vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
+      vec3 e = step(vec3(0.0), d0 - d0.yzx);
+      vec3 i1 = e * (1.0 - e.zxy);

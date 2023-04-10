@@ -147,3 +147,6 @@
                 - button [ref=e210]:
                   - img [ref=e211]
             - generic [ref=e214]:
+              - generic [ref=e215]:
+                - 'button "Codex z-ai/glm-5.2 2m Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring. {\"type\":\"error\",\"status\":400,\"error\":{\"type\":\"invalid_request_error\",\"message\":\"The ''z-ai/glm-5.2'' model is not suppo..." [ref=e519] [cursor=pointer]':
+                  - generic [ref=e217]:
