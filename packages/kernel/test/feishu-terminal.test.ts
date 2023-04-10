@@ -18,3 +18,7 @@ class FakeFeishuTransport implements FeishuTransport {
   inbound(chatId: string, text: string): void { this.cb?.({ chatId, text, messageId: `in-${Date.now()}` }); }
   rendered(): string[] { return [...this.sent.map(s => s.text), ...this.edits.map(e => e.text)]; }
 }
+
+const waitFor = async (pred: () => boolean, ms = 5000) => {
+  const t0 = Date.now();
+  while (!pred()) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 5)); }

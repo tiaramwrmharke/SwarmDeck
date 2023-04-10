@@ -17,3 +17,4 @@
 #
 # Signal handling is provided by tini in the Dockerfile ENTRYPOINT, not here.
 
+set -euo pipefail
