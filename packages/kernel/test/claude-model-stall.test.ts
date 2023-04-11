@@ -27,3 +27,7 @@ process.stdin.on('data', (d) => {
     out({ type: 'system', subtype: 'init', session_id: SID, model: 'fake-model' });
     if (MODE === 'healthy') {
       out({ type: 'stream_event', session_id: SID, event: { type: 'message_start', message: { usage: { input_tokens: 10 } } } });
+      out({ type: 'stream_event', session_id: SID, event: { type: 'content_block_delta', delta: { type: 'text_delta', text: 'answer' } } });
+      out({ type: 'result', session_id: SID, result: 'answer', usage: { input_tokens: 10, output_tokens: 2 } });
+    } else if (MODE === 'apierr') {
+      out({ type: 'assistant', session_id: SID, error: 'overloaded_error', message: { model: '<synthetic>', content: [{ type: 'text', text: 'API Error: Unable to connect to API (ConnectionRefused)' }] } });
