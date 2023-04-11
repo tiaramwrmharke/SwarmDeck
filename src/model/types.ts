@@ -28,3 +28,5 @@ export interface ProviderConfig {
 export interface ModelProfileConfig {
   id: string;
   name: string;
+  providerId: string;
+  modelId: string;

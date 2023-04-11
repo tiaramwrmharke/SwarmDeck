@@ -30,3 +30,5 @@ function maximalSnapshot(): any {
       inputTokens: 5, outputTokens: 6, cachedInputTokens: 1, contextUsedTokens: 100,
       contextPercent: 12, turnOutputTokens: 6, providerName: 'anthropic', generatingImages: 1,
       toolCalls: [{ id: 'c1', name: 'Read', summary: 'Read x', input: '{}', result: 'ok', status: 'done' }],
+      subAgents: [{ id: 's1', kind: 'worker', description: 'sub', model: 'm', tools: [{ id: 'tt', name: 'Grep', summary: 'g' }], status: 'running' }],
+    },
