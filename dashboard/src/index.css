@@ -125,3 +125,7 @@
   --th-badge-muted-text: rgba(226,232,240,0.74);
   --th-badge-muted-bg: rgba(15,23,42,0.34);
   --th-badge-muted-border: rgba(148,163,184,0.2);
+}
+
+/* ── Light theme overrides ── */
+[data-theme="light"] {
