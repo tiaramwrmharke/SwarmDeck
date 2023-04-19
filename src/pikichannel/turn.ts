@@ -48,3 +48,7 @@ export function resolveTurnConfig(): TurnConfig {
 function manualIceServers(): IceServer[] | null {
   const raw = process.env.PIKICHANNEL_ICE_SERVERS;
   if (!raw) return null;
+  try {
+    const v = JSON.parse(raw);
+    if (Array.isArray(v) && v.length) return flatten(v as Array<{ urls: string | string[]; username?: string; credential?: string }>);
+  } catch {  }

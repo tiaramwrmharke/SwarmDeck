@@ -28,3 +28,7 @@ function adaptLine(line: string): string {
 function normalizeFeishuMarkdown(lines: string[]): string {
   const out: string[] = [];
   let pendingBlankLine = false;
+  let inCodeBlock = false;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
