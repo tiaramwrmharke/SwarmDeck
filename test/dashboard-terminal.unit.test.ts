@@ -36,3 +36,4 @@ describe('isSetupReady — dashboard is a first-class terminal', () => {
     expect(isSetupReady(state)).toBe(true);
   });
 
+  it('is ready with both an agent and a channel', () => {
