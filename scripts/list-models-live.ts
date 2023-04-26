@@ -10,3 +10,5 @@ function hasCmd(cmd: string): boolean {
     return true;
   } catch {
     return false;
+  }
+}
