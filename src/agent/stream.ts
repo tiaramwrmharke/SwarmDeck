@@ -229,3 +229,6 @@ export async function run(
   const spawnEnv = { ...process.env, ...(opts.extraEnv || {}) };
   delete spawnEnv.CLAUDECODE;
   const proc = spawn(shellCmd, {
+    cwd: opts.workdir,
+    env: spawnEnv,
+    stdio: ['pipe', 'pipe', 'pipe'],

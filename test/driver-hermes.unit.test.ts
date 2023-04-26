@@ -75,3 +75,7 @@ while True:
             try:
                 with open(capture_path, "w") as f:
                     json.dump(params.get("prompt"), f)
+            except Exception: pass
+        # Optionally interleave tool_call / tool_call_update events so the
+        # driver's activity-accumulator code path gets exercised.
+        for ev in SCRIPT.get("toolEvents", []):
