@@ -58,3 +58,6 @@ describe('delivered-artifact manifest', () => {
 
   it('appends each delivery to the manifest and reads them back in order', () => {
     const a = path.join(workdir, 'a.txt');
+    const b = path.join(workdir, 'b.log');
+    fs.writeFileSync(a, 'aaa');
+    fs.writeFileSync(b, 'bbbb');
