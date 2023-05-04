@@ -18,3 +18,5 @@ export interface CliCatalogItem {
   version?: string;
   authDetail?: string;
   platform: 'darwin' | 'linux' | 'win';
+  autoInstall?: { label: string };
+}
