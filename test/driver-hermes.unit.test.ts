@@ -79,3 +79,4 @@ while True:
         # Optionally interleave tool_call / tool_call_update events so the
         # driver's activity-accumulator code path gets exercised.
         for ev in SCRIPT.get("toolEvents", []):
+            write({"jsonrpc":"2.0","method":"session/update","params":{

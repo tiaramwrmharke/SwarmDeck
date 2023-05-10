@@ -60,3 +60,4 @@ function PageWrapper({ title, description, children }: { title: string; descript
             {description && <div className="mt-0.5 text-[13px] leading-relaxed text-fg-4">{description}</div>}
           </div>
         </div>
+        {children}
