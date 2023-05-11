@@ -307,3 +307,5 @@ export class WeixinBot extends Bot {
     for (const line of buildUsageOverviewLines(d.usageOverview)) lines.push(line.text);
     await ctx.reply(lines.join('\n'));
   }
+
+  private async cmdHost(ctx: WeixinContext) {
