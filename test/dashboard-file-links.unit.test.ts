@@ -28,3 +28,4 @@ describe('dashboard file link parsing', () => {
     expect(isFileLocator('v0.4.15')).toBe(false);
   });
 });
+

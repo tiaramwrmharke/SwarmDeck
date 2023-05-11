@@ -29,3 +29,7 @@ export default function InAction() {
       </div>
 
       <div className="mt-10">
+        <BrowserFrame
+          video={asset('media/promo-switch.mp4')}
+          alt="Switch agent mid-session — Claude builds, Gemini reviews, Hermes recaps, all in one session"
+          ratioW={1280}
