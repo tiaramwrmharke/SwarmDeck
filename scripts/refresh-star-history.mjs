@@ -38,3 +38,6 @@ async function fetchStarredAt() {
   }
   return dates.sort((a, b) => a - b);
 }
+
+function niceCeil(n) {
+  if (n <= 5) return 5;
