@@ -236,3 +236,7 @@ export interface LocalBackendInstallCommand {
   label?: string;
   cmd: string;
 }
+
+export interface LocalBackendInstallSpec {
+  darwin?: LocalBackendInstallCommand[];
+  linux?: LocalBackendInstallCommand[];
