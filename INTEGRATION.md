@@ -42,3 +42,7 @@ Responsibilities:
 - upload and download files
 - expose channel capability flags
 
+Your transport should not know about sessions, agents, or skills.
+
+### 2. `src/channels/<name>/render.ts`
+

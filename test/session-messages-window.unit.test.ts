@@ -18,3 +18,4 @@ describe('applyTurnWindow', () => {
     expect(windowed.messages.map(message => message.text)).toEqual([
       'user 2',
       'assistant 2',
+      'user 3',
