@@ -230,3 +230,6 @@
                 - generic [ref=e316]: "Snap source test: print 1 to 20, one per line \"N — <word>\". No preamble."
                 - generic:
                   - button "复制":
+                    - img
+                  - button "重跑":
+                    - img

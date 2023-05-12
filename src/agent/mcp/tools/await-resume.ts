@@ -27,3 +27,7 @@ const tools: McpToolModule['tools'] = [
       required: ['reason'],
     },
   },
+];
+
+function sessionRootFromCtx(ctx: ToolContext): string {
+  const workspace = path.resolve(ctx.workspace || '');
