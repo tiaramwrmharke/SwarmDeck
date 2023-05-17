@@ -14,3 +14,5 @@ const ASK_USER =
 describe('session tool capabilities (co-located tool + prompt)', () => {
   it('claude + HITL wired → artifact-delivery then ask-user (byte-identical to the old inline assembly)', () => {
     expect(composeSessionToolPrompt({ agent: 'claude', onInteraction: true }))
+      .toBe(`${ARTIFACT_RETURN}\n\n${ASK_USER}`);
+  });
