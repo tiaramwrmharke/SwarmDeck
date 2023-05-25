@@ -17,3 +17,6 @@ export interface PtyOpenOpts { cols?: number; rows?: number }
 export interface PtyExit { exitCode: number; signal?: number }
 
 // A pseudo-terminal bridge around an agent's interactive process. Carries raw TUI bytes
+// in both directions and fans `onData` out to many observers (full passthrough + tee/mirror).
+// This is the capability the kernel previously lacked: transparently passing through
+// Claude/Codex TUI traffic instead of only the structured -p stream.
