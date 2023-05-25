@@ -19,3 +19,7 @@ export function UsageBars({ usage, emptyText, className = '' }: {
     return <div className={`text-[11px] leading-relaxed text-fg-5 ${className}`}>{usage?.error || emptyText}</div>;
   }
   return (
+    <div className={`grid grid-cols-[3.5rem_minmax(0,1fr)_2.25rem_3.25rem] items-center gap-x-1.5 gap-y-1 text-[11px] ${className}`}>
+      {windows.map(w => {
+        const tone = usageWindowTone(w);
+        const pct = w.usedPercent;
