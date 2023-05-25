@@ -30,3 +30,4 @@ function writeTranscript(lines: string[]): void {
 beforeEach(() => {
   envSnap = captureEnv(HOME_KEYS);
   tmpHome = makeTmpDir('swarmdeck-claude-goal-home-');
+  tmpWorkdir = makeTmpDir('swarmdeck-claude-goal-wd-');
