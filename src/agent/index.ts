@@ -35,3 +35,7 @@ export {
   sessionAttachmentsDir,
   codexHome,
   type AttachAgentImageOpts,
+  type AttachInlineImageOpts,
+  type MaterializedImage,
+  type TransportContext,
+} from './images.js';

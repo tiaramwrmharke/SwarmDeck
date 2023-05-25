@@ -129,3 +129,5 @@
 
 /* ── Light theme overrides ── */
 [data-theme="light"] {
+  --th-surface: #eef2f6;
+
