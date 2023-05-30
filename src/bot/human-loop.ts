@@ -51,3 +51,7 @@ export function createEmptyHumanLoopAnswer(): HumanLoopAnswerState {
     skipped: false,
   };
 }
+
+export function currentHumanLoopQuestion(prompt: HumanLoopPromptState): HumanLoopQuestion | null {
+  return prompt.questions[prompt.currentIndex] || null;
+}
