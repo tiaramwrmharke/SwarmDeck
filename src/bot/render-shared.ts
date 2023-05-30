@@ -82,3 +82,6 @@ export function formatFooterParts(
   meta?: StreamPreviewMeta | null,
   contextPercent?: number | null,
   decorations?: FooterDecorations,
+): FooterParts {
+  const identityParts: string[] = [agent];
+  const modelLabel = decorations?.profileName ?? meta?.profileName ?? decorations?.model ?? null;
