@@ -17,3 +17,6 @@ describe('responses-bridge toChatRequest — tool translation', () => {
         { type: 'image_generation' },
       ],
     };
+    const req = toChatRequest(body);
+    const names = req.tools.map((t: any) => t.function.name);
+    expect(req.tools.every((t: any) => t.type === 'function')).toBe(true);
