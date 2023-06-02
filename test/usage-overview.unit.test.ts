@@ -53,3 +53,6 @@ describe('formatUsageWindowsSummary', () => {
       resetAfterSeconds: null,
       status: 'warning',
     }];
+    expect(formatUsageWindowsSummary(u, NOW)).toBe('status=warning (reset 2h)');
+  });
+  it('reports unavailable for null or errored usage', () => {
