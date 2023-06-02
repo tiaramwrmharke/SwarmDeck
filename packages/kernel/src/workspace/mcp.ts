@@ -33,3 +33,6 @@ export interface McpSearchResult {
 
 export interface McpRegistryOptions {
   /** Replace/extend the built-in recommended catalog. */
+  recommended?: McpCatalogEntry[];
+  fetchImpl?: typeof fetch;
+  log?: (msg: string) => void;
