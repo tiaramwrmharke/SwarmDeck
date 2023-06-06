@@ -83,3 +83,7 @@ export class PikichannelHost {
     private readonly log: (msg: string) => void = () => {},
   ) {}
 
+  start(): void {
+    if (this.started) return;
+    this.started = true;
+    this.unsubscribers.push(

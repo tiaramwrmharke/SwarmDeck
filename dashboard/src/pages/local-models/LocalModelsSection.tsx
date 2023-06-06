@@ -288,3 +288,6 @@ export function useLocalBackends(): LocalBackendsSnapshot {
       setError(e?.message || String(e));
       return { addedProviderIds: [] };
     } finally {
+      setLoading(false);
+    }
+  }, []);
