@@ -5,3 +5,4 @@
 
 export { resolveLoomPaths, normalizeStateDirName, type LoomPaths, type LoomScope } from './paths.js';
 export {
+  SessionsManager,
