@@ -79,3 +79,7 @@ export class PikichannelHost {
 
   constructor(
     private readonly source: SessionSource,
+    private readonly authenticate: Authenticator = () => true,
+    private readonly log: (msg: string) => void = () => {},
+  ) {}
+

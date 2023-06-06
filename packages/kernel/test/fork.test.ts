@@ -94,3 +94,6 @@ describe('turnLanded (the boundary rule)', () => {
   it('an error AFTER output is still a boundary — an interrupt leaves real context', () => {
     expect(turnLanded({ error: 'Interrupted by user.', text: 'partial' })).toBe(true);
     expect(turnLanded({ error: 'crashed', reasoning: 'thinking…' })).toBe(true);
+    expect(turnLanded({ error: 'crashed', toolCalls: [{ id: 'c1', name: 'Bash', status: 'done' }] })).toBe(true);
+  });
+});
