@@ -83,3 +83,5 @@ export function streamPromptMatchesTurnText(
   return prompt.startsWith(core.slice(0, probeLen));
 }
 
+export function normalizeTurnHistory(result: SessionMessagesResult): TurnHistoryWindow {
+  const richMessages = result.richMessages?.length
