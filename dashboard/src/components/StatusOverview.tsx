@@ -28,3 +28,6 @@ export function StatusOverview({
   const readyChannels = channels.filter(channel => channel.ready).length;
   const configuredChannels = channels.filter(channel => channel.configured).length;
   const totalPermissions = Object.keys(state?.permissions || {}).length;
+  const grantedPermissions = Object.values(state?.permissions || {}).filter(permission => permission.granted).length;
+  const missingPermissions = Math.max(totalPermissions - grantedPermissions, 0);
+  const defaultAgent = (state?.bot?.defaultAgent || state?.config.defaultAgent || 'codex') as Agent;

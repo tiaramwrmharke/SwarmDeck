@@ -210,3 +210,7 @@ export class FeishuBot extends Bot {
 
   protected override afterSwitchWorkdir(_oldPath: string, _newPath: string) {
     if (!this.channel) return;
+    void this.setupMenu().catch(err => this.log(`menu refresh failed: ${err}`));
+  }
+
+  private installSignalHandlers() {
