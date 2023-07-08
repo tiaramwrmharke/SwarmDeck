@@ -38,3 +38,4 @@ forbidden_paths=(
   '\.playwright-mcp/'                         # browser MCP debug logs
   '(^|/)\.env$'                                # .env at root or nested
   '(^|/)\.env\.[^/]*$'                         # .env.local, .env.production, etc.
+  '\.pem$'                                     # PEM key/cert
