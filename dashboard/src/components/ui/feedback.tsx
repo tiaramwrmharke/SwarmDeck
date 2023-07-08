@@ -16,3 +16,5 @@ export function Spinner({ className }: { className?: string }) {
     <svg
       className={cn('h-3 w-3 animate-spin', className)}
       viewBox="0 0 16 16"
+      fill="none"
+    >

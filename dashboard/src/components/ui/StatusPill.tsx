@@ -22,3 +22,7 @@ const STATE_TO_TEXT: Record<StatusState, string> = {
   idle: 'text-fg-4',
 };
 
+const STATE_TO_BG: Record<StatusState, string> = {
+  running: 'bg-[var(--th-badge-running-bg)] border-[var(--th-badge-running-border)]',
+  ok: 'bg-[var(--th-badge-ok-bg)] border-[var(--th-badge-ok-border)]',
+  warn: 'bg-[var(--th-badge-warn-bg)] border-[var(--th-badge-warn-border)]',
