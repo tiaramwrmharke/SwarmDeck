@@ -297,3 +297,6 @@ export const InputComposer = memo(function InputComposer({ session, workdir, onS
       profileId: targetProfileId,
       effort: targetEffort,
       previousAgent,
+      previousSessionId,
+    })
+      .then(res => {
