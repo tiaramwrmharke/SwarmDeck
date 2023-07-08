@@ -40,3 +40,5 @@ function detectInvocation(): InvocationCommand | null {
 
   const swarmdeckBin = whichSync('swarmdeck');
   if (swarmdeckBin) return { program: swarmdeckBin, args: userArgs };
+  return null;
+}
