@@ -68,3 +68,6 @@ export function Section({
 
 interface RowComposition {
   Lead: typeof RowLead;
+  Field: typeof RowField;
+  Status: typeof RowStatus;
+  Action: typeof RowAction;

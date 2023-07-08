@@ -73,3 +73,7 @@ export function setGoal(
     status: 'active',
     tokenBudget,
     tokensUsed: 0,
+    timeUsedSeconds: 0,
+    continuationCount: 0,
+    createdAt: now,
+    updatedAt: now,
