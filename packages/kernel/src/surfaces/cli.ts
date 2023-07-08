@@ -22,3 +22,6 @@ export class CliSurface implements Surface {
       if (sessionKey && key !== sessionKey) return;          // single-conversation terminal
       const interaction = (snap.interactions || [])[0];
       if (interaction && interaction.promptId !== pendingPromptId && snap.phase !== 'done') {
+        pendingPromptId = interaction.promptId;              // surface HITL; next line answers it
+        const q = interaction.questions[interaction.currentIndex ?? 0] || interaction.questions[0];
+        out.write(`\n[?] ${q?.text || interaction.title}\n> `);
