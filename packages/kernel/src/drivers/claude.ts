@@ -273,3 +273,4 @@ export class ClaudeDriver implements AgentDriver {
       // event; cleared the moment the model emits REAL output.
       const armModelStall = () => {
         clearModelStall();
+        modelStallTimer = setTimeout(() => {

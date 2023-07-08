@@ -32,3 +32,6 @@ export interface CliAuthSpec {
   tokenFields?: CredentialField[];
   applyTokenArgv?: string[];
   envKey?: string;
+  loginHint?: string;
+  loginHintZh?: string;
+}
