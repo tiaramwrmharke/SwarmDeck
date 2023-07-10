@@ -16,3 +16,4 @@ describe('session tool capabilities (co-located tool + prompt)', () => {
     expect(composeSessionToolPrompt({ agent: 'claude', onInteraction: true }))
       .toBe(`${ARTIFACT_RETURN}\n\n${ASK_USER}`);
   });
+

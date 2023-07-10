@@ -54,3 +54,6 @@ describe('claudeUserMessage (kernel)', () => {
     const content = JSON.parse(claudeUserMessage('plain')).message.content;
     expect(content).toEqual([{ type: 'text', text: 'plain' }]);
   });
+});
+
+// A fake `claude` CLI: records argv + stdin to files, emits a tiny valid stream-json
