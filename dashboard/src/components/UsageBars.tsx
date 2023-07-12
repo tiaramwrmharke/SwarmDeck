@@ -23,3 +23,6 @@ export function UsageBars({ usage, emptyText, className = '' }: {
       {windows.map(w => {
         const tone = usageWindowTone(w);
         const pct = w.usedPercent;
+        const rd = resetDisplay(w);
+        return (
+          <Fragment key={w.label}>
