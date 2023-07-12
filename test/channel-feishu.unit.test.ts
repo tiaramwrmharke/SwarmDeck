@@ -34,3 +34,4 @@ describe('FeishuChannel.editCard', () => {
       ).resolves.toBeUndefined();
       expect(patchMock).toHaveBeenCalledTimes(1);
     }
+
