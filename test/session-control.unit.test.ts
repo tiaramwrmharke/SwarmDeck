@@ -34,3 +34,7 @@ describe('session-control', () => {
         agent: 'codex',
         sessionId: 'sess-1',
         prompt: 'check',
+        attachments: ['/tmp/a.png'],
+      });
+
+      expect(submitSessionTask).toHaveBeenCalledWith({

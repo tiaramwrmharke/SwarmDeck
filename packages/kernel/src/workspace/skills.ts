@@ -50,3 +50,7 @@ export interface SkillMeta {
  */
 export function parseSkillMeta(content: string): SkillMeta {
   let label: string | null = null;
+  let description: string | null = null;
+  let mcpRequires: string[] | undefined;
+  const fm = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (fm) {
