@@ -45,3 +45,5 @@ function goalPathFromCtx(ctx: ToolContext): string {
   const root = sessionRootFromCtx(ctx);
   if (!root) return '';
   return path.join(root, 'goal.json');
+}
+
