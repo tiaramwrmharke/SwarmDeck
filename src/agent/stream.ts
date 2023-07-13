@@ -232,3 +232,5 @@ export async function run(
     cwd: opts.workdir,
     env: spawnEnv,
     stdio: ['pipe', 'pipe', 'pipe'],
+    shell: true,
+    detached: process.platform !== 'win32',
