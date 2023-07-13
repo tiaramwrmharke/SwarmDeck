@@ -25,3 +25,4 @@ export default function CountUp({
   separator = '',
   onStart,
   onEnd
+}: CountUpProps) {
