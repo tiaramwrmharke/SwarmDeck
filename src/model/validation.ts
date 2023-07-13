@@ -59,3 +59,6 @@ function buildHeaders(provider: ProviderConfig, apiKey: string): Record<string, 
 }
 
 function modelsUrl(provider: ProviderConfig, apiKey: string): string {
+  const base = provider.baseURL.replace(/\/+$/, '');
+  if (provider.kind === 'google') {
+    const sep = base.includes('?') ? '&' : '?';

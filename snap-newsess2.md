@@ -135,3 +135,7 @@
                 - img [ref=e192]
           - generic [ref=e194]:
             - generic [ref=e195] [cursor=pointer]:
+              - img [ref=e196]
+              - generic [ref=e199]: Two Agents
+              - generic [ref=e200]:
+                - button "新建会话" [ref=e201]:
