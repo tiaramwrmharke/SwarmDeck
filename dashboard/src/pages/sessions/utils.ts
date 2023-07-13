@@ -85,3 +85,4 @@ export function streamPromptMatchesTurnText(
 
 export function normalizeTurnHistory(result: SessionMessagesResult): TurnHistoryWindow {
   const richMessages = result.richMessages?.length
+    ? result.richMessages

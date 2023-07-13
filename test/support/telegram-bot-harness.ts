@@ -18,3 +18,7 @@ export interface TelegramBotHarness {
   reactions: Array<{ chatId: number; messageId: number; reactions: string[] }>;
 }
 
+export function createTelegramBotHarness(): TelegramBotHarness {
+  const edits: Array<{ text: string; opts?: any }> = [];
+  const sends: Array<{ text: string; opts?: any }> = [];
+  const docs: Array<{ content: string | Buffer; filename: string; opts?: any }> = [];
