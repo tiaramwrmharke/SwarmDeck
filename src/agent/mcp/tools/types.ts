@@ -22,3 +22,6 @@ export interface McpToolModule {
   handle(name: string, args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> | ToolResult;
 }
 
+export interface ToolContext {
+  workspace: string;
+  workdir?: string;
