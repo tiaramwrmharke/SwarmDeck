@@ -21,3 +21,7 @@ function simulateRunOrder(queuedIds: string[], deferIds: string[]): string[] {
   return runOrder;
 }
 
+describe('queuedIdsToDeferForSteer', () => {
+  it('defers every queued task except the steered target', () => {
+    expect(queuedIdsToDeferForSteer(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
+    expect(queuedIdsToDeferForSteer(['a', 'b', 'c'], 'a')).toEqual(['b', 'c']);
