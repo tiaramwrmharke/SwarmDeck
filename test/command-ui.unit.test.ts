@@ -19,3 +19,4 @@ describe('CommandAction codec', () => {
     { kind: 'agent.account.set', agent: 'claude', accountId: null },
     { kind: 'model.switch', modelId: 'claude-opus-4-7' },
     { kind: 'effort.set', effort: 'xhigh' },
+    { kind: 'models.select.model', modelId: 'gpt-5', profileId: null },
