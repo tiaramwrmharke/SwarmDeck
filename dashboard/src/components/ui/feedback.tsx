@@ -18,3 +18,4 @@ export function Spinner({ className }: { className?: string }) {
       viewBox="0 0 16 16"
       fill="none"
     >
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" opacity="0.25" />
