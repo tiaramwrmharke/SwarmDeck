@@ -31,3 +31,7 @@ const FIXTURE = `
           <span>Updated&nbsp;</span><span x-test-updated>1 year ago</span>
         </p>
       </div>
+    </a>
+  </li>
+  <li x-test-model class="flex items-baseline border-b py-6">
+    <a href="/library/mixtral" class="group w-full space-y-5">
