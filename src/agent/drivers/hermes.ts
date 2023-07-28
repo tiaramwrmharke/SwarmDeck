@@ -108,3 +108,7 @@ function applySessionUpdate(state: StreamState, update: any): boolean {
     }
     default:
       return false;
+  }
+}
+
+function makeStreamResult(start: number, partial: Partial<StreamResult> = {}): StreamResult {

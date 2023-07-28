@@ -62,3 +62,6 @@ export interface ProcessRestartResult {
   ok: boolean;
   restarting: boolean;
   error: string | null;
+}
+
+interface ProcessRestartOptions {

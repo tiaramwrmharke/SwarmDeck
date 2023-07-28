@@ -15,3 +15,4 @@ function readOrCreateSalt(): Buffer {
   const salt = crypto.randomBytes(32);
   try {
     fs.mkdirSync(path.dirname(SALT_FILE), { recursive: true });
+    fs.writeFileSync(SALT_FILE, salt, { mode: 0o600 });
