@@ -14,3 +14,4 @@ export default function BuiltWithItself() {
             <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Built with itself</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               The truest test of an orchestrator: can it build itself?
+            </h2>

@@ -47,3 +47,6 @@ function goalPathFromCtx(ctx: ToolContext): string {
   return path.join(root, 'goal.json');
 }
 
+type StoredGoal = {
+  goalId: string;
+  objective: string;
