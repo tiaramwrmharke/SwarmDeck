@@ -21,3 +21,5 @@ function Co({ logo, name }: { logo: ReactNode; name: string }) {
 const COMPANIES: LogoItem[] = [
   { node: <Co logo={brand(ByteDance)} name="ByteDance" />, title: 'ByteDance' },
   { node: <Co logo={brand(Tencent)} name="Tencent" />, title: 'Tencent' },
+  { node: <Co logo={brand(Alibaba)} name="Alibaba" />, title: 'Alibaba' },
+  { node: <Co logo={brand(Meta)} name="Meta" />, title: 'Meta' },
