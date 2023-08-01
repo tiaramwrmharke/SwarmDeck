@@ -362,3 +362,6 @@ function summarizeCodexToolCall(item: any): CodexActiveToolCall | null {
     case 'apply_patch': return { kind, summary: 'Edit files' };
     case 'exec_command': {
       const command = args && typeof args === 'object' && !Array.isArray(args) ? (args as any).cmd : null;
+      const preview = commandPreview(command);
+      return { kind, summary: preview ? `Bash: ${preview}` : 'Bash' };
+    }

@@ -95,3 +95,5 @@ export function attachAgentImage(opts: AttachAgentImageOpts): MessageBlock | nul
   if (stat.size > MAX_IMAGE_BYTES) {
     agentWarn(`[images] attachAgentImage: ${abs} too large (${stat.size} bytes > ${MAX_IMAGE_BYTES})`);
     return null;
+  }
+
