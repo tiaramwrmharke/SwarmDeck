@@ -34,3 +34,5 @@ export interface CoreSessionRecord {
   forkedFrom?: { sessionKey: string; taskId?: string | null } | null;
   // Fork intent, pending until the first dispatch materializes the branch (then cleared).
   // mode 'native': resume the parent's native id with AgentTurnInput.fork (fork-capable
+  // drivers). mode 'seed': start a fresh native session and replay the copied transcript
+  // as a context seed (any driver). `anchor` is pinned at fork time so the branch is
