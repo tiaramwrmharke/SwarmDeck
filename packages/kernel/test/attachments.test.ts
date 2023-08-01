@@ -32,3 +32,7 @@ function makePng(width: number, height: number): Buffer {
 }
 
 // Whether THIS machine can actually resize (darwin sips, or ImageMagick on PATH).
+const canResize = process.platform === 'darwin'
+  || ['magick', 'convert'].some((c) => {
+    try { execFileSync(c, ['-version'], { stdio: 'ignore' }); return true; } catch { return false; }
+  });

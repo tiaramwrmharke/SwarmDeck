@@ -336,3 +336,6 @@ export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
   }
 
   if (detectClaudeModelError(ds)) return { state: 'model-error', affirmativeKey: null, sample };
+
+  const asksProceed = ds.includes('doyouwanttoproceed') || ds.includes('wouldyouliketoproceed');
+  const hasCursorSelect = ds.includes('❯') && ds.includes('1.');
