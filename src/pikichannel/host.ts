@@ -87,3 +87,7 @@ export class PikichannelHost {
     if (this.started) return;
     this.started = true;
     this.unsubscribers.push(
+      this.source.onUpdate((sessionKey, snapshot, seq) => this.onSourceUpdate(sessionKey, snapshot, seq)),
+    );
+    this.unsubscribers.push(
+      this.source.onSessionsChanged((sessions) => this.broadcast({ type: 'sessions', sessions }, true)),
