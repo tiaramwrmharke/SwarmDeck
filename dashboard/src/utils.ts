@@ -95,3 +95,4 @@ export const agentMeta: Record<string, AgentMeta> = {
     shortLabel: 'Gemini',
     color: '#c4b5fd',
     bg: 'rgba(196,181,253,0.12)',
+    letter: 'G',
