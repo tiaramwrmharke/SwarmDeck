@@ -39,3 +39,7 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
     expect(effortOptionsFor('gemini')).toEqual([]);
   });
 
+  it('codex with no model keeps the base low→xhigh ladder (no max/ultra)', () => {
+    expect(effortOptionsFor('codex').map(l => l.id)).toEqual(['low', 'medium', 'high', 'xhigh']);
+  });
+
