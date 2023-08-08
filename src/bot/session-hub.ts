@@ -95,3 +95,7 @@ function normalizeAgents(agent?: Agent | Agent[]): Agent[] {
 
 export async function querySessions(opts: SessionQueryOpts): Promise<SessionQueryResult> {
   const resolvedWorkdir = path.resolve(opts.workdir);
+  const ws = findWorkspace(resolvedWorkdir);
+  const workspaceName = ws?.name || path.basename(resolvedWorkdir);
+  const agents = normalizeAgents(opts.agent);
+
