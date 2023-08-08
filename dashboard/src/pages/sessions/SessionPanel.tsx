@@ -203,3 +203,6 @@ export const SessionPanel = memo(function SessionPanel({
     initialPendingConsumedRef.current = true;
     if (initialPendingPrompt && !pendingPrompt) setPendingPrompt(initialPendingPrompt);
     if (initialPendingImageUrls && initialPendingImageUrls.length && !pendingImageUrls.length) {
+      setPendingImageUrls(initialPendingImageUrls);
+      pendingImageUrlsRef.current = initialPendingImageUrls;
+    }
