@@ -39,3 +39,6 @@ const tools: McpToolModule['tools'] = [
       },
       required: ['question'],
     },
+  },
+];
+
