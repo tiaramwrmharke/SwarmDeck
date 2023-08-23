@@ -234,3 +234,7 @@ export async function run(
     stdio: ['pipe', 'pipe', 'pipe'],
     shell: true,
     detached: process.platform !== 'win32',
+  });
+  agentLog(`[spawn] pid=${proc.pid}`);
+  proc.stdin?.on('error', (e: any) => {
+    if (e?.code !== 'EPIPE') agentWarn(`[stdin] write failed: ${e?.message || e}`);
