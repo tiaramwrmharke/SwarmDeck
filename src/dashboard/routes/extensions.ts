@@ -239,3 +239,7 @@ app.post('/api/extensions/mcp/health', async (c) => {
 });
 
 app.get('/api/extensions/mcp/search', async (c) => {
+  const query = c.req.query('q') || '';
+  const parsed = parseInt(c.req.query('limit') || '20', 10);
+  const limit = Math.min(Number.isFinite(parsed) ? parsed : 20, 50);
+  try {
