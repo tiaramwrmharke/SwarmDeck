@@ -48,3 +48,6 @@ export class WebSurface implements Surface {
     this.io = io;
     this.host = host;
     this.wss = this.opts.server
+      ? new WebSocketServer({ server: this.opts.server })
+      : new WebSocketServer({ port: this.opts.port ?? 0 });
+

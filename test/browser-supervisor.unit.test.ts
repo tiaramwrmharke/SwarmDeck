@@ -48,3 +48,7 @@ describe('browser-supervisor', () => {
     expect(c.cdpEndpoint).toBe('http://127.0.0.1:39222');
 
     await supervisor.ensureManagedBrowser();
+    await supervisor.ensureManagedBrowser();
+    expect(prepareMock).toHaveBeenCalledTimes(1);
+
+    supervisor.invalidateManagedBrowser();
