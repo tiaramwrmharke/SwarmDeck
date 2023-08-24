@@ -26,3 +26,6 @@ const waitFor = async (pred: () => boolean, ms = 5000) => {
 
 describe('FeishuSurface (IM as a Surface over LoomIO, hermetic)', () => {
   let tmp: string;
+  let loom: Loom;
+  let fake: FakeFeishuTransport;
+

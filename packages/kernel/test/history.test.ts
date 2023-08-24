@@ -26,3 +26,5 @@ describe('session history / transcript (hermetic)', () => {
   let tmp: string;
   let loom: Loom;
 
+  beforeEach(async () => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-hist-'));
