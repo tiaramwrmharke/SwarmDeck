@@ -64,3 +64,5 @@ function getInitialLocale(): Locale {
 }
 
 interface StoreState {
+  state: AppState | null;
+  host: HostInfo | null;
