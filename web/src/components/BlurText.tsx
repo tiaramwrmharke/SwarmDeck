@@ -40,3 +40,5 @@ const BlurText: React.FC<BlurTextProps> = ({
   animationFrom,
   animationTo,
   easing = (t: number) => t,
+  onAnimationComplete,
+  stepDuration = 0.35

@@ -66,3 +66,7 @@ export class AcpClient extends EventEmitter {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private nextId = 1;
   private pending = new Map<number | string, Pending>();
+  private exited = false;
+
+  constructor(private opts: AcpClientOptions) {
+    super();
