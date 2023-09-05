@@ -20,3 +20,7 @@ const waitFor = async (pred: () => boolean, ms = 6000) => {
   while (!pred()) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 10)); }
 };
 
+describe('CliSurface (terminal mode over LoomIO, hermetic)', () => {
+  let tmp: string;
+  let loom: Loom;
+  let input: PassThrough;
