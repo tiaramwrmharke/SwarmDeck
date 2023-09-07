@@ -26,3 +26,5 @@ describe('agent update gate', () => {
   it('makes a spawn wait until the in-flight reinstall finishes', async () => {
     let finishInstall!: () => void;
     const install = new Promise<void>(resolve => { finishInstall = resolve; });
+
+    const updatePromise = withAgentUpdateGate('__vitest_a__', () => install);
