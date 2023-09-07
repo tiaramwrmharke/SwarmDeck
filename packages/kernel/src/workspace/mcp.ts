@@ -36,3 +36,6 @@ export interface McpRegistryOptions {
   recommended?: McpCatalogEntry[];
   fetchImpl?: typeof fetch;
   log?: (msg: string) => void;
+}
+
+const BUILTIN_RECOMMENDED: McpCatalogEntry[] = [
