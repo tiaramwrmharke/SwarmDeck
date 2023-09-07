@@ -85,3 +85,6 @@ function previewFromText(text: string): string {
 }
 
 export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
+  text: string;
+  blocks?: MessageBlock[];
+  t: (k: string) => string;

@@ -23,3 +23,6 @@ describe('runTurn (bridge primitive, hermetic)', () => {
     let steer: ((p: string) => Promise<boolean>) | undefined;
     const done = runTurn(new EchoDriver(), { prompt: 'HOLD', workdir: process.cwd() }, { onSteer: fn => { steer = fn; } });
     await new Promise(r => setTimeout(r, 50));
+    expect(await steer!('EXTRA')).toBe(true);
+    const { snapshot } = await done;
+    expect(snapshot.text).toContain('steered: EXTRA');

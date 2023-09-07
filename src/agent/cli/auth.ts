@@ -80,3 +80,7 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
 
   const [cmd, ...args] = argv;
   const child = spawn(cmd, args, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env,
+    shell,
+    windowsHide: true,
