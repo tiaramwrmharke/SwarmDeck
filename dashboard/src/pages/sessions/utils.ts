@@ -89,3 +89,7 @@ export function normalizeTurnHistory(result: SessionMessagesResult): TurnHistory
     : result.messages?.map(m => ({ role: m.role, text: m.text, blocks: [{ type: 'text' as const, content: m.text }] })) || [];
   const turns = groupIntoTurns(richMessages);
   const totalTurns = Math.max(result.window?.totalTurns ?? result.totalTurns ?? turns.length, turns.length);
+  const endTurn = result.window?.endTurn ?? totalTurns;
+  const startTurn = result.window?.startTurn ?? Math.max(0, endTurn - turns.length);
+  return {
+    turns,
