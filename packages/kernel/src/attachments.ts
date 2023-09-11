@@ -52,3 +52,4 @@ export function imageDimensions(buf: Buffer): { width: number; height: number } 
     let i = 2;
     while (i + 9 < buf.length) {
       if (buf[i] !== 0xff) { i++; continue; }
+      const marker = buf[i + 1];

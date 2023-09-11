@@ -35,3 +35,6 @@ const FIXTURE = `
   </li>
   <li x-test-model class="flex items-baseline border-b py-6">
     <a href="/library/mixtral" class="group w-full space-y-5">
+      <div x-test-model-title title="mixtral" class="flex flex-col">
+        <h2><span>mixtral</span></h2>
+        <p class="max-w-lg break-words text-neutral-800 text-md">Mixture of Experts model.</p>
