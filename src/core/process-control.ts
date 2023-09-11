@@ -65,3 +65,6 @@ export interface ProcessRestartResult {
 }
 
 interface ProcessRestartOptions {
+  argv?: string[];
+  restartCmd?: string;
+  log?: (message: string) => void;

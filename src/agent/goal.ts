@@ -77,3 +77,4 @@ export function setGoal(
     continuationCount: 0,
     createdAt: now,
     updatedAt: now,
+    startedAt: Date.now(),
