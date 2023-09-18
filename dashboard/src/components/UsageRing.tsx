@@ -13,3 +13,4 @@ export function UsageRing({ percent, tone, trackTone, alert = false, size = 14 }
   alert?: boolean;
   size?: number;
 }) {
+  const clamped = Math.max(0, Math.min(100, percent));
