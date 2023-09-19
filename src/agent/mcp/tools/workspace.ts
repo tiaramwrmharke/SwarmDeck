@@ -55,3 +55,7 @@ function summarizeSendFileArgs(filePath: string, caption: string, kind?: string)
 
 function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolResult {
   const subdir = typeof args?.subdirectory === 'string' ? args.subdirectory : '';
+  const dir = subdir ? path.resolve(ctx.workspace, subdir) : ctx.workspace;
+  toolLog('im_list_files', `dir=${dir} subdir=${subdir || '(root)'}`);
+
+  const realWorkspace = safeRealpath(ctx.workspace);
