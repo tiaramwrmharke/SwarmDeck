@@ -117,3 +117,6 @@ async function handleResponses(
   const baseResp = (status: string, output: any[], usageOut: any) => ({
     id: respId, object: 'response', created_at: Math.floor(Date.now() / 1000), status, model, output, usage: usageOut,
   });
+  emit('response.created', { response: baseResp('in_progress', [], ZERO) });
+  emit('response.in_progress', { response: baseResp('in_progress', [], ZERO) });
+

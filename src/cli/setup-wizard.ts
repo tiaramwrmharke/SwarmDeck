@@ -69,3 +69,7 @@ function createTerminalIO(): PromptIO {
       void rl.close();
     },
   };
+}
+
+function parseChoice(raw: string): string {
+  return String(raw || '').trim().toLowerCase();
