@@ -97,3 +97,7 @@ export function attachAgentImage(opts: AttachAgentImageOpts): MessageBlock | nul
     return null;
   }
 
+  const mime = (opts.mime || mimeFromPath(abs)).toLowerCase();
+  if (!isImageMime(mime)) return null;
+
+  const threshold = opts.inlineThresholdBytes ?? INLINE_THRESHOLD_BYTES;
