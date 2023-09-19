@@ -35,3 +35,5 @@ export function Modal({ open, onClose, size, wide, panelStyle, children }: Modal
   const resolvedSize: ModalSize = size ?? (wide ? 'lg' : 'sm');
 
   return createPortal(
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+      <div

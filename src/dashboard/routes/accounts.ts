@@ -43,3 +43,5 @@ app.get('/api/agents/:agent/accounts', async (c) => {
   const fresh = c.req.query('fresh') === '1';
   const force = c.req.query('force') === '1';
   const snap = await getAccountsUsageSnapshot(agent, { fresh, force });
+  return c.json({
+    ok: true, agent, supported: true,
