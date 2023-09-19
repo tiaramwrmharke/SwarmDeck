@@ -18,3 +18,5 @@ export class RendezvousHostClient {
     private readonly onConnection: (conn: ChannelConnection) => void,
   ) {}
 
+  start(): void { this.stopped = false; this.connect(); }
+
