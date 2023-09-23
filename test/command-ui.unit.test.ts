@@ -20,3 +20,7 @@ describe('CommandAction codec', () => {
     { kind: 'model.switch', modelId: 'claude-opus-4-7' },
     { kind: 'effort.set', effort: 'xhigh' },
     { kind: 'models.select.model', modelId: 'gpt-5', profileId: null },
+    { kind: 'models.select.model', modelId: 'gpt-5', profileId: 'prof-xyz-1' },
+    { kind: 'models.select.effort', effort: 'medium' },
+    { kind: 'models.confirm' },
+    { kind: 'skill.run', command: 'sk_review' },

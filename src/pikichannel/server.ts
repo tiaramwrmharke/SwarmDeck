@@ -50,3 +50,6 @@ function readWebAsset(name: string): string {
 
 export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
   const log = (msg: string) => writeScopedLog('pikichannel', msg, { level: 'info' });
+
+  const cfg = loadUserConfig();
+  const envToken = String(process.env.PIKICHANNEL_TOKEN || '').trim();
