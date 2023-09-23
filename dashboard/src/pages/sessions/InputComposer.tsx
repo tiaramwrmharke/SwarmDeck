@@ -300,3 +300,7 @@ export const InputComposer = memo(function InputComposer({ session, workdir, onS
       previousSessionId,
     })
       .then(res => {
+        if (res.taskId) {
+          setLocalTaskId(res.taskId);
+          onSendTaskAssigned?.(res.taskId);
+        }
