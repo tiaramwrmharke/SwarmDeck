@@ -339,3 +339,4 @@ export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
 
   const asksProceed = ds.includes('doyouwanttoproceed') || ds.includes('wouldyouliketoproceed');
   const hasCursorSelect = ds.includes('❯') && ds.includes('1.');
+
