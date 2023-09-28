@@ -284,3 +284,5 @@ function getCopy(locale: Locale): CopyPack {
       rowSummaryNative: '官方认证',
       rowSummaryNoModel: '未选模型',
       rowSummaryNoEffort: '默认强度',
+      rowWorkflowChipOn: '编排开',
+      rowWorkflowChipOff: '编排关',

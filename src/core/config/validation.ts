@@ -144,3 +144,6 @@ function invalidChannelState(channel: ChannelSetupState['channel'], detail: stri
     configured: true,
     ready: false,
     validated: true,
+    status: 'invalid',
+    detail,
+  };
