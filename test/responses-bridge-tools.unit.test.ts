@@ -20,3 +20,6 @@ describe('responses-bridge toChatRequest — tool translation', () => {
     const req = toChatRequest(body);
     const names = req.tools.map((t: any) => t.function.name);
     expect(req.tools.every((t: any) => t.type === 'function')).toBe(true);
+    expect(names).toEqual(['exec_command', 'update_plan', 'spawn_agent', 'wait_agent', 'mem_search']);
+    expect(names).not.toContain(''); // web_search / image_generation carry no function name → dropped
+  });
