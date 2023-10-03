@@ -9,3 +9,5 @@ export {
 } from './catalog.js';
 
 export {
+  listProviders, getProvider, addProvider, updateProvider, removeProvider, setProviderValidation,
+  listProfiles, getProfile, addProfile, updateProfile, removeProfile,
