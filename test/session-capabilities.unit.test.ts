@@ -17,3 +17,5 @@ describe('session tool capabilities (co-located tool + prompt)', () => {
       .toBe(`${ARTIFACT_RETURN}\n\n${ASK_USER}`);
   });
 
+  it('claude without HITL → artifact-delivery only', () => {
+    expect(composeSessionToolPrompt({ agent: 'claude', onInteraction: false })).toBe(ARTIFACT_RETURN);
