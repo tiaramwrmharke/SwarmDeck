@@ -30,3 +30,6 @@ export interface CompactForHandoverOpts {
   fromSessionId: string;
   workdir: string;
   toAgent: Agent;
+  toModel?: string | null;
+}
+
