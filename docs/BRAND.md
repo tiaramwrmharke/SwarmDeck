@@ -21,3 +21,6 @@ Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
 | light / white | `#0e7490` (deep cyan) | `#06333c` |
 
 ## Where used
+
+- **Dashboard header** (`dashboard/src/components/Sidebar.tsx`) → wordmark, swapped by
+  theme: cyan PNG on dark, deep-cyan `logo-wordmark-light.png` on light.

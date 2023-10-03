@@ -99,3 +99,5 @@ export async function querySessions(opts: SessionQueryOpts): Promise<SessionQuer
   const workspaceName = ws?.name || path.basename(resolvedWorkdir);
   const agents = normalizeAgents(opts.agent);
 
+  const results = await Promise.all(
+    agents.map(agent =>
