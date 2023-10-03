@@ -32,3 +32,4 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
   if (state.ready && state.bot) {
     return {
       badgeVariant: 'warn',
+      badgeContent: t('status.connecting'),
