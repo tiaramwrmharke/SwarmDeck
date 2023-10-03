@@ -243,3 +243,4 @@ app.get('/api/extensions/mcp/search', async (c) => {
   const parsed = parseInt(c.req.query('limit') || '20', 10);
   const limit = Math.min(Number.isFinite(parsed) ? parsed : 20, 50);
   try {
+    const results = await searchMcpServers(query, limit);
