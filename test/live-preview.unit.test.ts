@@ -39,3 +39,5 @@ describe('LivePreview placeholder lifecycle', () => {
       });
 
       expect(preview.isPlaceholderAbandoned()).toBe(false);
+
+      preview.update('text-1', '', '');
