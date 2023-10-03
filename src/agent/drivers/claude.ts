@@ -530,3 +530,6 @@ export function claudeParse(ev: any, s: any) {
           if (rawStatus === 'deleted') {
             s.claudeTaskList.delete(taskId);
             s.claudeTaskOrder = s.claudeTaskOrder.filter((id: string) => id !== taskId);
+          } else if (rawStatus) {
+            const existing = s.claudeTaskList.get(taskId);
+            if (existing) existing.status = rawStatus;
