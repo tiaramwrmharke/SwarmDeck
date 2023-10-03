@@ -90,3 +90,5 @@ function channelToSnapshot(key: string, u: any): any {
     queuedTasks: Array.isArray(u.queued) ? u.queued : [],
     interactions: Array.isArray(u.interactions) ? u.interactions.map((it: any) => ({
       promptId: it.promptId,
+      kind: it.kind,
+      title: it.title,
