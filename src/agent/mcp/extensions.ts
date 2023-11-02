@@ -97,3 +97,5 @@ export function removeGlobalMcpExtension(name: string): boolean {
     extensions: { ...userConfig.extensions, mcp },
   });
   return true;
+}
+
