@@ -15,3 +15,6 @@ class CapturingDriver implements AgentDriver {
   readonly capabilities = { steer: false, interact: false, resume: false, tui: true };
   lastRun?: AgentTurnInput;
   lastTui?: TuiInput;
+  async run(input: AgentTurnInput, _ctx: DriverContext): Promise<DriverResult> {
+    this.lastRun = input;
+    return { ok: true, text: 'ok', sessionId: 'cap-1' };
