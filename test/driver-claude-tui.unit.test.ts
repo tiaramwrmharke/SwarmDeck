@@ -154,3 +154,4 @@ describe('Claude TUI driver — terminal limit notices', () => {
     expect(detectClaudeTuiTerminalLimitNotice('Usage limit reached. Please try again later.')).toContain('Usage limit reached');
     expect(detectClaudeTuiTerminalLimitNotice('Please explain how rate limit handling works in this codebase.')).toBeNull();
   });
+
