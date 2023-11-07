@@ -87,3 +87,6 @@ export const MCP_SERVERS: RecommendedMcpServer[] = [
   {
     id: 'atlassian',
     name: 'Atlassian',
+    description: 'Jira issues, Confluence pages, sprint planning',
+    descriptionZh: 'Jira 工单、Confluence 文档、Sprint 管理',
+    category: 'productivity',
