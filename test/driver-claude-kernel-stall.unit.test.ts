@@ -53,3 +53,4 @@ describe('claudeModelStallMs', () => {
     for (const effort of ['high', 'xhigh', 'max', 'ultra']) expect(claudeModelStallMs(effort)).toBe(600_000);
   });
   it('honors a positive env override regardless of effort', () => {
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '5000';

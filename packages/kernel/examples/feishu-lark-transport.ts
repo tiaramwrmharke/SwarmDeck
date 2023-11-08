@@ -15,3 +15,4 @@ export interface FeishuLarkOptions { appId: string; appSecret: string }
 export class FeishuLarkTransport implements FeishuTransport {
   private client: lark.Client;
   private ws: lark.WSClient;
+  private dispatcher: lark.EventDispatcher;
