@@ -16,3 +16,6 @@ describe('formatFooterParts — BYOK profile name + provider', () => {
   });
 
   it('takes profileName + providerName from live meta during streaming', () => {
+    const parts = formatFooterParts('codex', 1000, { profileName: '豆包 Seed 2.1', providerName: '豆包 (Volcengine Ark)' } as any, null, {
+      model: 'gpt-5.5',
+      effort: 'high',
