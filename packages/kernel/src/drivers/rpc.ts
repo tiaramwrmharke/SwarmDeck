@@ -35,3 +35,5 @@ export class StdioRpcClient {
   constructor(private readonly opts: StdioRpcOptions) {
     this.label = opts.label || opts.command;
   }
+
+  onNotification(cb: (method: string, params: any) => void): void { this.notifyCb = cb; }
