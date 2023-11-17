@@ -35,3 +35,4 @@ describe('FeishuChannel.editCard', () => {
       expect(patchMock).toHaveBeenCalledTimes(1);
     }
 
+    {
