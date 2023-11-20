@@ -295,3 +295,4 @@ const zhCN: Record<string, string> = {
   'hub.noNextAction': '暂无下一步建议',
   'hub.continueTask': '继续当前未完成的任务',
   'hub.status': '状态',
+  'hub.outcome': '类型',
