@@ -72,3 +72,7 @@ export function SystemNoticeSection({ blocks, t }: { blocks: MessageBlock[]; t: 
   const text = blocks.map(b => b.content).filter(Boolean).join('\n\n').trim();
   if (!text) return null;
   return (
+    <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2 text-[12.5px] leading-[1.7] text-fg-3">
+      <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-amber-400/70 shrink-0" />
+      <div className="min-w-0">
+        <div className="text-[11px] font-mono uppercase tracking-wide text-amber-300/80">{t('hub.systemNotice') || 'Agent notice'}</div>
