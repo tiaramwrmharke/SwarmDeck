@@ -349,3 +349,6 @@ export const SessionWorkspace = memo(function SessionWorkspace({
           return { ...prev, [wsPath]: next };
         });
         setSessionsMap(prev => {
+          const incoming = res.sessions || [];
+          const existing = prev[wsPath] || [];
+          const incomingIds = new Set(incoming.map(s => sKey(s.agent || '', s.sessionId)));
