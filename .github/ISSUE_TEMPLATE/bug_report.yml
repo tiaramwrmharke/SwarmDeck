@@ -25,3 +25,6 @@ body:
       required: true
 
   - type: dropdown
+    id: os
+    attributes:
+      label: Operating System

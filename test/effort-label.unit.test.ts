@@ -43,3 +43,4 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
     expect(effortOptionsFor('codex').map(l => l.id)).toEqual(['low', 'medium', 'high', 'xhigh']);
   });
 
+  it('GPT-5.6 sol/terra unlock the native max + ultra rungs', () => {
