@@ -25,3 +25,6 @@ describe('snapshot diff/apply', () => {
     expect(applied.activity).toBeNull();
     expect(applied.phase).toBe('done');
   });
+
+  it('full patch replaces wholesale', () => {
+    const full: UniversalSnapshot = { phase: 'done', text: 'final', updatedAt: 5 };
