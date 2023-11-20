@@ -59,3 +59,7 @@ npx swarmdeck@latest
 
 ## 自举：用自己构建自己
 
+> 检验一个 Agent 编排器是否靠谱，最硬核的标准就是看它能不能自举（构建自己）。swarmdeck 做到了。我们日常使用 swarmdeck 来开发、测试、发布和运维 swarmdeck —— 覆盖了每一次 Commit 和每一次版本发布。
+
+在 swarmdeck 里的典型开发日常是这样的：
+

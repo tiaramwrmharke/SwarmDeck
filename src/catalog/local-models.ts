@@ -28,3 +28,7 @@ export const LOCAL_MODELS: LocalModelEntry[] = [
   },
   {
     id: 'llama-3.3-8b',
+    name: 'Llama 3.3 8B Instruct',
+    publisher: 'Meta',
+    paramsB: 8,
+    sizeGb: 5,
