@@ -31,3 +31,7 @@ const tools: McpToolModule['tools'] = [
 
 function sessionRootFromCtx(ctx: ToolContext): string {
   const workspace = path.resolve(ctx.workspace || '');
+  if (!workspace) return '';
+  return path.basename(workspace) === 'workspace' ? path.dirname(workspace) : workspace;
+}
+
