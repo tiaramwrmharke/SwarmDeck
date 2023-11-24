@@ -7,3 +7,5 @@ import { WebSocket } from 'ws';
 const web = new WebSurface({ port: 0 });
 const loom = createLoom({ appNamespace: 'loom-smoke', drivers: [new EchoDriver()], defaultAgent: 'echo', surfaces: [web] });
 await loom.start();
+
+const ws = new WebSocket(`ws://127.0.0.1:${web.port}`);
