@@ -29,3 +29,6 @@ describe('FeishuSurface (IM as a Surface over LoomIO, hermetic)', () => {
   let loom: Loom;
   let fake: FakeFeishuTransport;
 
+  beforeEach(async () => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-feishu-'));
+    fake = new FakeFeishuTransport();

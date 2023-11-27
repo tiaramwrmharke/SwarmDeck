@@ -20,3 +20,4 @@ export { runTurn, type RunTurnOptions, type TurnOutcome } from './runtime/turn.j
 export { PtyBridge, ptyAvailable, type PtyExit, type PtyOpenOpts } from './runtime/pty.js';
 export { attachTui, type AttachTuiOptions } from './runtime/tui.js';
 
+// Contracts
