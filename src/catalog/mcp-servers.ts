@@ -90,3 +90,7 @@ export const MCP_SERVERS: RecommendedMcpServer[] = [
     description: 'Jira issues, Confluence pages, sprint planning',
     descriptionZh: 'Jira 工单、Confluence 文档、Sprint 管理',
     category: 'productivity',
+    recommendedScope: 'global',
+    transport: { type: 'http', url: 'https://mcp.atlassian.com/v1/sse' },
+    auth: { type: 'mcp-oauth' },
+    iconSlug: 'atlassian',

@@ -131,3 +131,7 @@
 [data-theme="light"] {
   --th-surface: #eef2f6;
 
+  /* Surface ladder — chrome dimmer than content per Linear refresh. */
+  --surface-0: #eef2f6;
+  --surface-1: #e5e9ee;   /* sidebar a notch dimmer than content */
+  --surface-2: rgba(255,255,255,0.88);
