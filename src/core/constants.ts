@@ -33,3 +33,5 @@ export const PLAYWRIGHT_MCP_PACKAGE_VERSION = '0.0.75';
 export const PLAYWRIGHT_MCP_PACKAGE_SPEC = `${PLAYWRIGHT_MCP_PACKAGE_NAME}@${PLAYWRIGHT_MCP_PACKAGE_VERSION}`;
 export const PLAYWRIGHT_MCP_BROWSER_ARGS = ['--browser', 'chrome', '--viewport-size', '1920x1080'] as const;
 // Chrome 150+ sets navigator.webdriver=true whenever remote debugging is on, which trips
+// Google's "This browser or app may not be secure" sign-in block; --test-type suppresses
+// the "unsupported command-line flag" infobar that the first flag would otherwise trigger.
