@@ -55,3 +55,5 @@ export class LivePreview {
   private readonly log: (message: string) => void;
 
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private typingTimer: ReturnType<typeof setInterval> | null = null;
+  private flushTimer: ReturnType<typeof setTimeout> | null = null;

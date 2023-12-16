@@ -17,3 +17,7 @@ class WsConnection extends BaseConnection {
 
     ws.on('message', (raw) => {
       const data = raw as unknown;
+      const frame = typeof data === 'string'
+        ? data
+        : Buffer.isBuffer(data)
+          ? data.toString('utf8')
