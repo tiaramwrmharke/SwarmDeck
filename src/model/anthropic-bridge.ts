@@ -86,3 +86,5 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
     });
   });
 }
+
+async function handleMessages(

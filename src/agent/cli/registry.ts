@@ -35,3 +35,5 @@ export interface CliAuthSpec {
   loginHint?: string;
   loginHintZh?: string;
 }
+
+export interface RecommendedCli {
