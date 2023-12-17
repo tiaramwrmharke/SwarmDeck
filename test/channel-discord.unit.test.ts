@@ -48,3 +48,7 @@ vi.mock('discord.js', () => {
         this.channels.cache.set(id, ch);
         return ch;
       }),
+    };
+    login = vi.fn(async () => {
+      queueMicrotask(() => {
+        const handlers = hoist.onceHandlers['ClientReady'] || [];

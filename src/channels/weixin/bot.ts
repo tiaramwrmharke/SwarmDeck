@@ -309,3 +309,5 @@ export class WeixinBot extends Bot {
   }
 
   private async cmdHost(ctx: WeixinContext) {
+    const d = getHostDataSync(this);
+    const lines = [
