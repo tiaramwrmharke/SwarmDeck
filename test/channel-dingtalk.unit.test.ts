@@ -36,3 +36,4 @@ afterEach(() => {
 });
 
 describe('DingtalkChannel', () => {
+  it('connects, dispatches messages via sessionWebhook, dedups, throws without webhook, and enforces allowlists', async () => {

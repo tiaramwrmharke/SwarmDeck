@@ -143,3 +143,4 @@ export function decodeCommandAction(data: string): CommandAction | null {
     } catch {
       return null;
     }
+  }
