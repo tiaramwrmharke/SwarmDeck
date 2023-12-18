@@ -53,3 +53,6 @@ export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
 
   const cfg = loadUserConfig();
   const envToken = String(process.env.PIKICHANNEL_TOKEN || '').trim();
+  let token = envToken || String(cfg.pikichannelToken || '').trim();
+  if (!token) {
+    token = crypto.randomBytes(24).toString('base64url');
