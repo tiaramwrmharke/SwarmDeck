@@ -46,3 +46,6 @@ Your transport should not know about sessions, agents, or skills.
 
 ### 2. `src/channels/<name>/render.ts`
 
+Render shared command data into platform-specific output.
+
+Typical responsibilities:

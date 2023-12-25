@@ -21,3 +21,7 @@ among the international free hosts (better than Vercel / github.io).
 ### 1. Connect the repo (one-time)
 Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** →
 pick `xiaotonng/swarmdeck`.
+
+### 2. Build settings
+| Field | Value |
+|-------|-------|
