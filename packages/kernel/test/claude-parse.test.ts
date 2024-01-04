@@ -97,3 +97,7 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
     const planEvents = events.filter(e => e.type === 'plan') as any[];
     expect(planEvents[planEvents.length - 1].plan.steps).toEqual([
       { text: 'store task', status: 'completed' },
+    ]);
+  });
+
+  it('chronological: a TaskUpdate with an unknown id lands positionally on the latest TodoWrite list', () => {
