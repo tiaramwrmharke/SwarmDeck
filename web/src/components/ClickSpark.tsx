@@ -43,3 +43,5 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
 
     const resizeCanvas = () => {
       const { width, height } = parent.getBoundingClientRect();
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;

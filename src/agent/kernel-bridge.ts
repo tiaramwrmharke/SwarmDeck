@@ -78,3 +78,5 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
   }
   switch (opts.agent) {
     case 'codex': {
+      // codexExtraArgs is a flattened ['-c','k=v','-c','k=v',...]; extract the k=v values
+      // so the kernel keeps BYOK provider routing.
