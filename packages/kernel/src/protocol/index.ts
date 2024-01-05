@@ -50,3 +50,6 @@ export interface UniversalUsage {
   cachedInputTokens: number | null;
   contextUsedTokens?: number | null;
   contextPercent: number | null;
+  turnOutputTokens?: number | null;
+  providerName?: string | null;
+}

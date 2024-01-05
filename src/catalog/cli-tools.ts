@@ -77,3 +77,6 @@ export const CLI_TOOLS: RecommendedCli[] = [
     auth: {
       type: 'oauth-web',
       statusArgv: ['vercel', 'whoami'],
+      loginArgv:  ['vercel', 'login'],
+      logoutArgv: ['vercel', 'logout'],
+      manualLoginCommands: [
