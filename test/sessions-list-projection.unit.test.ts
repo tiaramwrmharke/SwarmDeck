@@ -31,3 +31,6 @@ describe('projectSessionForList', () => {
     expect(out.lastMessageText!.length).toBe(CAP);
     expect(out.runDetail!.length).toBe(CAP);
     expect(out.lastAnswer).toBe(huge.slice(0, CAP));
+  });
+
+  it('leaves short fields and null fields untouched', () => {
