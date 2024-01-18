@@ -28,3 +28,4 @@ describe('agent update gate', () => {
     const install = new Promise<void>(resolve => { finishInstall = resolve; });
 
     const updatePromise = withAgentUpdateGate('__vitest_a__', () => install);
+    expect(fs.existsSync(agentUpdateMarkerPath('__vitest_a__'))).toBe(true);
