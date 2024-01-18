@@ -38,3 +38,7 @@ const FIXTURE = `
       <div x-test-model-title title="mixtral" class="flex flex-col">
         <h2><span>mixtral</span></h2>
         <p class="max-w-lg break-words text-neutral-800 text-md">Mixture of Experts model.</p>
+      </div>
+      <div class="flex flex-col space-y-2">
+        <div class="flex flex-wrap space-x-2">
+          <span x-test-capability class="text-indigo-600">tools</span>

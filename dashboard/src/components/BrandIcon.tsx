@@ -27,3 +27,7 @@ import mlxLogo from '../assets/brands/mlx.png';
 import { cn } from '../utils';
 
 const brandIcons: Record<string, string> = {
+  claude: claudeLogo,
+  codex: codexLogo,
+  gemini: geminiLogo,
+  telegram: telegramLogo,
