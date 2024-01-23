@@ -58,3 +58,7 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
 
     await withTempHome(async () => {
       saveUserConfig({
+        extensions: {
+          mcp: {
+            'off-http': {
+              type: 'http',
