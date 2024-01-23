@@ -127,3 +127,6 @@
                         - text: "3"
                       - generic [ref=e179]: 37m
                   - generic [ref=e182]: 你帮我打开浏览器，然后把飞书后台我的机器人（盛大机器人那个）改一下机器人菜单配置，改成图里这样
+                  - generic [ref=e184]: You're at the computer now — that's much easier. Let me bring up a fresh QR code; you can scan it directly off the sc...
+                - button "更多操作" [ref=e185] [cursor=pointer]:
+                  - img [ref=e186]
