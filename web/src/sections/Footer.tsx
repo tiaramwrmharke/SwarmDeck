@@ -11,3 +11,6 @@ export default function Footer() {
           <div className="mx-auto mt-6 inline-flex items-center gap-3 rounded-xl border border-white/12 bg-black/40 px-5 py-3 font-mono text-sm text-neutral-200">
             <span className="text-neutral-500">$</span>
             {INSTALL_CMD}
+          </div>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <a href={LINKS.github} target="_blank" rel="noreferrer" className="rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-neutral-200">
