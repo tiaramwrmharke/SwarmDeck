@@ -154,3 +154,7 @@ export function resolveOpenPathLocator(rawPath: string, basePath?: string | null
 
 function editorGotoArg(filePath: string, location?: Pick<ResolvedOpenPath, 'line' | 'column'> | null): string | null {
   if (!location?.line) return null;
+  return `${filePath}:${location.line}${location.column ? `:${location.column}` : ''}`;
+}
+
+function tryOpenCommand(command: string, args: string[]): boolean {
