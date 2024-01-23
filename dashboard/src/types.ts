@@ -240,3 +240,6 @@ export interface LocalBackendInstallCommand {
 export interface LocalBackendInstallSpec {
   darwin?: LocalBackendInstallCommand[];
   linux?: LocalBackendInstallCommand[];
+  win?: LocalBackendInstallCommand[];
+  docs?: string;
+}
