@@ -66,3 +66,4 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
               enabled: false,
             },
             'off-stdio': {
+              command: 'noop',
