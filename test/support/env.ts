@@ -20,3 +20,7 @@ export function restoreEnv(snapshot: EnvSnapshot): void {
 }
 
 export async function withEnv<T>(
+  patch: Record<string, string | undefined>,
+  run: () => Promise<T> | T,
+): Promise<T> {
+  const snapshot = captureEnv(Object.keys(patch));
