@@ -37,3 +37,7 @@ afterEach(() => {
 
 describe('DingtalkChannel', () => {
   it('connects, dispatches messages via sessionWebhook, dedups, throws without webhook, and enforces allowlists', async () => {
+    {
+      const ch = new DingtalkChannel({ clientId: 'app-key', clientSecret: 'app-secret' });
+      const bot = await ch.connect();
+      expect(bot.id).toBe('app-key');

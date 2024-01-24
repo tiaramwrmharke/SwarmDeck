@@ -26,3 +26,5 @@ describe('runTurn (bridge primitive, hermetic)', () => {
     expect(await steer!('EXTRA')).toBe(true);
     const { snapshot } = await done;
     expect(snapshot.text).toContain('steered: EXTRA');
+  });
+
