@@ -8,3 +8,4 @@ export {
   SessionsManager,
   type ManagedSessionInfo, type SessionSource, type ListSessionsOptions,
   type SearchSessionsOptions, type SessionsManagerDeps,
+} from './sessions.js';
