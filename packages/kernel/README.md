@@ -95,3 +95,7 @@ await loom.start();
 // Drive it from anywhere via loom.io (LoomIO):
 const { sessionKey, taskId } = await loom.io.prompt({ prompt: 'hello', agent: 'claude' });
 const unsub = loom.io.subscribe((key, snapshot, patch, seq) => { /* render */ });
+loom.io.steer(taskId, 'actually, do X instead');
+loom.io.stop(sessionKey);
+```
+

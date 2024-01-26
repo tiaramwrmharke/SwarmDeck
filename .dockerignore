@@ -24,3 +24,5 @@ dashboard/node_modules
 # Editor / OS scaffolding.
 .idea
 .vscode
+.cursor
+.vs
