@@ -49,3 +49,4 @@ Your transport should not know about sessions, agents, or skills.
 Render shared command data into platform-specific output.
 
 Typical responsibilities:
+

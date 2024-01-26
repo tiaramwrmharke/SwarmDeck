@@ -76,3 +76,4 @@ export class WeixinChannel extends Channel {
   };
 
   readonly knownChats = new Set<string>();
+
