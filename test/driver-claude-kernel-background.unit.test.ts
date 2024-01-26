@@ -60,3 +60,4 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
     feed(s,
       { type: 'system', subtype: 'task_started', task_id: 't1' },
       { type: 'system', subtype: 'task_updated', task_id: 't1', patch: { status: 'running' } });
+    expect(pendingClaudeBackgroundTasks(s)).toBe(1);

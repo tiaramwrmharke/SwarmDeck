@@ -27,3 +27,7 @@ const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 5000) => {
   }
 };
 
+describe('kernel runtime (EchoDriver, hermetic)', () => {
+  let tmp: string;
+  let loom: Loom;
+
