@@ -44,3 +44,5 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
   });
 
   it('GPT-5.6 sol/terra unlock the native max + ultra rungs', () => {
+    for (const model of ['gpt-5.6-sol', 'gpt-5.6-terra']) {
+      expect(effortOptionsFor('codex', model).map(l => l.id))

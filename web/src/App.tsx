@@ -29,3 +29,7 @@ export default function App() {
         <Nav />
         <main>
           <Hero />
+          <Stats />
+          <UsedBy />
+          <Orchestrator />
+          <Swarm />
