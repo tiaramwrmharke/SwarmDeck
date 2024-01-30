@@ -214,3 +214,4 @@ export class FeishuBot extends Bot {
   }
 
   private installSignalHandlers() {
+    this.removeSignalHandlers();

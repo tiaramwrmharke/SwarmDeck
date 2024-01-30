@@ -152,3 +152,5 @@ function ensureBalancedCodeFences(text: string): string {
     }
   }
   return inCode ? text + '\n```' : text;
+}
+
