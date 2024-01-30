@@ -57,3 +57,4 @@ export class LivePreview {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private typingTimer: ReturnType<typeof setInterval> | null = null;
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
+  private editChain: Promise<void> = Promise.resolve();
