@@ -10,3 +10,4 @@ async function monthlyInstalls(pkg) {
     const data = await res.json();
     return typeof data?.downloads === 'number' ? data.downloads : 0;
   } catch (err) {
+    console.warn(`warn: ${pkg}: ${err.message}`);
