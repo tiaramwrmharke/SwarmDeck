@@ -93,3 +93,7 @@ describe('resolveGuiIntegrationConfig', () => {
       browserHeadless: false,
       peekabooEnabled: false,
     });
+
+    expect(resolveGuiIntegrationConfig({ browserEnabled: false } as any, {
+      PIKILOOM_BROWSER_ENABLED: 'true',
+      PIKILOOM_BROWSER_HEADLESS: 'true',
