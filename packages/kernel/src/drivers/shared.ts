@@ -47,3 +47,4 @@ export function reapGraceMs(): number {
 /** How long it may then take to honour SIGTERM before it earns a SIGKILL.
  *  Override with PIKILOOM_REAP_FORCE_MS (tests need a sub-second escalation). */
 const REAP_FORCE_DEFAULT_MS = 10_000;
+export function reapForceMs(): number {

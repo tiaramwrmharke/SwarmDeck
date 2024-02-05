@@ -31,3 +31,6 @@ export function StatusOverview({
   const grantedPermissions = Object.values(state?.permissions || {}).filter(permission => permission.granted).length;
   const missingPermissions = Math.max(totalPermissions - grantedPermissions, 0);
   const defaultAgent = (state?.bot?.defaultAgent || state?.config.defaultAgent || 'codex') as Agent;
+  const defaultModel = state ? getDefaultModel(state.config, defaultAgent) : '';
+  const defaultAgentLabel = getAgentMeta(defaultAgent).label;
+

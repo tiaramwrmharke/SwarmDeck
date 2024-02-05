@@ -35,3 +35,5 @@ export const PLAYWRIGHT_MCP_BROWSER_ARGS = ['--browser', 'chrome', '--viewport-s
 // Chrome 150+ sets navigator.webdriver=true whenever remote debugging is on, which trips
 // Google's "This browser or app may not be secure" sign-in block; --test-type suppresses
 // the "unsupported command-line flag" infobar that the first flag would otherwise trigger.
+export const MANAGED_BROWSER_STEALTH_ARGS = ['--disable-blink-features=AutomationControlled', '--test-type'] as const;
+
