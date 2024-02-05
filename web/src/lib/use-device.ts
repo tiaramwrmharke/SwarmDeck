@@ -6,3 +6,4 @@ export function useIsDesktop() {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const big = window.matchMedia('(min-width: 1024px) and (pointer: fine)');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
