@@ -11,3 +11,5 @@ export {
 export {
   listProviders, getProvider, addProvider, updateProvider, removeProvider, setProviderValidation,
   listProfiles, getProfile, addProfile, updateProfile, removeProfile,
+  getActiveProfileId, getActiveProfile, setActiveProfile,
+  type AddProviderInput, type UpdateProviderInput,

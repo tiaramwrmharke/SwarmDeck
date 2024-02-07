@@ -97,3 +97,6 @@ describe('resolveGuiIntegrationConfig', () => {
     expect(resolveGuiIntegrationConfig({ browserEnabled: false } as any, {
       PIKILOOM_BROWSER_ENABLED: 'true',
       PIKILOOM_BROWSER_HEADLESS: 'true',
+    })).toEqual({
+      browserEnabled: true,
+      browserProfileDir: getManagedBrowserProfileDir(),
