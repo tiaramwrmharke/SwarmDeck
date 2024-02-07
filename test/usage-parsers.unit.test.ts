@@ -65,3 +65,5 @@ describe('buildClaudeOAuthUsage (2026 limits[] schema)', () => {
     const data = {
       ...CLAUDE_OAUTH_2026,
       limits: [
+        { kind: 'session', percent: 50, severity: 'warning', resets_at: '2026-07-06T18:40:00.000000+00:00' },
+        { kind: 'weekly_all', percent: 10, severity: 'exceeded', resets_at: '2026-07-13T12:00:00.000000+00:00' },

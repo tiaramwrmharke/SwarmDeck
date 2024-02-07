@@ -92,3 +92,6 @@ async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs = 8_000):
     const res = await fetch(url, { ...init, signal: controller.signal });
     if (!res.ok) throw new Error(`${url} responded ${res.status}`);
     return await res.json() as T;
+  } finally {
+    clearTimeout(timer);
+  }
