@@ -40,3 +40,4 @@ export class RendezvousBroker {
           const nodeId = String(m.nodeId || '').trim();
           if (!nodeId) { this.send(ws, { t: 'error', message: 'nodeId required' }); return; }
           this.hosts.set(nodeId, ws);
+          myNodeId = nodeId;
