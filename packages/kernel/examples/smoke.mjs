@@ -9,3 +9,5 @@ const loom = createLoom({ appNamespace: 'loom-smoke', drivers: [new EchoDriver()
 await loom.start();
 
 const ws = new WebSocket(`ws://127.0.0.1:${web.port}`);
+await new Promise((res, rej) => { ws.once('open', res); ws.once('error', rej); });
+
