@@ -144,3 +144,5 @@ export function decodeCommandAction(data: string): CommandAction | null {
       return null;
     }
   }
+  if (data.startsWith('ag:')) {
+    try {

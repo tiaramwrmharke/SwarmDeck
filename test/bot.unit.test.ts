@@ -113,3 +113,4 @@ describe('Bot.runStream', () => {
       workspacePath,
       codexCumulative: undefined,
       modelId: null,
+      runningTaskIds: new Set<string>(),
