@@ -47,3 +47,7 @@ app.get('/api/agents/:agent/accounts', async (c) => {
     ok: true, agent, supported: true,
     accounts: snap.accounts,
     activeAccountId: snap.activeAccountId,
+    nativeUsage: snap.native,
+    max: MAX_ACCOUNTS_PER_AGENT,
+  });
+});

@@ -48,3 +48,4 @@ export interface LoomConfig {
 
 export interface Loom {
   readonly io: LoomIO;
+  // Unified directory + session/skill/mcp management (the "顶级目录" capabilities):
