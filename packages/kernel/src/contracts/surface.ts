@@ -56,3 +56,4 @@ export interface ForkSessionResult {
   // caller owns what happens next: a UI typically hands the first prompt back to its composer.
   droppedTaskIds: string[];
 }
+
