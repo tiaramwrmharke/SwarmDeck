@@ -180,3 +180,7 @@
             - button "六窗口" [ref=e265] [cursor=pointer]:
               - img [ref=e266]
           - button "添加工作区" [ref=e273] [cursor=pointer]:
+            - img [ref=e274]
+            - text: 添加工作区
+      - generic [ref=e276]:
+        - generic [ref=e277]:
