@@ -15,3 +15,4 @@ export interface TurnAuditEntry {
   ok: boolean;
   stopReason: string | null;
   incomplete: boolean;
+  error: string | null;
