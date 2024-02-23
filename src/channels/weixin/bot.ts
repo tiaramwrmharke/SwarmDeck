@@ -311,3 +311,7 @@ export class WeixinBot extends Bot {
   private async cmdHost(ctx: WeixinContext) {
     const d = getHostDataSync(this);
     const lines = [
+      `Host: ${d.hostName}`,
+      `CPU: ${d.cpuModel} x${d.cpuCount}`,
+    ];
+    if (d.cpuUsage) {
