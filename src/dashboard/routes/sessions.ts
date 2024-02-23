@@ -238,3 +238,4 @@ async function parseSessionSendRequest(c: any): Promise<{
   attachments: string[];
   previousAgent: string;
   previousSessionId: string;
+  cleanup: () => Promise<void>;
