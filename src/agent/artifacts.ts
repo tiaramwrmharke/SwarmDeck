@@ -52,3 +52,5 @@ export function stageDeliveredArtifact(
 ): { path: string; fileName: string; fileSize: number; fileMime: string } {
   const fileName = sanitizeName(path.basename(srcPath));
   const stat = fs.statSync(srcPath);
+  const dir = deliveredDir(agent, sessionId);
+  fs.mkdirSync(dir, { recursive: true });
