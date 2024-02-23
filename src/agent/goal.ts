@@ -78,3 +78,4 @@ export function setGoal(
     createdAt: now,
     updatedAt: now,
     startedAt: Date.now(),
+  };
