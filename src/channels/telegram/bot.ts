@@ -389,3 +389,7 @@ export class TelegramBot extends Bot {
     }
   }
 
+  private sessionsPageSize = 5;
+
+  private buildStopKeyboard(actionId: string | null, opts?: { queued?: boolean }) {
+    if (!actionId) return undefined;
