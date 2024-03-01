@@ -114,3 +114,5 @@ describe('Bot.runStream', () => {
       codexCumulative: undefined,
       modelId: null,
       runningTaskIds: new Set<string>(),
+    };
+

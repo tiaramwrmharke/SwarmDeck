@@ -20,3 +20,7 @@ export class EchoDriver implements AgentDriver {
     return { command: process.execPath, args: ['-e', ECHO_TUI], cwd: input.workdir, env: input.env };
   }
 
+  async run(input: AgentTurnInput, ctx: DriverContext): Promise<DriverResult> {
+    const prompt = input.prompt;
+    ctx.emit({ type: 'reasoning', delta: `Considering: ${prompt}` });
+
