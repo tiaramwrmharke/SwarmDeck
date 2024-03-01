@@ -54,3 +54,4 @@ const PERMISSIONS: PermissionMeta[] = [
     reasonZh: '访问桌面、下载等受保护目录',
     reasonEn: 'Access to Desktop, Downloads and other protected folders',
     guidePathKey: 'perm.pathFullDiskAccess',
+    icon: (
