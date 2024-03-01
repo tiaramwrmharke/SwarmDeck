@@ -50,3 +50,6 @@ function goalPathFromCtx(ctx: ToolContext): string {
 type StoredGoal = {
   goalId: string;
   objective: string;
+  status: 'active' | 'paused' | 'budget_limited' | 'complete';
+  tokenBudget: number | null;
+  tokensUsed: number;
