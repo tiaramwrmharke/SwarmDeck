@@ -24,3 +24,7 @@ describe('ensureGitignore', () => {
   it('leaves the file byte-for-byte unchanged when managed lines already present, even below user rules', () => {
     const content = [
       'node_modules/',
+      '.swarmdeck/*',
+      '!.swarmdeck/skills/',
+      '!.swarmdeck/skills/**',
+      '',
