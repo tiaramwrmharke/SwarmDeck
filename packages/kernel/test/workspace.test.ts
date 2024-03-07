@@ -77,3 +77,4 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     const projDir = path.join(tmp, '.claude', 'projects', encodeClaudeProjectDir(workdir));
     fs.mkdirSync(projDir, { recursive: true });
     const transcript = (prompt: string, ts: string) => [
+      JSON.stringify({ type: 'user', isMeta: false, message: { content: prompt }, timestamp: ts }),
