@@ -31,3 +31,5 @@ process.stdin.on('data', (d) => {
       out({ type: 'result', session_id: SID, result: 'answer', usage: { input_tokens: 10, output_tokens: 2 } });
     } else if (MODE === 'apierr') {
       out({ type: 'assistant', session_id: SID, error: 'overloaded_error', message: { model: '<synthetic>', content: [{ type: 'text', text: 'API Error: Unable to connect to API (ConnectionRefused)' }] } });
+      // then silent — the watchdog must still fire
+    }
