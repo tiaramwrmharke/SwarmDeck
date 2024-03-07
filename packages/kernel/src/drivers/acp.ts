@@ -89,3 +89,4 @@ function acpToolStatus(status: any, dflt: 'running' | 'done' | 'failed'): 'runni
 function safeJson(v: any): string | null {
   try { return typeof v === 'string' ? v : JSON.stringify(v); } catch { return null; }
 }
+function truncate(s: string, n: number): string { return s.length > n ? s.slice(0, n) + '…' : s; }
