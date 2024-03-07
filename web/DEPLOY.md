@@ -25,3 +25,4 @@ pick `xiaotonng/swarmdeck`.
 ### 2. Build settings
 | Field | Value |
 |-------|-------|
+| Production branch | `main` |
