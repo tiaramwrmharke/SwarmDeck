@@ -20,3 +20,5 @@ export class RendezvousHostClient {
 
   start(): void { this.stopped = false; this.connect(); }
 
+  stop(): void {
+    this.stopped = true;
