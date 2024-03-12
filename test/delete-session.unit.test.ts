@@ -18,3 +18,5 @@ function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSes
     threadId: `thread-${sessionId}`,
     workspacePath: path.join(workdir, '.swarmdeck', 'sessions', 'claude', sessionId, 'workspace'),
     model: 'claude-sonnet-4-6',
+    thinkingEffort: null,
+    title: 'test',

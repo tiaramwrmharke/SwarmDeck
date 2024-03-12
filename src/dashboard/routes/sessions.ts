@@ -239,3 +239,6 @@ async function parseSessionSendRequest(c: any): Promise<{
   previousAgent: string;
   previousSessionId: string;
   cleanup: () => Promise<void>;
+}> {
+  const contentType = String(c.req.header('content-type') || '').toLowerCase();
+  if (contentType.includes('multipart/form-data')) {
