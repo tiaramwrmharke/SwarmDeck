@@ -40,3 +40,4 @@ Every port has a default (zero config). Override any: sessionStore, modelResolve
 3) RAW TUI passthrough — `loom.runTui({ agent, workdir })` (full stdio passthrough) or `loom.openTui(...) => PtyBridge` (onData/write/resize/onExit). Needs optional `node-pty`; `ptyAvailable()` reports it.
 
 ## UniversalSnapshot — the shape you render (accumulates across a turn)
+
