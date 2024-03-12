@@ -33,3 +33,4 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
