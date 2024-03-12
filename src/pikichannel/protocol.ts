@@ -59,3 +59,4 @@ export interface UniversalInteraction {
   promptId: string;
   kind: 'user-input' | 'permission' | 'confirmation';
   title: string;
+  hint?: string | null;
