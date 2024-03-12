@@ -101,3 +101,5 @@ function formatCommandButtonLabel(button: CommandActionButton, maxChars = 24): s
 export function renderCommandNoticeHtml(notice: CommandNotice): string {
   const lines = [`<b>${escapeHtml(notice.title)}</b>`];
   if (notice.value) {
+    if (notice.valueMode === 'plain') lines.push(escapeHtml(notice.value));
+    else lines.push(compactCode(notice.value, 40));
