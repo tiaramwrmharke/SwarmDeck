@@ -56,3 +56,4 @@ export function normalizeSkillSourceKey(source: string): string {
     .replace(/\.git$/i, '')
     .replace(/\/+$/, '')
     .toLowerCase();
+}
