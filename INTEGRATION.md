@@ -50,3 +50,5 @@ Render shared command data into platform-specific output.
 
 Typical responsibilities:
 
+- `/start` formatting
+- `/status` formatting
