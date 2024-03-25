@@ -96,3 +96,4 @@ export const agentMeta: Record<string, AgentMeta> = {
     color: '#c4b5fd',
     bg: 'rgba(196,181,253,0.12)',
     letter: 'G',
+    glow: 'rgba(196,181,253,0.2)',

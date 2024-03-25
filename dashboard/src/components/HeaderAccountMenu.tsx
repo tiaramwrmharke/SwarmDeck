@@ -45,3 +45,6 @@ export function HeaderAccountMenu({ agent, nativeGauge, nativeUsage, t }: {
     return () => {
       window.clearInterval(id);
       document.removeEventListener('visibilitychange', onVisibility);
+    };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [agent]);
