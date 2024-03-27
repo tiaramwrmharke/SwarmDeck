@@ -59,3 +59,5 @@ function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolR
   toolLog('im_list_files', `dir=${dir} subdir=${subdir || '(root)'}`);
 
   const realWorkspace = safeRealpath(ctx.workspace);
+  const realDir = safeRealpath(dir);
+  if (!realWorkspace || !realDir || !realDir.startsWith(realWorkspace)) {
