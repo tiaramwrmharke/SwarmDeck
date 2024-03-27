@@ -32,3 +32,5 @@ export class FeishuSurface implements Surface {
 
   constructor(private readonly transport: FeishuTransport, private readonly opts: { agent?: string } = {}) {}
 
+  async start(io: LoomIO): Promise<void> {
+    this.io = io;
