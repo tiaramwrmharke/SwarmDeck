@@ -23,3 +23,4 @@ export interface PtyExit { exitCode: number; signal?: number }
 export class PtyBridge {
   private readonly dataCbs = new Set<(d: string) => void>();
   private readonly exitCbs = new Set<(e: PtyExit) => void>();
+

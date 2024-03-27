@@ -13,3 +13,6 @@ export default function Nav() {
           </a>
           <a href="#in-action" className="hidden rounded-full px-3 py-1.5 text-neutral-300 transition hover:bg-white/5 hover:text-white sm:block">
             Demos
+          </a>
+          <a href="#compare" className="hidden rounded-full px-3 py-1.5 text-neutral-300 transition hover:bg-white/5 hover:text-white sm:block">
+            Compare
