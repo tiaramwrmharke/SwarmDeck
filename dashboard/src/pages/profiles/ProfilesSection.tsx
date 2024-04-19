@@ -130,3 +130,5 @@ function getCopy(locale: Locale): Copy {
     fieldNameHint: 'Shown in agent cards and the IM model picker. Leave empty to use the model id as-is.',
     fieldProvider: 'Provider',
     fieldProviderEmpty: 'No providers configured yet; add one in "Model Providers" below first.',
+    fieldProviderLockedHint: 'Want a different provider? Close this dialog and connect one in "Model Providers" below.',
+    fieldModelId: 'Model',
