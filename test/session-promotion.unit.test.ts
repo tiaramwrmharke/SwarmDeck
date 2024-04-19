@@ -35,3 +35,4 @@ function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSes
     linkedSessions: [],
     ...opts,
   } as ManagedSessionRecord;
+}
