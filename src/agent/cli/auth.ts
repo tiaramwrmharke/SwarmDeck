@@ -84,3 +84,6 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
     env,
     shell,
     windowsHide: true,
+  });
+  session._child = child;
+
