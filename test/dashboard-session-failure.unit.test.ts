@@ -12,3 +12,6 @@ describe('dashboard session failure display', () => {
     })).toBe('hub.streamErrored');
 
     const detail = "You're now using usage credits · Your session limit resets 5pm (Asia/Shanghai)";
+    expect(getSessionRunFailureDetail({
+      running: false,
+      runState: 'incomplete',
