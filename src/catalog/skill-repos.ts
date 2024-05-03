@@ -54,3 +54,5 @@ export const SKILL_REPOS: RecommendedSkillRepo[] = [
     homepage: 'https://github.com/sickn33/antigravity-awesome-skills',
   },
   {
+    id: 'wshobson-agents',
+    name: 'wshobson Agents',
