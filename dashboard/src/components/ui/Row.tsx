@@ -72,3 +72,7 @@ interface RowComposition {
   Status: typeof RowStatus;
   Action: typeof RowAction;
   Description: typeof RowDescription;
+  Header: typeof RowHeader;
+}
+
+interface RowProps extends HTMLAttributes<HTMLDivElement> {

@@ -51,3 +51,4 @@ app.get('/api/agents/:agent/accounts', async (c) => {
     max: MAX_ACCOUNTS_PER_AGENT,
   });
 });
+
