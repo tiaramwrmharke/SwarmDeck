@@ -243,3 +243,5 @@ export interface LocalBackendInstallSpec {
   win?: LocalBackendInstallCommand[];
   docs?: string;
 }
+
+export interface LocalBackendStatus {
