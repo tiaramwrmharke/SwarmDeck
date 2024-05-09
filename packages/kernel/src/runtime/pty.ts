@@ -24,3 +24,7 @@ export class PtyBridge {
   private readonly dataCbs = new Set<(d: string) => void>();
   private readonly exitCbs = new Set<(e: PtyExit) => void>();
 
+  private constructor(private readonly proc: any) {
+    proc.onData((d: string) => { for (const cb of this.dataCbs) { try { cb(d); } catch { /* isolate */ } } });
+    proc.onExit((e: { exitCode: number; signal?: number }) => {
+      for (const cb of this.exitCbs) { try { cb({ exitCode: e.exitCode, signal: e.signal }); } catch { /* isolate */ } }
