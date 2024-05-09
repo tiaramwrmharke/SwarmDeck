@@ -104,3 +104,6 @@ type AgentInjector = (
   provider: ProviderConfig,
   profile: ModelProfileConfig,
   apiKey: string,
+) => InjectedSpawnConfig | Promise<InjectedSpawnConfig>;
+
+const claudeInjector: AgentInjector = async (provider, profile, apiKey) => {
