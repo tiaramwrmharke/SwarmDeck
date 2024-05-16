@@ -31,3 +31,4 @@ describe('dashboard file link parsing', () => {
 
 describe('tool-activity path linkification (segmentPaths)', () => {
   const links = (text: string) => segmentPaths(text).filter(s => s.type === 'link') as Array<{ type: 'link'; locator: string; display: string }>;
+
