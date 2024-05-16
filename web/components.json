@@ -4,3 +4,5 @@
   "rsc": false,
   "tsx": true,
   "tailwind": {
+    "config": "",
+    "css": "src/index.css",
