@@ -35,3 +35,7 @@ describe.skipIf(!ptyAvailable())('WebSurface Lane R — raw PTY / TUI over ws (h
     await waitFor(() => frames.some(f => f.type === 'welcome'));
     expect(frames.find(f => f.type === 'welcome').host.capabilities).toContain('tui');   // Lane R advertised
 
+    send({ type: 'openTui', agent: 'echo', workdir: tmp, cols: 80, rows: 24, ref: 't1' });
+    await waitFor(() => frames.some(f => f.type === 'tuiOpened'));
+    const opened = frames.find(f => f.type === 'tuiOpened');
+    expect(opened.ref).toBe('t1');

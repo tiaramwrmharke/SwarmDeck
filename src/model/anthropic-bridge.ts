@@ -88,3 +88,7 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
 }
 
 async function handleMessages(
+  req: http.IncomingMessage, res: http.ServerResponse,
+  upstreamBase: string, body: any,
+): Promise<void> {
+  const wantStream = body.stream === true;
