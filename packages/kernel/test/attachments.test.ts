@@ -40,3 +40,4 @@ const canResize = process.platform === 'darwin'
 describe('imageDimensions', () => {
   it('reads PNG headers', () => {
     expect(imageDimensions(makePng(2692, 410))).toEqual({ width: 2692, height: 410 });
+  });
