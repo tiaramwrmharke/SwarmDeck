@@ -30,3 +30,5 @@ export interface ModelProfileConfig {
   name: string;
   providerId: string;
   modelId: string;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
+  maxOutputTokens?: number | null;
