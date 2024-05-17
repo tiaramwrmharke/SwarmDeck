@@ -26,3 +26,5 @@ export function UsageBars({ usage, emptyText, className = '' }: {
         const rd = resetDisplay(w);
         return (
           <Fragment key={w.label}>
+            <span className="truncate text-fg-5">{w.label}</span>
+            <span className="h-[3px] overflow-hidden rounded-full bg-fg/10">
