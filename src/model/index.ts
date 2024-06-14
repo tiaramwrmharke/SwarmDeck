@@ -15,3 +15,5 @@ export {
   type AddProviderInput, type UpdateProviderInput,
   type AddProfileInput, type UpdateProfileInput,
 } from './store.js';
+
+export { validateProvider, type ProviderValidationResult } from './validation.js';

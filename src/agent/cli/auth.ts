@@ -87,3 +87,5 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
   });
   session._child = child;
 
+  const pushOutput = (chunk: string) => {
+    session.backlog.push(chunk);
