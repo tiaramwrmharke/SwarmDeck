@@ -32,3 +32,6 @@ export function indexSkillsByCommand(skills: SkillInfo[]): Map<string, SkillInfo
     if (!cmdName || indexed.has(cmdName)) continue;
     indexed.set(cmdName, skill);
   }
+  return indexed;
+}
+
