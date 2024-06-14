@@ -43,3 +43,6 @@ export {
 export {
   deliverArtifact,
   readDeliveredArtifacts,
+  deliveredArtifactBlocks,
+  tailDeliveredBlocks,
+  latestDeliveredTaskId,
