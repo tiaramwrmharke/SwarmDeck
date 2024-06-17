@@ -25,3 +25,4 @@ describe('per-session serial queue (hermetic)', () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-q-'));
     loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', sessionStore: new FsSessionStore(tmp) });
     await loom.start();
+  });
