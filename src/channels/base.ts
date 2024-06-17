@@ -19,3 +19,5 @@ export const DEFAULT_CHANNEL_CAPABILITIES: ChannelCapabilities = Object.freeze({
   commandMenu: false,
   messageReactions: false,
   sendImage: false,
+});
+
