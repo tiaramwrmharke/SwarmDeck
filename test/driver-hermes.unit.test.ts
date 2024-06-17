@@ -84,3 +84,7 @@ while True:
                 "update": ev,
             }})
             time.sleep(0.01)
+        # Stream chunks for the prompt response, then return stopReason.
+        for chunk in SCRIPT.get("promptChunks", ["Hello!"]):
+            write({"jsonrpc":"2.0","method":"session/update","params":{
+                "sessionId": session_id,
