@@ -9,3 +9,5 @@ const DASHBOARD_TAB_ITEMS: ReadonlyArray<{
   { key: 'im', labelKey: 'tab.im', descriptionKey: 'tabDesc.im' },
   { key: 'agents', labelKey: 'tab.agent', descriptionKey: 'tabDesc.agent' },
   { key: 'extensions', labelKey: 'tab.extensions', descriptionKey: 'tabDesc.extensions' },
+  { key: 'system', labelKey: 'tab.system', descriptionKey: 'tabDesc.system' },
+];
