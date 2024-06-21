@@ -49,3 +49,4 @@ const BlurText: React.FC<BlurTextProps> = ({
 
   useEffect(() => {
     if (!ref.current) return;
+    const observer = new IntersectionObserver(

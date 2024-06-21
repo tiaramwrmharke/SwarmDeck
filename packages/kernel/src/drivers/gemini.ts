@@ -34,3 +34,4 @@ export class GeminiDriver implements AgentDriver {
       const nextLines = createLineBuffer();
       let stderr = '';
       child.stdout!.on('data', (chunk: Buffer) => {
+        for (const line of nextLines(chunk)) {

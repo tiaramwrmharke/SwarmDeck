@@ -229,3 +229,6 @@ describe('TelegramBot', () => {
           'npx',
           ['--yes', 'swarmdeck@latest', '-c', 'telegram'],
           expect.objectContaining({
+            stdio: 'inherit',
+            detached: true,
+            env: expect.objectContaining({ npm_config_yes: 'true' }),
