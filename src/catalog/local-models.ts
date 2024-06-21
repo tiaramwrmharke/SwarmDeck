@@ -32,3 +32,7 @@ export const LOCAL_MODELS: LocalModelEntry[] = [
     publisher: 'Meta',
     paramsB: 8,
     sizeGb: 5,
+    minRamGb: 16,
+    description: 'General-purpose chat; competent tool use, weaker on long-form code edits.',
+    descriptionZh: '通用对话模型，工具调用合格，长代码改写偏弱。',
+    ollamaTag: 'llama3.3:8b',
