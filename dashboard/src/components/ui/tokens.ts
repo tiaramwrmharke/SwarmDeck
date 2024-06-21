@@ -22,3 +22,6 @@ export const colors = {
   status: {
     ok: 'var(--th-ok)',
     warn: 'var(--th-warn)',
+    err: 'var(--th-err)',
+    info: 'var(--th-info)',
+    running: 'var(--th-running)',

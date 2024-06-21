@@ -8,3 +8,4 @@ const NPM_AGENTS: ReadonlyArray<readonly [string, string]> = [
   ['gemini', '@google/gemini-cli'],
 ];
 
+describe('agent install specs', () => {
