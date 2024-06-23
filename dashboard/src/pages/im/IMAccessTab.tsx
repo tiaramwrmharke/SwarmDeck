@@ -65,3 +65,5 @@ type CopyPack = {
 
 function getCopy(locale: Locale): CopyPack {
   if (locale === 'zh-CN') {
+    return {
+      status: '状态',
