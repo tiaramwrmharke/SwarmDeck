@@ -778,3 +778,7 @@ function SkillConnectedCard({
 }) {
   return (
     <button
+      type="button"
+      onClick={onClick}
+      className="animate-in-up group relative flex min-h-[112px] w-full flex-col overflow-hidden rounded-lg border border-[var(--edge-subtle)] bg-[var(--surface-2)] p-4 text-left transition-[background,border-color] duration-200 hover:border-[var(--edge-default)] hover:bg-[var(--surface-3)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--brand-glow-a)]"
+      style={{ animationDelay }}
