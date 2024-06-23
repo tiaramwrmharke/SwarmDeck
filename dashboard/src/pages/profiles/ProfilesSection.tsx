@@ -132,3 +132,6 @@ function getCopy(locale: Locale): Copy {
     fieldProviderEmpty: 'No providers configured yet; add one in "Model Providers" below first.',
     fieldProviderLockedHint: 'Want a different provider? Close this dialog and connect one in "Model Providers" below.',
     fieldModelId: 'Model',
+    fieldModelIdHint: 'Picked from the provider\'s live /v1/models list.',
+    fieldModelIdLoading: 'Loading the provider\'s model list…',
+    fieldModelIdEmpty: 'This provider returned no model list (or has not been validated yet). Enter a model ID manually.',

@@ -54,3 +54,4 @@ function projectInteractions(snap: StreamSnapshot): UniversalInteraction[] | und
 }
 
 function compact<T extends Record<string, any>>(obj: T): T {
+  for (const k of Object.keys(obj)) {

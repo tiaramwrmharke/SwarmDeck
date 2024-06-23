@@ -97,3 +97,6 @@ export function LivePreview({
   stream: LiveStreamView;
   t: (k: string) => string;
   workdir?: string | null;
+}) {
+  const showPlan = hasPlan(stream.plan);
+  const [activityOpen, setActivityOpen] = useState(false);
