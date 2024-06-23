@@ -13,3 +13,7 @@ import { createLoom, ClaudeDriver, EchoDriver, WebSurface } from '../dist/index.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const html = fs.readFileSync(path.join(__dirname, 'console.html'), 'utf8');
+const port = Number(process.env.PORT) || 3941;
+const useReal = process.env.CONSOLE_REAL !== '0';
+
+const server = http.createServer((req, res) => {

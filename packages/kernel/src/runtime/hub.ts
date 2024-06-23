@@ -179,3 +179,7 @@ export class Hub implements LoomIO {
     const overrideAnchor = droppedTaskIds.length ? null : input.anchor ?? null;
     const mappedAnchor = cutTaskId ? input.anchors?.[cutTaskId] ?? null : null;
     let anchor = overrideAnchor ?? mappedAnchor ?? cutTurn?.anchor ?? null;
+    // An anchor the agent can no longer resolve is worse than none — claude fails the entire run
+    // at `--resume-session-at`, so the branch would die on its first dispatch with nothing to
+    // retry. Drop it: a tail cut re-pins the parent's current tip below, a mid cut seeds instead.
+    if (anchor && !(await this.anchorStillResolvable(driver, parentNativeId, workdir, anchor))) {
