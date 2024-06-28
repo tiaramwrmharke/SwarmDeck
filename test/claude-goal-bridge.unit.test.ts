@@ -35,3 +35,6 @@ beforeEach(() => {
   process.env.USERPROFILE = tmpHome;
 });
 
+afterEach(() => {
+  restoreEnv(envSnap);
+  try { fs.rmSync(tmpHome, { recursive: true, force: true }); } catch {}
