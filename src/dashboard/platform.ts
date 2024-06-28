@@ -62,3 +62,7 @@ function openPermissionSettings(permission: DashboardPermissionKey): boolean {
   try {
     execFileSync('open', [pane], { stdio: 'ignore', timeout: DASHBOARD_PERMISSION_TIMEOUTS.openSystemPreferences });
     return true;
+  } catch {
+    return false;
+  }
+}
