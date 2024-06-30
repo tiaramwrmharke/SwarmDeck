@@ -28,3 +28,7 @@ describe('ensureGitignore', () => {
       '!.swarmdeck/skills/',
       '!.swarmdeck/skills/**',
       '',
+      'products/eval-studio/package-lock.json',
+      '',
+    ].join('\n');
+    fs.writeFileSync(gi, content);
