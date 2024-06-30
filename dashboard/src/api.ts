@@ -151,3 +151,6 @@ export const api = {
     json<SessionsPageResult>(
       `/api/sessions/${agent}?page=${page}&limit=${limit}`,
       opts,
+    ),
+  getSessionDetail: (agent: string, sessionId: string, limit = 8, opts: ApiRequestOptions = {}) =>
+    json<{ ok: boolean; messages?: SessionTailMessage[]; error?: string }>(
