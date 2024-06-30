@@ -11,3 +11,6 @@ const AGENT = 'claude' as const;
 const sid = 'session_await_001';
 
 let workdir: string;
+
+beforeEach(() => {
+  workdir = makeTmpDir('swarmdeck-await-');
