@@ -134,3 +134,5 @@
                 - generic [ref=e191]: + 还有 150 个
                 - img [ref=e192]
           - generic [ref=e194]:
+            - generic [ref=e195] [cursor=pointer]:
+              - img [ref=e196]
