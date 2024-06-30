@@ -39,3 +39,7 @@ describe.skipIf(!ptyAvailable())('WebSurface Lane R — raw PTY / TUI over ws (h
     await waitFor(() => frames.some(f => f.type === 'tuiOpened'));
     const opened = frames.find(f => f.type === 'tuiOpened');
     expect(opened.ref).toBe('t1');
+    const tuiId = opened.tuiId;
+
+    await waitFor(() => tuiData.includes('ECHO-TUI-READY'));        // PTY -> client raw bytes
+    send({ type: 'tuiInput', tuiId, data: 'hi\r' });
