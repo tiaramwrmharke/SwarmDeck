@@ -95,3 +95,4 @@ export const MCP_SERVERS: RecommendedMcpServer[] = [
     auth: { type: 'mcp-oauth' },
     iconSlug: 'atlassian',
     homepage: 'https://www.atlassian.com/platform/remote-mcp-server',
+  },

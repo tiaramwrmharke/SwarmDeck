@@ -101,3 +101,4 @@ export function attachAgentImage(opts: AttachAgentImageOpts): MessageBlock | nul
   if (!isImageMime(mime)) return null;
 
   const threshold = opts.inlineThresholdBytes ?? INLINE_THRESHOLD_BYTES;
+  let content: string;
