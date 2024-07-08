@@ -40,3 +40,7 @@ export interface ListSessionsOptions {
    * 'all'       = global, the default.
    */
   scope?: LoomScope | 'all';
+  workdir?: string;
+  agent?: string;
+  includeNative?: boolean;     // default true
+  limit?: number;
