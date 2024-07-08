@@ -9,3 +9,4 @@ export function isChannelValidationPending(channel: ChannelSetupState | null | u
 export function hasPendingChannelValidation(channels: ChannelSetupState[] | null | undefined): boolean {
   return Array.isArray(channels) && channels.some(channel => isChannelValidationPending(channel));
 }
+
