@@ -93,3 +93,4 @@ export async function queueDashboardSessionTask(request: QueueSessionTaskRequest
   const workflowEnabled = ultraWorkflow || request.workflow === true;
 
   const goalCmd = parseGoalSlash(request.prompt || '');
+  if (goalCmd && request.sessionId && !isPendingSessionId(request.sessionId)) {
