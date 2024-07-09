@@ -14,3 +14,6 @@ export function makeStreamResult(
     model: agent === 'codex' ? 'gpt-5.4' : 'claude-opus-4-7',
     thinkingEffort: 'high',
     elapsedS: 0.1,
+    inputTokens: 0,
+    outputTokens: 0,
+    cachedInputTokens: null,
