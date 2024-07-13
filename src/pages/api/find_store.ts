@@ -11,8 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const connection = await connectDatabase();
         const user_id = req.query.user_id;
 
-        const query = 'SELECT * FROM stores where user_id = ?';
-        const values = [user_id];
+        const query = 'SELECT * FROM stores where user_id = ? and status = ? ';
+        const values = [user_id, 1];
         const [rows] = await connection.query(query, values);
         return res.status(200).json({ message: '', result: true, data: rows });
       case 'POST':
