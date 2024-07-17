@@ -70,3 +70,4 @@ A typical day of development inside swarmdeck:
 - All four streams run entirely in parallel; a single human steers them all from a phone in a coffee shop.
 
 The orchestrator is the product. It also happens to be the ultimate IDE in which the orchestrator itself is built.
+

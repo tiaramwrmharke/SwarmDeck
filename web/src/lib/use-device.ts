@@ -7,3 +7,5 @@ export function useIsDesktop() {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const big = window.matchMedia('(min-width: 1024px) and (pointer: fine)');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setIsDesktop(big.matches && !reduced.matches);
+    update();
