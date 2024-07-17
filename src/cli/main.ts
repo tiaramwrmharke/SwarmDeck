@@ -198,3 +198,7 @@ async function handleMcpServeMode(): Promise<boolean> {
   return false;
 }
 
+function printHelp(): never {
+  process.stdout.write(
+`swarmdeck v${VERSION} — Run local coding agents through IM.
+
