@@ -100,3 +100,4 @@ export function ModelSelect({
       setMenuStyle({
         left: rect.left,
         top: openUpward ? Math.max(12, rect.top - maxHeight - 8) : rect.bottom + 8,
+        width: rect.width,
