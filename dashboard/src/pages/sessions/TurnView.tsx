@@ -92,3 +92,6 @@ export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
   onEdit?: (text: string) => void;
   onFork?: () => void;
 }) {
+  const [showActions, setShowActions] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
