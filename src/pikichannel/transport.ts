@@ -33,3 +33,5 @@ export abstract class BaseConnection implements ChannelConnection {
   }
 
   protected emitMessage(frame: string): void {
+    if (this.messageCb) this.messageCb(frame);
+  }
