@@ -34,3 +34,5 @@ class PathRegistry {
 }
 
 const pathRegistry = new PathRegistry();
+const DIR_PAGE_SIZE = 8;
+
