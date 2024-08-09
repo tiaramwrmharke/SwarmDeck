@@ -18,3 +18,4 @@ beforeEach(() => {
   process.env.PIKILOOM_CONFIG = path.join(makeTmpDir('known-allow-config-'), 'setting.json');
   process.env.PIKILOOM_WORKDIR = makeTmpDir('known-allow-work-');
   process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+  process.env.FEISHU_APP_ID = 'test-app';
