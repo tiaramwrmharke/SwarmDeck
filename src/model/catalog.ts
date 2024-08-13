@@ -29,3 +29,6 @@ function readDiskCache(): CacheEnvelope | null {
   return null;
 }
 
+function writeDiskCache(env: CacheEnvelope): void {
+  try {
+    fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });

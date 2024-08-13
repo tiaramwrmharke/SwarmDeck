@@ -23,3 +23,5 @@ const COMPANIES: LogoItem[] = [
   { node: <Co logo={brand(Tencent)} name="Tencent" />, title: 'Tencent' },
   { node: <Co logo={brand(Alibaba)} name="Alibaba" />, title: 'Alibaba' },
   { node: <Co logo={brand(Meta)} name="Meta" />, title: 'Meta' },
+  { node: <Co logo={brand(Google)} name="Google" />, title: 'Google' },
+  { node: <Co logo={brand(Moonshot)} name="Moonshot AI" />, title: 'Moonshot AI' },
