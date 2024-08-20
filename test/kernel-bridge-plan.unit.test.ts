@@ -10,3 +10,6 @@ describe('kernel-bridge toSwarmDeckPlan (text -> step)', () => {
     const out = toSwarmDeckPlan({
       explanation: 'doing work',
       steps: [
+        { text: 'read code', status: 'completed' },
+        { text: 'apply fix', status: 'inProgress' },
+        { text: 'verify', status: 'pending' },
