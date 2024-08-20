@@ -15,3 +15,5 @@ describe('dashboard session failure display', () => {
     expect(getSessionRunFailureDetail({
       running: false,
       runState: 'incomplete',
+      runDetail: detail,
+      awaiting: null,

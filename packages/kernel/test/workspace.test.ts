@@ -81,3 +81,6 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
       JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'ok' }] }, timestamp: ts }),
       // the backfilled index record — carries no timestamp of its own
       JSON.stringify({ type: 'last-prompt', lastPrompt: prompt, sessionId: 'x' }),
+    ].join('\n');
+    fs.writeFileSync(path.join(projDir, 'old.jsonl'), transcript('ancient e2e run', '2026-06-26T04:48:26.181Z'));
+    fs.writeFileSync(path.join(projDir, 'recent.jsonl'), transcript('yesterday real work', '2026-07-24T20:43:00.000Z'));
