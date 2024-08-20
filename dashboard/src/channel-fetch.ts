@@ -21,3 +21,7 @@ function sameOriginApiPath(input: RequestInfo | URL): string | null {
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
   if (!isRemote()) return originalFetch(input as RequestInfo, init);
   const path = sameOriginApiPath(input);
+  if (!path) return originalFetch(input as RequestInfo, init);
+
+  const req = input instanceof Request ? input : null;
+  const method = (init?.method || req?.method || 'GET').toUpperCase();
