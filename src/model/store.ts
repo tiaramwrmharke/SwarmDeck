@@ -46,3 +46,6 @@ export async function addProvider(input: AddProviderInput): Promise<ProviderConf
     : await persistSecret(`provider/${id}`, input.apiKey!);
   const now = new Date().toISOString();
   const provider: ProviderConfig = {
+    id,
+    kind: input.kind,
+    name: input.name.trim(),

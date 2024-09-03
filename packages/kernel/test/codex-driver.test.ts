@@ -155,3 +155,6 @@ describe('CodexDriver completed-item fallback (no deltas)', () => {
     expect(events.filter(e => e.type === 'reasoning').map(e => (e as any).delta).join('')).toBe('REASONED-VIA-RAW');
   }, 20_000);
 });
+
+describe('codexToolSummary (content items must NOT become Activity tools)', () => {
+  it('returns null for agentMessage and reasoning — they are content, rendered below', () => {
