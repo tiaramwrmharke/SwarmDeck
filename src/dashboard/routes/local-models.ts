@@ -128,3 +128,4 @@ interface BackendStatus {
 
 async function probeOllama(spec: BackendSpec): Promise<{ detected: boolean; version?: string; models: DetectedModel[] }> {
   type VersionRes = { version: string };
+  type TagsRes = { models?: Array<{ name: string; size?: number }> };
