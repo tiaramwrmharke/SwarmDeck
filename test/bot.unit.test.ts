@@ -116,3 +116,5 @@ describe('Bot.runStream', () => {
       runningTaskIds: new Set<string>(),
     };
 
+    doStreamMock.mockImplementationOnce(async opts => {
+      expect(opts.workdir).toBe(sessionWorkdir);

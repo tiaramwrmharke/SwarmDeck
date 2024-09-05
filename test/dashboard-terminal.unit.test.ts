@@ -37,3 +37,6 @@ describe('isSetupReady — dashboard is a first-class terminal', () => {
   });
 
   it('is ready with both an agent and a channel', () => {
+    const state = collectSetupState({ agents: CLAUDE_ONLY, channel: 'telegram', tokenProvided: true });
+    expect(isSetupReady(state)).toBe(true);
+  });
