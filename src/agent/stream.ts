@@ -238,3 +238,5 @@ export async function run(
   agentLog(`[spawn] pid=${proc.pid}`);
   proc.stdin?.on('error', (e: any) => {
     if (e?.code !== 'EPIPE') agentWarn(`[stdin] write failed: ${e?.message || e}`);
+  });
+  const abortStream = () => {

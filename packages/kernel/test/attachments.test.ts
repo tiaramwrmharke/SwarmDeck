@@ -44,3 +44,4 @@ describe('imageDimensions', () => {
 
   it('reads GIF headers', () => {
     const gif = Buffer.concat([Buffer.from('GIF89a', 'latin1'), Buffer.alloc(7)]);
+    gif.writeUInt16LE(320, 6);
