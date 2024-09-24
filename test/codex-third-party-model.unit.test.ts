@@ -34,3 +34,7 @@ describe('humanizeCodexError — ChatGPT-account rejects third-party models', ()
 
   it('returns null for empty input (so the `||` error chain keeps falling through)', () => {
     expect(humanizeCodexError(null)).toBeNull();
+    expect(humanizeCodexError(undefined)).toBeNull();
+    expect(humanizeCodexError('')).toBeNull();
+  });
+});
