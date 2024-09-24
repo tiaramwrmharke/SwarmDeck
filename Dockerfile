@@ -48,3 +48,5 @@ RUN npm ci --no-audit --no-fund
 # Copy only what `npm run build` (tsc + vite) needs. .dockerignore
 # already keeps node_modules, dist/, .swarmdeck/, .scratch/, etc. out.
 COPY .nvmrc Dockerfile ./
+COPY scripts/verify-toolchain.mjs ./scripts/verify-toolchain.mjs
+COPY tsconfig.json ./tsconfig.json
