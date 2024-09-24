@@ -92,3 +92,4 @@ async function handleMessages(
   upstreamBase: string, body: any,
 ): Promise<void> {
   const wantStream = body.stream === true;
+  const chatReq = anthropicToChatRequest(body, wantStream);

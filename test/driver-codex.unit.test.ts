@@ -82,3 +82,6 @@ describe('Codex session history', () => {
           payload: {
             type: 'function_call_output',
             call_id: 'call_plan_1',
+            output: 'Plan updated',
+          },
+        }),
