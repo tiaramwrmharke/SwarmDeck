@@ -57,3 +57,6 @@ export function normalizeSkillSourceKey(source: string): string {
     .replace(/\/+$/, '')
     .toLowerCase();
 }
+
+function readLedger(opts: LedgerScope): SkillLedger {
+  const p = ledgerPath(opts);

@@ -67,3 +67,5 @@ export function Select({
       const trigger = rootRef.current;
       if (!trigger) return;
       const rect = trigger.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom - 12;
