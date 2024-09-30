@@ -33,3 +33,7 @@ process.stdin.on('data', (d) => {
       out({ type: 'assistant', session_id: SID, error: 'overloaded_error', message: { model: '<synthetic>', content: [{ type: 'text', text: 'API Error: Unable to connect to API (ConnectionRefused)' }] } });
       // then silent — the watchdog must still fire
     }
+    // MODE === 'silent': emit nothing further; stay alive on the open stdin
+  }
+});
+process.stdin.on('end', () => process.exit(0));
