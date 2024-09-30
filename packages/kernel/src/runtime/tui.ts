@@ -14,3 +14,7 @@ export async function attachTui(spec: TuiSpec, opts: AttachTuiOptions = {}): Pro
   const stdin = opts.stdin ?? process.stdin;
   const stdout = opts.stdout ?? process.stdout;
   const bridge = PtyBridge.open(spec, { cols: stdout.columns, rows: stdout.rows });
+
+  for (const obs of opts.observers ?? []) bridge.onData(obs);
+  const offData = bridge.onData((d) => { stdout.write(d); });
+
