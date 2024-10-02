@@ -52,3 +52,5 @@ export function agentEffortEnv(agent: Agent, env: Record<string, string | undefi
     case 'gemini': return trimmed(env.GEMINI_REASONING_EFFORT).toLowerCase();
     case 'hermes': return trimmed(env.HERMES_REASONING_EFFORT).toLowerCase();
   }
+  return '';
+}
