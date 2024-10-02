@@ -26,3 +26,5 @@ describe('queuedIdsToDeferForSteer', () => {
     expect(queuedIdsToDeferForSteer(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
     expect(queuedIdsToDeferForSteer(['a', 'b', 'c'], 'a')).toEqual(['b', 'c']);
     expect(queuedIdsToDeferForSteer(['a', 'b', 'c'], 'c')).toEqual(['a', 'b']);
+  });
+

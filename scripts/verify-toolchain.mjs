@@ -48,3 +48,5 @@ const lockedTypeScriptPackages = [];
 for (const [location, metadata] of Object.entries(lock.packages ?? {})) {
   const lockedSpec = metadata.devDependencies?.typescript;
   if ((location === '' || !location.includes('node_modules/')) && lockedSpec !== undefined) {
+    expectEqual(`lockfile ${location || 'root'} TypeScript spec`, lockedSpec, expectedTypeScript);
+  }
