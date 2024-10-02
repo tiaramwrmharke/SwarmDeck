@@ -5,3 +5,4 @@ import { fileURLToPath } from 'node:url';
 const packageJsonPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../package.json');
 
 function readPackageVersion(): string {
+  const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
