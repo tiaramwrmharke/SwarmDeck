@@ -365,3 +365,7 @@ function summarizeCodexToolCall(item: any): CodexActiveToolCall | null {
       const preview = commandPreview(command);
       return { kind, summary: preview ? `Bash: ${preview}` : 'Bash' };
     }
+    case 'update_plan': return { kind, summary: 'Update plan' };
+    case 'request_user_input': return { kind, summary: 'Request user input' };
+    case 'view_image': return { kind, summary: 'Inspect image' };
+    case 'parallel': return { kind, summary: 'Run multiple tools' };
