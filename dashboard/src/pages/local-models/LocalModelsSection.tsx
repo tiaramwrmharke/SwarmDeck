@@ -291,3 +291,6 @@ export function useLocalBackends(): LocalBackendsSnapshot {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+

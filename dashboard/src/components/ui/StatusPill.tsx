@@ -26,3 +26,7 @@ const STATE_TO_BG: Record<StatusState, string> = {
   running: 'bg-[var(--th-badge-running-bg)] border-[var(--th-badge-running-border)]',
   ok: 'bg-[var(--th-badge-ok-bg)] border-[var(--th-badge-ok-border)]',
   warn: 'bg-[var(--th-badge-warn-bg)] border-[var(--th-badge-warn-border)]',
+  err: 'bg-[var(--th-badge-err-bg)] border-[var(--th-badge-err-border)]',
+  info: 'bg-[var(--th-badge-info-bg)] border-[var(--th-badge-info-border)]',
+  idle: 'bg-transparent border-[var(--edge-subtle)]',
+};
