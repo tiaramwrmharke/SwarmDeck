@@ -50,3 +50,5 @@ describe('claude sub-agent lifecycle (background/run_in_background default)', ()
         type: 'user',
         message: { content: [{ type: 'tool_result', tool_use_id: 'tu1', content: [{ type: 'text', text: 'Final report: all mapped.' }] }] },
         toolUseResult: { status: 'completed', agentId: 'zz9', resolvedModel: 'claude-opus-4-8', totalDurationMs: 61_000, totalTokens: 12345 },
+      },
+    ]);

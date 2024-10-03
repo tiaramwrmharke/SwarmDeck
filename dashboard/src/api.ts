@@ -157,3 +157,7 @@ export const api = {
       `/api/session-detail/${agent}/${encodeURIComponent(sessionId)}?limit=${limit}`,
       opts,
     ),
+  installAgent: (agent: string, opts?: ApiRequestOptions) =>
+    post<{ ok: boolean; error?: string } & AgentStatusResponse>(
+      '/api/agent-install',
+      { agent },
