@@ -13,3 +13,6 @@ describe('AssistantContent block categorization', () => {
       type: 'tool_use',
       content: '{"cmd":"rg -n \\"stream\\" src"}',
       toolName: 'exec_command',
+      toolId: 'call-1',
+    };
+    const toolResult: MessageBlock = {
