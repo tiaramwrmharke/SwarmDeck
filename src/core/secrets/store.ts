@@ -35,3 +35,7 @@ export async function isKeychainAvailable(): Promise<boolean> {
 export async function readKeychain(account: string): Promise<string | null> {
   const mod = await loadKeyring();
   if (!mod) throw new Error('OS keychain unavailable (install @napi-rs/keyring)');
+  const readUnder = (service: string): string | null => {
+    try {
+      const entry = new mod.Entry(service, account);
+      const value = entry.getPassword();

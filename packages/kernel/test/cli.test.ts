@@ -24,3 +24,6 @@ describe('CliSurface (terminal mode over LoomIO, hermetic)', () => {
   let tmp: string;
   let loom: Loom;
   let input: PassThrough;
+  let outBuf = '';
+
+  beforeEach(async () => {
