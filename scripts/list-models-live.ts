@@ -15,3 +15,7 @@ function hasCmd(cmd: string): boolean {
 
 function getVersion(cmd: string): string | null {
   try {
+    return execSync(`${cmd} --version 2>/dev/null`, { encoding: 'utf-8' }).trim().split('\n')[0] || null;
+  } catch {
+    return null;
+  }
