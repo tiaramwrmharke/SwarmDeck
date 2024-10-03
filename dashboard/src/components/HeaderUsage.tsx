@@ -28,3 +28,5 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
         key={agent.agent}
         content={(
           <UsageTooltipContent
+            usage={agent.usage}
+            t={t}
