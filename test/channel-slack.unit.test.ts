@@ -34,3 +34,6 @@ vi.mock('@slack/web-api', () => {
         return hoist.results['chat.delete']!(payload);
       }),
     };
+  }
+  return { WebClient: MockWebClient };
+});
