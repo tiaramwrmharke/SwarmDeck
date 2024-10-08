@@ -315,3 +315,7 @@ export class WeixinBot extends Bot {
       `CPU: ${d.cpuModel} x${d.cpuCount}`,
     ];
     if (d.cpuUsage) {
+      lines.push(`CPU Usage: ${d.cpuUsage.usedPercent.toFixed(1)}% (user ${d.cpuUsage.userPercent.toFixed(1)}%, sys ${d.cpuUsage.sysPercent.toFixed(1)}%)`);
+    }
+    lines.push(
+      `Memory: ${fmtBytes(d.memoryUsed)} / ${fmtBytes(d.totalMem)} (${d.memoryPercent.toFixed(0)}%)`,
