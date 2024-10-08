@@ -26,3 +26,4 @@ pick `xiaotonng/swarmdeck`.
 | Field | Value |
 |-------|-------|
 | Production branch | `main` |
+| Framework preset | `Vite` (or None) |
