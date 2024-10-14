@@ -28,3 +28,6 @@ describe('queuedIdsToDeferForSteer', () => {
     expect(queuedIdsToDeferForSteer(['a', 'b', 'c'], 'c')).toEqual(['a', 'b']);
   });
 
+  it('defers nothing when the target is not actually queued', () => {
+    expect(queuedIdsToDeferForSteer(['a', 'b'], 'z')).toEqual([]);
+    expect(queuedIdsToDeferForSteer([], 'a')).toEqual([]);
