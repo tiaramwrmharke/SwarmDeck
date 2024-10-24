@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const network = req.query.network;
 
         const query =
-          'SELECT id, address, note FROM addresses where user_id = ? and wallet_id = ? and chain_id = ? and network = ? and status = 1';
-        const values = [userId, walletId, chainId, network];
+          'SELECT id, address, note FROM addresses where user_id = ? and wallet_id = ? and chain_id = ? and network = ? and status = ?';
+        const values = [userId, walletId, chainId, network, 1];
         const [rows] = await connection.query(query, values);
 
         let newRows: any[] = [];
