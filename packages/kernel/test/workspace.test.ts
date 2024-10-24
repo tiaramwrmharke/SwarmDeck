@@ -84,3 +84,5 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     ].join('\n');
     fs.writeFileSync(path.join(projDir, 'old.jsonl'), transcript('ancient e2e run', '2026-06-26T04:48:26.181Z'));
     fs.writeFileSync(path.join(projDir, 'recent.jsonl'), transcript('yesterday real work', '2026-07-24T20:43:00.000Z'));
+    // Both files stamped at the same instant by the migration, oldest LAST so a mtime sort inverts them.
+    const migration = new Date('2026-07-25T07:55:13.000Z');
