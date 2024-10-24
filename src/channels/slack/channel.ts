@@ -75,3 +75,6 @@ export class SlackChannel extends Channel {
 
   private readonly seenEventIds = new Set<string>();
   private readonly seenEventQueue: string[] = [];
+  private static readonly SEEN_EVENT_CAP = 256;
+
+  constructor(opts: SlackOpts) {
