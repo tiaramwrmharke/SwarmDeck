@@ -78,3 +78,7 @@ export class SlackChannel extends Channel {
   private static readonly SEEN_EVENT_CAP = 256;
 
   constructor(opts: SlackOpts) {
+    super();
+    this.botToken = opts.botToken;
+    this.appToken = opts.appToken;
+    this.allowedChatIds = opts.allowedChatIds;

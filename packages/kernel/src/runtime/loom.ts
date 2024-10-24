@@ -49,3 +49,6 @@ export interface LoomConfig {
 export interface Loom {
   readonly io: LoomIO;
   // Unified directory + session/skill/mcp management (the "顶级目录" capabilities):
+  readonly paths: LoomPaths;          // resolved top-level dir (global + per-workspace roots)
+  readonly sessions: SessionsManager; // managed + native sessions, scoped + searchable
+  readonly skills: SkillsManager;     // canonical skills registry + agent symlinks + search
