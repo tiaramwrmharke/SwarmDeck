@@ -23,3 +23,7 @@ describe('catalog / discovery', () => {
     const catalog: Catalog = {
       async listModels({ agent }) { return [{ id: `${agent}-m1`, label: 'M1', providerName: 'acme', contextWindow: 200000 }]; },
       async listEffort({ agent, model }) { return [{ id: 'low' }, { id: 'high', label: `${agent}/${model ?? 'default'}` }]; },
+      async listTools() { return [{ id: 't', name: 'Tool', enabled: true }]; },
+      async listSkills() { return [{ id: 's', name: 'Skill' }]; },
+    };
+    const loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', catalog });
