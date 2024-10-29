@@ -101,3 +101,7 @@ export async function querySessions(opts: SessionQueryOpts): Promise<SessionQuer
 
   const results = await Promise.all(
     agents.map(agent =>
+      _getSessions({ agent, workdir: resolvedWorkdir }).catch((): SessionListResult => ({
+        ok: false, sessions: [], error: `Failed to fetch ${agent} sessions`,
+      })),
+    ),

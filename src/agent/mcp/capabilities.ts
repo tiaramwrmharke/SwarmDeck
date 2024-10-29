@@ -14,3 +14,7 @@ export interface SessionToolCapability {
   id: string;
   tools: string[];          // the session MCP tool names this capability owns (live in ./tools/)
   promptFragment(ctx: SessionPromptContext): string | null;
+}
+
+const ARTIFACT_RETURN = [
+  '[Artifact Return]',
