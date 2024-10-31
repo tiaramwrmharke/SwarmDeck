@@ -9,3 +9,6 @@ const NPM_AGENTS: ReadonlyArray<readonly [string, string]> = [
 ];
 
 describe('agent install specs', () => {
+  it('npm agents resolve to an npm spec derived from their package (no drift)', () => {
+    for (const [agent, pkg] of NPM_AGENTS) {
+      const spec = getAgentInstall(agent);

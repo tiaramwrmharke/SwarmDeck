@@ -28,3 +28,6 @@ export function UsageBars({ usage, emptyText, className = '' }: {
           <Fragment key={w.label}>
             <span className="truncate text-fg-5">{w.label}</span>
             <span className="h-[3px] overflow-hidden rounded-full bg-fg/10">
+              {pct != null && (
+                <span
+                  className="block h-full rounded-full"
