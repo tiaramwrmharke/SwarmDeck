@@ -89,3 +89,7 @@ export class DiscordBot extends Bot {
     this.signalHandlers = { SIGINT: onSigint, SIGTERM: onSigterm };
     process.once('SIGINT', onSigint);
     process.once('SIGTERM', onSigterm);
+  }
+
+  private removeSignalHandlers() {
+    for (const signal of Object.keys(this.signalHandlers) as ShutdownSignal[]) {

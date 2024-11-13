@@ -105,3 +105,6 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
       { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tw1', name: 'TodoWrite', input: { todos: [
         { content: 'first', status: 'completed' },
         { content: 'second', status: 'in_progress' },
+        { content: 'third', status: 'pending' },
+      ] } }] } },
+      // No TaskCreate store: id "2" = the 2nd todo item.
