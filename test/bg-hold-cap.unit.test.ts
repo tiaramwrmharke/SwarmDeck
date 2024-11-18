@@ -43,3 +43,5 @@ describe('agent-type background tracking', () => {
   it('marks a task launched by a Task/Agent tool as agent-backed', () => {
     const s: any = { subAgents: new Map([['toolu_agent1', { id: 'toolu_agent1' }]]) };
     trackClaudeBackgroundTask({ type: 'system', subtype: 'task_started', task_id: 'bg1', tool_use_id: 'toolu_agent1' }, s);
+    expect(claudeTurnHasAgentBackground(s)).toBe(true);
+  });
