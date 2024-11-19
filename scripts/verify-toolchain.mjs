@@ -50,3 +50,7 @@ for (const [location, metadata] of Object.entries(lock.packages ?? {})) {
   if ((location === '' || !location.includes('node_modules/')) && lockedSpec !== undefined) {
     expectEqual(`lockfile ${location || 'root'} TypeScript spec`, lockedSpec, expectedTypeScript);
   }
+  const isProjectTypeScript = location === 'node_modules/typescript'
+    || (!location.startsWith('node_modules/') && location.endsWith('/node_modules/typescript'));
+  if (isProjectTypeScript) {
+    expectEqual(`lockfile ${location} version`, metadata.version, expectedTypeScript);
