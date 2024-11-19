@@ -38,3 +38,7 @@ describe('session-control', () => {
       });
 
       expect(submitSessionTask).toHaveBeenCalledWith({
+        workdir: '/tmp/swarmdeck',
+        agent: 'codex',
+        sessionId: 'sess-1',
+        prompt: 'check',
