@@ -30,3 +30,4 @@ const STATE_TO_BG: Record<StatusState, string> = {
   info: 'bg-[var(--th-badge-info-bg)] border-[var(--th-badge-info-border)]',
   idle: 'bg-transparent border-[var(--edge-subtle)]',
 };
+
