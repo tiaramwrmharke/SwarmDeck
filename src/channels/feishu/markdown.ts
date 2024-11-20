@@ -35,3 +35,4 @@ function normalizeFeishuMarkdown(lines: string[]): string {
     const trimmed = line.trimStart();
 
     if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
+      if (pendingBlankLine && out.length) out.push('');
