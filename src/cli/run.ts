@@ -75,3 +75,4 @@ Examples:
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const userConfig = loadUserConfig();
+  const workdir = resolveUserWorkdir({ workdir: args.workdir, config: userConfig });
