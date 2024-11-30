@@ -5,7 +5,7 @@ import { ORDER_STATUS } from 'packages/constants';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { InvoiceEventDataTab } from '../Invoice/invoiceEventDataTab';
+import { InvoiceEventDataTab } from '../../DataList/InvoiceEventDataTab';
 import { GetBlockchainAddressUrlByChainIds, GetBlockchainTxUrlByChainIds } from 'utils/web3';
 import Link from 'next/link';
 
