@@ -23,3 +23,6 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
 
 const TEXT_VARIANTS = {
   body:    'text-[14px] leading-[22px] text-fg-2',
+  small:   'text-[13px] leading-[20px] text-fg-3',
+  caption: 'text-[12px] leading-[18px] text-fg-4',
+  label:   'text-[11px] leading-[16px] uppercase tracking-[0.16em] font-semibold text-fg-5',
