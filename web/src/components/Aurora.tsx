@@ -37,3 +37,6 @@ float snoise(vec2 v){
 
   vec3 p = permute(
       permute(i.y + vec3(0.0, i1.y, 1.0))
+    + i.x + vec3(0.0, i1.x, 1.0)
+  );
+

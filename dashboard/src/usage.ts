@@ -38,3 +38,5 @@ export function worstUsageWindow(usage: UsageResult | null): UsageWindowInfo | n
   for (const window of displayableUsageWindows(usage)) {
     if (!worst || (window.usedPercent ?? 0) > (worst.usedPercent ?? 0)) worst = window;
   }
+  return worst;
+}
