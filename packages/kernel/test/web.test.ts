@@ -33,3 +33,6 @@ describe('WebSurface (UniversalSnapshot wire protocol over ws)', () => {
   });
   afterEach(async () => { await loom.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
 
+  it('handshakes, streams snapshot patches, and accumulates the final text', async () => {
+    const port = web.port!;
+    expect(port).toBeGreaterThan(0);
