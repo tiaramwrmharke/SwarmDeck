@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
-import { WEB3 } from 'packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '.';
-import { BLOCKSCAN, BlockScanWalletType } from 'packages/web3/block_scan';
 import { PAYMENT_REQUEST_STATUS } from 'packages/constants';
 import { GenerateOrderIDByTime } from 'utils/number';
 
