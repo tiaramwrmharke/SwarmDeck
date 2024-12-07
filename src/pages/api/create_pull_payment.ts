@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const createdDate = new Date().getTime();
 
         const createQuery =
-          'INSERT INTO pull_payments (user_id, store_id, network, pull_payment_id, name, amount, currency, show_auto_approve_claim, description, pull_payment_status, created_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          'INSERT INTO pull_payments (user_id, store_id, network, pull_payment_id, name, amount, currency, show_auto_approve_claim, description, pull_payment_status, created_date, updated_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         const createValues = [
           userId,
           storeId,
@@ -35,17 +35,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           currency,
           showAutoApproveClaim,
           description,
-          PULL_PAYMENT_STATUS.AwaitingApproval,
+          PULL_PAYMENT_STATUS.Active,
+          createdDate,
           createdDate,
           1,
         ];
         const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
-        const walletId = ResultSetHeader.insertId;
-        if (walletId === 0) {
+        const id = ResultSetHeader.insertId;
+        if (id === 0) {
           return res.status(200).json({ message: 'Something wrong', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: true, data: null });
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            id: id,
+          },
+        });
+
       default:
         throw 'no support the method of api';
     }
