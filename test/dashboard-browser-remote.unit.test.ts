@@ -14,3 +14,5 @@ const headlessNoChrome = {
 };
 
 describe('dashboard browser status — remote CDP mode (issue #16)', () => {
+  const prev = process.env.PIKILOOM_BROWSER_CDP_URL;
+  beforeEach(() => { delete process.env.PIKILOOM_BROWSER_CDP_URL; });
