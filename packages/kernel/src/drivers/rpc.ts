@@ -41,3 +41,7 @@ export class StdioRpcClient {
   onRequest(cb: (method: string, params: any, id: number | string) => any | Promise<any>): void { this.requestCb = cb; }
   /**
    * Fires once when the child process exits/closes. A driver awaiting a terminal *notification*
+   * (not a pending request) MUST use this to settle its turn — otherwise a process that dies
+   * without emitting its completion notification leaves the turn hanging forever.
+   */
+  onClose(cb: () => void): void { this.closeCb = cb; }
