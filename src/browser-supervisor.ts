@@ -53,3 +53,7 @@ async function snapshotRemote(remoteUrl: string, now: number): Promise<ManagedBr
 }
 
 function snapshotFromCache(state: CachedState): ManagedBrowserSnapshot {
+  return { cdpEndpoint: state.cdpEndpoint, connectionMode: state.connectionMode };
+}
+
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response | null> {
