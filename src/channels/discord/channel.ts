@@ -51,3 +51,4 @@ const DISCORD_MAX = DISCORD_LIMITS.maxMessageLength;
 
 function describeError(err: unknown): string {
   return err instanceof Error ? err.message : String(err ?? 'unknown error');
+}
