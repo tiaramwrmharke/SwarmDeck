@@ -68,3 +68,6 @@ function parseSkillMeta(content: string): { label: string | null; description: s
     if (hm) label = hm[1].trim();
   }
   return { label, description, mcpRequires };
+}
+
+function hasFile(filePath: string): boolean {
