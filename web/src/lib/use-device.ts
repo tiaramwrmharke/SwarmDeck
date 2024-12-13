@@ -9,3 +9,5 @@ export function useIsDesktop() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => setIsDesktop(big.matches && !reduced.matches);
     update();
+    big.addEventListener('change', update);
+    reduced.addEventListener('change', update);
