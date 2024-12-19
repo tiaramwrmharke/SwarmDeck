@@ -93,3 +93,6 @@ export class DiscordBot extends Bot {
 
   private removeSignalHandlers() {
     for (const signal of Object.keys(this.signalHandlers) as ShutdownSignal[]) {
+      const handler = this.signalHandlers[signal];
+      if (handler) process.off(signal, handler);
+    }
