@@ -28,3 +28,4 @@ export async function withEnv<T>(
   try {
     return await run();
   } finally {
+    restoreEnv(snapshot);
