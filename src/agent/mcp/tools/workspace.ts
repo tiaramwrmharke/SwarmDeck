@@ -61,3 +61,7 @@ function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolR
   const realWorkspace = safeRealpath(ctx.workspace);
   const realDir = safeRealpath(dir);
   if (!realWorkspace || !realDir || !realDir.startsWith(realWorkspace)) {
+    toolLog('im_list_files', `REJECTED path outside workspace: ${dir}`);
+    return toolResult('Error: path is outside the workspace', true);
+  }
+
