@@ -65,3 +65,7 @@ function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolR
     return toolResult('Error: path is outside the workspace', true);
   }
 
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const workspaceRelDir = path.relative(ctx.workspace, dir);
+    const files = entries.map(e => {
