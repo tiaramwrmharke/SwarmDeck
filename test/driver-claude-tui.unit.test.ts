@@ -155,3 +155,7 @@ describe('Claude TUI driver — terminal limit notices', () => {
     expect(detectClaudeTuiTerminalLimitNotice('Please explain how rate limit handling works in this codebase.')).toBeNull();
   });
 
+  it('arbitrates a notice by turn liveness: output or post-notice activity → info, dead turn → fatal', async () => {
+    const { resolveClaudeTuiLimitOutcome } = await import('../src/agent/drivers/claude-tui.ts');
+    const noticeAt = 1_000_000;
+    const banner = "You're now using usage credits · Your session limit resets 3pm(Asia/Shanghai)";
