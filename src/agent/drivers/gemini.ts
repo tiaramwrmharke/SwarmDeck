@@ -160,3 +160,7 @@ function geminiToolResultSummary(tool: { name: string; summary: string } | undef
     ev.parameters || ev.args || ev.input || {},
   );
   const summary = tool?.summary || fallbackSummary;
+  const detail = shortValue(
+    firstNonEmptyLine(
+      normalizeErrorMessage(ev.error)
+      || ev.output
