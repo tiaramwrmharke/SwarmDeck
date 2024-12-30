@@ -296,3 +296,5 @@ const zhCN: Record<string, string> = {
   'hub.continueTask': '继续当前未完成的任务',
   'hub.status': '状态',
   'hub.outcome': '类型',
+  'hub.statusInbox': '收件箱',
+  'hub.statusActive': '进行中',

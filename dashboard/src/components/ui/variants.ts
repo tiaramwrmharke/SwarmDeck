@@ -15,3 +15,7 @@ export interface TvResult<V extends VariantMap> {
   variants: V;
 }
 
+export function tv<V extends VariantMap>(config: TvConfig<V>): TvResult<V> {
+  const { base = '', variants } = config;
+  const defaults = (config.defaults ?? {}) as Record<string, string | undefined>;
+  const fn = (selection: Selection<V> & { className?: string } = {}) => {
