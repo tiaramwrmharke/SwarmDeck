@@ -35,3 +35,5 @@ Imports flow strictly downward. `core/` and `catalog/` import from nothing insid
 ## Main Message Flow
 
 ```text
+Incoming IM message
+  → channels/*/channel.ts normalizes text / files / context
