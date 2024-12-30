@@ -109,3 +109,6 @@ layout), each environment keeps its own independent session history.
 >   volumes:
 >     - ${HOME}/.codex/auth.json:/home/piki/.codex/auth.json:ro
 >   ```
+>
+> Symptoms of a corrupted db: when launching Codex desktop you see
+> `database disk image is malformed` / `error returned from database: (code: 11)`.
