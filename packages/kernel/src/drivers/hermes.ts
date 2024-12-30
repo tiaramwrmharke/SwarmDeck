@@ -4,3 +4,4 @@ import { AcpDriver } from './acp.js';
 // Any other ACP CLI (OpenCode, Gemini-ACP, …) is just `new AcpDriver({ id, command, args })`.
 export class HermesDriver extends AcpDriver {
   constructor(bin: string = 'hermes') {
+    super({ id: 'hermes', command: bin, args: ['acp'] });
