@@ -69,3 +69,7 @@ export function Select({
       const rect = trigger.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const spaceBelow = viewportHeight - rect.bottom - 12;
+      const spaceAbove = rect.top - 12;
+      const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
+      const maxHeight = Math.max(140, Math.min(260, openUpward ? spaceAbove : spaceBelow));
+      setMenuStyle({
