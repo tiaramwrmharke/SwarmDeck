@@ -14,3 +14,7 @@ import {
   PEEKABOO_WARM_ARGV,
   ensurePeekabooWarm,
 } from '../src/agent/mcp/bridge.js';
+
+const pkgAfterFlag = (argv: readonly string[]) => argv[argv.indexOf('-p') + 1];
+
+describe('Peekaboo npx warm', () => {
