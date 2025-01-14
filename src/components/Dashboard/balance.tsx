@@ -32,7 +32,7 @@ const series = [
   },
 ];
 
-export default function TickPlacementBars() {
+const Balance = () => {
   const [tickPlacement, setTickPlacement] = useState<'start' | 'end' | 'middle' | 'extremities'>('middle');
   const [tickLabelPlacement, setTickLabelPlacement] = useState<'middle' | 'tick'>('middle');
 
@@ -43,4 +43,6 @@ export default function TickPlacementBars() {
       height={300}
     />
   );
-}
+};
+
+export default Balance;
