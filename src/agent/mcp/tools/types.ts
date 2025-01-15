@@ -27,3 +27,4 @@ export interface ToolContext {
   workdir?: string;
   stagedFiles: string[];
   callbackUrl: string;
+}

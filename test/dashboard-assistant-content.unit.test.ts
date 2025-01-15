@@ -16,3 +16,5 @@ describe('AssistantContent block categorization', () => {
       toolId: 'call-1',
     };
     const toolResult: MessageBlock = {
+      type: 'tool_result',
+      content: 'src/bot.ts:610: snap.plan = event.plan?.steps?.length ? event.plan : null;',

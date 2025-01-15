@@ -34,3 +34,4 @@ export function StatusOverview({
   const defaultModel = state ? getDefaultModel(state.config, defaultAgent) : '';
   const defaultAgentLabel = getAgentMeta(defaultAgent).label;
 
+  return (
