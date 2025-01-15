@@ -245,3 +245,6 @@ export interface LocalBackendInstallSpec {
 }
 
 export interface LocalBackendStatus {
+  id: LocalBackendId;
+  label: string;
+  detected: boolean;
