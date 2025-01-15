@@ -5,3 +5,4 @@ export {
 } from './registry.js';
 
 export {
+  detectCli, getCachedCliStatus, invalidateCliStatus, currentPlatform,

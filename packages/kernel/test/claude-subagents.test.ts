@@ -52,3 +52,7 @@ describe('claude sub-agent lifecycle (background/run_in_background default)', ()
         toolUseResult: { status: 'completed', agentId: 'zz9', resolvedModel: 'claude-opus-4-8', totalDurationMs: 61_000, totalTokens: 12345 },
       },
     ]);
+    const sub = s.subAgents.get('tu1');
+    expect(sub.status).toBe('done');
+    expect(sub.report).toBe('Final report: all mapped.');
+    expect(sub.model).toBe('claude-opus-4-8');

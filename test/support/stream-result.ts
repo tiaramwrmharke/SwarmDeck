@@ -18,3 +18,4 @@ export function makeStreamResult(
     outputTokens: 0,
     cachedInputTokens: null,
     cacheCreationInputTokens: null,
+    contextWindow: null,
