@@ -6,3 +6,4 @@ EXPECTED_NPM="$(node -p "require('${ROOT}/package.json').packageManager.split('@
 CURRENT_NPM="$(npm --version)"
 
 if [[ "${CURRENT_NPM}" != "${EXPECTED_NPM}" ]]; then
+  echo "▸ npm ${CURRENT_NPM} → ${EXPECTED_NPM}"
