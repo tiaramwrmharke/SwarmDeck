@@ -40,3 +40,4 @@ const TONE_VARS: Record<BadgeTone, CSSProperties> = {
     color: 'var(--th-badge-muted-text)',
   },
 };
+
