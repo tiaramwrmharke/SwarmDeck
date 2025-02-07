@@ -10,3 +10,5 @@ export const AmbientGlow = forwardRef<HTMLDivElement, AmbientGlowProps>(function
   { streaming, className, children, ...rest },
   ref,
 ) {
+  return (
+    <div

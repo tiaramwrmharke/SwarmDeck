@@ -120,3 +120,6 @@ async function handleResponses(
   emit('response.created', { response: baseResp('in_progress', [], ZERO) });
   emit('response.in_progress', { response: baseResp('in_progress', [], ZERO) });
 
+  let nextIndex = 0;
+  let msgOpen = false, msgId = '', msgIndex = 0, msgText = '';
+  const tools = new Map<number, { id: string; name: string; args: string; index: number; itemId: string; opened: boolean }>();
