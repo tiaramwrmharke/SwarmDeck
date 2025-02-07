@@ -73,3 +73,7 @@ function parseSkillMeta(content: string): { label: string | null; description: s
 function hasFile(filePath: string): boolean {
   try { return fs.statSync(filePath).isFile(); } catch { return false; }
 }
+
+function hasDir(dirPath: string): boolean {
+  try { return fs.statSync(dirPath).isDirectory(); } catch { return false; }
+}

@@ -55,3 +55,6 @@ const PERMISSIONS: PermissionMeta[] = [
     reasonEn: 'Access to Desktop, Downloads and other protected folders',
     guidePathKey: 'perm.pathFullDiskAccess',
     icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="6.2" y="10.1" width="11.6" height="8.6" rx="2.6" />
+        <path d="M9 10V7.8a3 3 0 1 1 6 0V10" />
