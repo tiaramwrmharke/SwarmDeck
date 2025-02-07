@@ -100,3 +100,5 @@ describe('resolveGuiIntegrationConfig', () => {
     })).toEqual({
       browserEnabled: true,
       browserProfileDir: getManagedBrowserProfileDir(),
+      browserHeadless: true,
+      peekabooEnabled: false,
