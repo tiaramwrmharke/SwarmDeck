@@ -38,3 +38,7 @@ export class GeminiDriver implements AgentDriver {
           const ev = parseJsonLine(line);
           if (ev !== undefined) parseGeminiEvent(ev, s, tools, ctx.emit);
         }
+      });
+      child.stderr!.on('data', (c: Buffer) => { stderr += c.toString('utf8'); });
+      child.on('error', (err) => resolve({ ok: false, text: s.text, error: `gemini spawn error: ${err.message}`, stopReason: 'error' }));
+      child.on('close', (code) => {
