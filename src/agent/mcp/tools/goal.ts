@@ -53,3 +53,6 @@ type StoredGoal = {
   status: 'active' | 'paused' | 'budget_limited' | 'complete';
   tokenBudget: number | null;
   tokensUsed: number;
+  timeUsedSeconds: number;
+  continuationCount: number;
+  createdAt: string;
