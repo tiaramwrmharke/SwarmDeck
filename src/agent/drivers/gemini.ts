@@ -164,3 +164,4 @@ function geminiToolResultSummary(tool: { name: string; summary: string } | undef
     firstNonEmptyLine(
       normalizeErrorMessage(ev.error)
       || ev.output
+      || ev.message
