@@ -36,3 +36,4 @@ export default function InAction() {
           ratioH={800}
           badge="Switch the brain · same session"
         />
+        <p className="mt-3 text-center text-sm text-neutral-400">

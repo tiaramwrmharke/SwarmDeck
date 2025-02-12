@@ -19,3 +19,5 @@ function frameToText(raw: string | Buffer | ArrayBuffer): string {
 }
 
 export function decodeClient(raw: string | Buffer | ArrayBuffer, _fmt: WireFormat = DEFAULT_WIRE_FORMAT): ClientMessage | null {
+  try {
+    const value = JSON.parse(frameToText(raw));
