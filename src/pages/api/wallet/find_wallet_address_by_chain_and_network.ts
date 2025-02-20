@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { WEB3 } from 'packages/web3';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from 'packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const connection = await connectDatabase();
-        const userId = req.query.user_id;
         const walletId = req.query.wallet_id;
         const chainId = req.query.chain_id;
         const network = req.query.network;
@@ -22,21 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         let dbChainId = chainId || 0;
 
-        if (
-          dbChainId == CHAINS.ETHEREUM ||
-          dbChainId == CHAINS.BSC ||
-          dbChainId == CHAINS.ARBITRUM ||
-          dbChainId == CHAINS.AVALANCHE ||
-          dbChainId == CHAINS.POLYGON ||
-          dbChainId == CHAINS.BASE ||
-          dbChainId == CHAINS.OPTIMISM
-        ) {
+        if (ETHEREUM_CATEGORY_CHAINS.includes(parseInt(dbChainId as string))) {
           dbChainId = CHAINS.ETHEREUM;
         }
 
         const query =
-          'SELECT id, address, note FROM addresses where user_id = ? and wallet_id = ? and chain_id = ? and network = ? and status = ?';
-        const values = [userId, walletId, dbChainId, network, 1];
+          'SELECT id, address, note FROM addresses where wallet_id = ? and chain_id = ? and network = ? and status = ?';
+        const values = [walletId, dbChainId, network, 1];
         const [rows] = await connection.query(query, values);
 
         let newRows: any[] = [];
@@ -56,12 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 parseInt(chainId as string),
                 item.address,
               ),
-              // transactions: await WEB3.getTransactions(
-              //   parseInt(network as string) === 1 ? true : false,
-              //   parseInt(chainId as string),
-              //   item.address,
-              // ),
-              transactions: [],
+              transactions: await WEB3.getTransactions(
+                parseInt(network as string) === 1 ? true : false,
+                parseInt(chainId as string),
+                item.address,
+              ),
+              // transactions: [],
             };
           });
           newRows = await Promise.all(promises);
@@ -69,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: true, data: newRows });
         }
 
-        return res.status(200).json({ message: '', result: true, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
       case 'POST':
         break;
       default:
