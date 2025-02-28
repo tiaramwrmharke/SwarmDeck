@@ -93,3 +93,5 @@ async function handleMessages(
 ): Promise<void> {
   const wantStream = body.stream === true;
   const chatReq = anthropicToChatRequest(body, wantStream);
+  const key = readBearer(req);
+  const upstreamUrl = chatCompletionsUrl(upstreamBase);
