@@ -13,3 +13,6 @@
 
 const ACCOUNT_TOKEN_ENV: Record<string, string> = {
   claude: 'CLAUDE_CODE_OAUTH_TOKEN',
+  'claude-tui': 'CLAUDE_CODE_OAUTH_TOKEN',
+};
+
