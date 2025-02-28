@@ -55,3 +55,4 @@ export function envInt(name: string, def: number): number {
 }
 
 export function shellSplit(str: string): string[] {
+  const args: string[] = [];
