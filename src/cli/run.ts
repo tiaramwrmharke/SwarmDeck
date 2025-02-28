@@ -76,3 +76,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const userConfig = loadUserConfig();
   const workdir = resolveUserWorkdir({ workdir: args.workdir, config: userConfig });
+  ensureGitignore(workdir);
+  initializeProjectSkills(workdir);
+
+  if (args.help || !args.command) {
