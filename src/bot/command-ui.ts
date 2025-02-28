@@ -146,3 +146,7 @@ export function decodeCommandAction(data: string): CommandAction | null {
   }
   if (data.startsWith('ag:')) {
     try {
+      return { kind: 'agent.switch', agent: normalizeAgent(data.slice(3)) };
+    } catch {
+      return null;
+    }
