@@ -7,3 +7,4 @@ CURRENT_NPM="$(npm --version)"
 
 if [[ "${CURRENT_NPM}" != "${EXPECTED_NPM}" ]]; then
   echo "▸ npm ${CURRENT_NPM} → ${EXPECTED_NPM}"
+  # Run outside the repository so an older npm can upgrade itself before the
