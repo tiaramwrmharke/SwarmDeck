@@ -60,3 +60,5 @@ export interface UniversalInteraction {
   kind: 'user-input' | 'permission' | 'confirmation';
   title: string;
   hint?: string | null;
+  questions: Array<{
+    id: string;
