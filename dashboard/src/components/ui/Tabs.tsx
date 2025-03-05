@@ -22,3 +22,4 @@ export function TabsTrigger({
         'inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors duration-200',
         'focus-visible:outline-none focus-visible:shadow-[0_0_0_4px_var(--th-glow-a)]',
         active ? 'bg-panel-h text-fg shadow-[0_1px_0_rgba(255,255,255,0.03)]' : 'text-fg-4 hover:bg-panel-alt hover:text-fg-2',
+        className

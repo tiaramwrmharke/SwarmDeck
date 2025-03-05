@@ -14,3 +14,4 @@ export function buildForkSeed(turns: UniversalSnapshot[], budget = FORK_SEED_BUD
     const prompt = (t.prompt || '').trim();
     const text = (t.text || '').trim();
     if (prompt) messages.push(`User: ${prompt}`);
+    if (text) messages.push(`Assistant: ${text}`);
