@@ -38,3 +38,7 @@ describe('projectSessionForList', () => {
     const out = projectSessionForList(makeSession({
       lastQuestion: short, lastAnswer: null, lastMessageText: undefined as any,
     }) as any);
+    expect(out.lastQuestion).toBe(short);
+    expect(out.lastAnswer).toBeNull();
+  });
+

@@ -31,3 +31,4 @@ export function UsageBars({ usage, emptyText, className = '' }: {
               {pct != null && (
                 <span
                   className="block h-full rounded-full"
+                  style={{ width: `${Math.max(2, Math.min(100, pct))}%`, backgroundColor: USAGE_TONE_COLOR[tone] }}
