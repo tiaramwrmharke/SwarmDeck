@@ -27,3 +27,6 @@ export class ChannelHealth {
   private readonly transientFailureLevel: ChannelHealthLogLevel;
 
   private delayMs: number;
+  private consecutiveFailures = 0;
+  private firstFailureAt: number | null = null;
+  private lastLoggedDelayMs = 0;
