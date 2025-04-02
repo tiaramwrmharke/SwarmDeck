@@ -38,3 +38,7 @@ export default function App() {
           <Layers />
           <Compare />
           <BuiltWithItself />
+        </main>
+        <Footer />
+      </div>
+    </ClickSpark>
