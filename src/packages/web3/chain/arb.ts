@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ethers, Contract } from 'ethers';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { RPC } from '../rpc';
 import {
   AssetBalance,
@@ -17,7 +17,6 @@ import {
 import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
 import { BLOCKSCAN } from '../block_scan';
 import { GetBlockchainTxUrl } from 'utils/chain/arb';
-import { BigMul } from 'utils/number';
 import Big from 'big.js';
 import { ERC20Abi } from '../abi/erc20';
 
