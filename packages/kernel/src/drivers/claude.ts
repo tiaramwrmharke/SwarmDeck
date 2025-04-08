@@ -279,3 +279,7 @@ export class ClaudeDriver implements AgentDriver {
           if (pendingClaudeBackgroundTasks(state) > 0) { armModelStall(); return; }
           settleResult({ stopReason: 'stalled', kill: false, ok: false });
         }, claudeModelStallMs(input.effort));
+        unref(modelStallTimer);
+      };
+      // Arm the watchdog ONLY if it is not already counting — for the INITIAL model wait (right after
+      // the prompt is delivered) and for API-error events. Unlike `armModelStall` it never resets a

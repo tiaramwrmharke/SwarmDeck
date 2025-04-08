@@ -30,3 +30,6 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
           <UsageTooltipContent
             usage={agent.usage}
             t={t}
+            title={`${getAgentMeta(agent.agent).label} · ${t('usage.accountQuota')}`}
+          />
+        )}
