@@ -25,3 +25,6 @@ class WsConnection extends BaseConnection {
             ? Buffer.concat(data as Buffer[]).toString('utf8')
             : Buffer.from(data as ArrayBuffer).toString('utf8');
       this.emitMessage(frame);
+    });
+    ws.on('close', () => this.emitClose());
+    ws.on('error', () => this.emitClose());

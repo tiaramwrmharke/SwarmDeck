@@ -55,3 +55,5 @@ function describeError(err: unknown): string {
 
 export class DiscordChannel extends Channel {
   override readonly capabilities = {
+    ...DEFAULT_CHANNEL_CAPABILITIES,
+    editMessages: true,
