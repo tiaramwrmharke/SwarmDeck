@@ -26,3 +26,7 @@ const input = tv({
       ].join(' '),
       inset: [
         'bg-[var(--surface-2)] border-[var(--edge-default)]',
+        'hover:border-[var(--edge-strong)]',
+        'focus:border-[var(--edge-strong)] focus:bg-[var(--surface-3)]',
+      ].join(' '),
+    },
