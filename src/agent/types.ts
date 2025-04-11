@@ -113,3 +113,5 @@ export interface StreamOpts {
   claudePermissionMode?: string;
   claudeAppendSystemPrompt?: string;
   claudeExtraArgs?: string[];
+  claudeWorkflowEnabled?: boolean;
+  claudeAccessMode?: 'subscription' | 'api';
