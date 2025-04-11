@@ -4,3 +4,4 @@ import { defineConfig } from 'vitest/config';
 // independent of the swarmdeck app's test harness.
 export default defineConfig({
   test: {
+    root: __dirname,
