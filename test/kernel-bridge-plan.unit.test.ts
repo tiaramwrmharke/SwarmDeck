@@ -14,3 +14,4 @@ describe('kernel-bridge toSwarmDeckPlan (text -> step)', () => {
         { text: 'apply fix', status: 'inProgress' },
         { text: 'verify', status: 'pending' },
       ],
+    });
