@@ -27,3 +27,7 @@ function SwarmStage() {
     <div
       className="h-full w-full"
       style={{ background: 'radial-gradient(120% 120% at 50% 0%, rgb(var(--brand-glow) / .25), transparent 60%), radial-gradient(100% 100% at 50% 100%, rgb(var(--brand-glow) / .14), transparent 60%)' }}
+    />
+  );
+
+  return (
