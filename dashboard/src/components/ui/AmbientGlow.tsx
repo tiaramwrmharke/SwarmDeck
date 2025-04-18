@@ -12,3 +12,5 @@ export const AmbientGlow = forwardRef<HTMLDivElement, AmbientGlowProps>(function
 ) {
   return (
     <div
+      ref={ref}
+      data-streaming={streaming ? 'true' : undefined}
