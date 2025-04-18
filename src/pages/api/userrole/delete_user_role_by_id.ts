@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const id = req.body.id;
 
-        const apiKey = await prisma.api_key_settings.update({
+        const userrole = await prisma.user_roles.update({
           data: {
             status: 2,
           },
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (!apiKey) {
+        if (!userrole) {
           return res.status(200).json({
             message: '',
             result: false,
