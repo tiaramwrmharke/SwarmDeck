@@ -22,3 +22,5 @@ export async function resolveCredential(ref: CredentialRef, opts: ResolveOptions
     case 'env': {
       const value = env[ref.varName];
       if (!value) throw new Error(`Environment variable not set: ${ref.varName}`);
+      return value;
+    }
