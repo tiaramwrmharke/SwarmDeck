@@ -98,3 +98,4 @@ async function handleMessages(
   log(`-> ${upstreamUrl} model=${chatReq.model} msgs=${chatReq.messages.length} tools=${chatReq.tools?.length ?? 0} stream=${wantStream}`);
 
   let upstreamResp: Response;
+  try {

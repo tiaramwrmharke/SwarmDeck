@@ -25,3 +25,4 @@ const button = tv({
       ghost: [
         'border border-transparent bg-transparent text-fg-4',
         'hover:bg-[var(--surface-2)] hover:text-fg-2',
+      ].join(' '),

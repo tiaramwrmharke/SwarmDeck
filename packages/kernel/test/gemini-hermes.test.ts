@@ -14,3 +14,6 @@ function hermesRun(updates: any[]): DriverEvent[] {
   return out;
 }
 
+describe('GeminiDriver stream-json parser', () => {
+  it('maps init/message/tool/result events to DriverEvents', () => {
+    const events = geminiRun([
