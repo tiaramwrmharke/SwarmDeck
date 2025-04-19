@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const storeId = req.query.store_id;
         const userId = req.query.user_id;
 
-        const email_rule_setting = await prisma.email_rule_settings.findFirst({
+        const email_rule_setting = await prisma.email_rule_settings.findMany({
           where: {
             user_id: Number(userId),
             store_id: Number(storeId),
@@ -27,14 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({
           message: '',
           result: true,
-          data: {
-            id: email_rule_setting.id,
-            tigger: email_rule_setting.tigger,
-            recipients: email_rule_setting.recipients,
-            show_send_to_buyer: email_rule_setting.show_send_to_buyer,
-            subject: email_rule_setting.subject,
-            body: email_rule_setting.body,
-          },
+          data: email_rule_setting,
         });
 
       default:
