@@ -9,3 +9,4 @@ export interface NpmPackageHit {
   version: string | null;
 }
 
+/** Query registry.npmjs.org's search endpoint. [] on non-OK; throws on network failure. */
