@@ -98,3 +98,7 @@ export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
   const totalLines = text ? text.split('\n').length : 0;
   const isLong = !!text && (text.length > LONG_USER_TEXT_CHAR_THRESHOLD || totalLines > LONG_USER_TEXT_LINE_THRESHOLD);
   const [expanded, setExpanded] = useState(false);
+  const displayText = !text ? '' : (isLong && !expanded ? previewFromText(text) : text);
+  const hasActions = !!(onResend || onEdit || onFork);
+  const imageBlocks = blocks?.filter(b => b.type === 'image') || [];
+
