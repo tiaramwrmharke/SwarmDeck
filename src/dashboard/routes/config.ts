@@ -158,3 +158,6 @@ function editorGotoArg(filePath: string, location?: Pick<ResolvedOpenPath, 'line
 }
 
 function tryOpenCommand(command: string, args: string[]): boolean {
+  if (!whichSync(command)) return false;
+  try {
+    runOpenCommand(command, args);
