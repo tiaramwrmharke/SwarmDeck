@@ -31,3 +31,5 @@ const brandIcons: Record<string, string> = {
   codex: codexLogo,
   gemini: geminiLogo,
   telegram: telegramLogo,
+  feishu: feishuLogo,
+  weixin: weixinLogo,
