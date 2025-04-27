@@ -26,3 +26,5 @@ export class RtcConnection extends BaseConnection {
     channel.onclose = () => this.close();
     pc.connectionStateChange.subscribe((state) => {
       if (state === 'failed' || state === 'closed' || state === 'disconnected') this.close();
+    });
+  }
