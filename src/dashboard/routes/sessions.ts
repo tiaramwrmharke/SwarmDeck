@@ -244,3 +244,7 @@ async function parseSessionSendRequest(c: any): Promise<{
   if (contentType.includes('multipart/form-data')) {
     const form = await c.req.formData();
     const uploads = await materializeUploadedFiles(form.getAll('attachments'));
+    return {
+      workdir: readStringField(form.get('workdir')),
+      agent: readStringField(form.get('agent')),
+      sessionId: readStringField(form.get('sessionId')),

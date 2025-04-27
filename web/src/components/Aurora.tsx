@@ -40,3 +40,4 @@ float snoise(vec2 v){
     + i.x + vec3(0.0, i1.x, 1.0)
   );
 
+  vec3 m = max(
