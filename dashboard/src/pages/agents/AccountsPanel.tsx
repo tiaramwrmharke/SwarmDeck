@@ -73,3 +73,6 @@ export function AccountsPanel({ agentId }: { agentId: string }) {
       setForm(f => (f ? { ...f, saving: false } : f));
     }
   }, [agentId, form, refresh, toast]);
+
+  const setActive = useCallback(async (id: string | null) => {
+    setBusy(id || '__clear__');
