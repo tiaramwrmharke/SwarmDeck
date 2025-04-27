@@ -118,3 +118,5 @@ describe('Gemini session tail', () => {
   });
 
   it('reads prior Gemini conversation turns from native session files', async () => {
+    const workdir = '/tmp/swarmdeck';
+    const geminiDir = path.join(process.env.HOME!, '.gemini');

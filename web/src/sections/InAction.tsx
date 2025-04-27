@@ -37,3 +37,7 @@ export default function InAction() {
           badge="Switch the brain · same session"
         />
         <p className="mt-3 text-center text-sm text-neutral-400">
+          One Claude session: switch to Gemini, then Hermes — the conversation history follows. Claude builds a hook,
+          Gemini reviews <em>the previous agent's</em> code, Hermes recaps the whole thread.
+        </p>
+      </div>
