@@ -25,3 +25,4 @@ const trimRetainedLogFile = () => {
     const stat = fs.statSync(filePath);
     if (Date.now() - stat.mtimeMs > maxAgeMs) {
       fs.writeFileSync(filePath, '');
+      return;
