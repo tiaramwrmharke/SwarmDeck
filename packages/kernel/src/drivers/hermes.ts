@@ -5,3 +5,4 @@ import { AcpDriver } from './acp.js';
 export class HermesDriver extends AcpDriver {
   constructor(bin: string = 'hermes') {
     super({ id: 'hermes', command: bin, args: ['acp'] });
+  }
