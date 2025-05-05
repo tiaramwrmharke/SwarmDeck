@@ -28,3 +28,4 @@ export class RtcConnection extends BaseConnection {
       if (state === 'failed' || state === 'closed' || state === 'disconnected') this.close();
     });
   }
+

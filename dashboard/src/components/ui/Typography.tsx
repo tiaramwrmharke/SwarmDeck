@@ -26,3 +26,6 @@ const TEXT_VARIANTS = {
   small:   'text-[13px] leading-[20px] text-fg-3',
   caption: 'text-[12px] leading-[18px] text-fg-4',
   label:   'text-[11px] leading-[16px] uppercase tracking-[0.16em] font-semibold text-fg-5',
+};
+
+export type TextVariant = keyof typeof TEXT_VARIANTS;
