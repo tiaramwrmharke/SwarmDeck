@@ -50,3 +50,4 @@ const REAP_FORCE_DEFAULT_MS = 10_000;
 export function reapForceMs(): number {
   const raw = Number(process.env.PIKILOOM_REAP_FORCE_MS);
   return Number.isFinite(raw) && raw > 0 ? raw : REAP_FORCE_DEFAULT_MS;
+}
