@@ -73,3 +73,7 @@ export function Select({
       const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow;
       const maxHeight = Math.max(140, Math.min(260, openUpward ? spaceAbove : spaceBelow));
       setMenuStyle({
+        left: rect.left,
+        top: openUpward ? Math.max(12, rect.top - maxHeight - 8) : rect.bottom + 8,
+        width: rect.width,
+        maxHeight,
