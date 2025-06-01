@@ -33,3 +33,4 @@ describe('dashboard live session state helpers', () => {
     const queued = normalizeLiveSessionState('codex:sess-1', { phase: 'queued', updatedAt: 100 });
     const streaming = normalizeLiveSessionState('codex:sess-1', { phase: 'streaming', updatedAt: 200 });
     expect(sessionDisplayState(applyLiveSessionState(base1, queued))).toBe('running');
+    expect(sessionDisplayState(applyLiveSessionState(base1, streaming))).toBe('running');

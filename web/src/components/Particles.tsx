@@ -45,3 +45,4 @@ const vertex =  `
   uniform float uTime;
   uniform float uSpread;
   uniform float uBaseSize;
+  uniform float uSizeRandomness;
