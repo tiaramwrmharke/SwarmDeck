@@ -16,3 +16,6 @@ const ACCOUNT_TOKEN_ENV: Record<string, string> = {
   'claude-tui': 'CLAUDE_CODE_OAUTH_TOKEN',
 };
 
+/** Whether this agent's local accounts are switched by injecting a token. */
+export function accountTokenSupported(agent: string): boolean {
+  return Object.prototype.hasOwnProperty.call(ACCOUNT_TOKEN_ENV, agent);
