@@ -47,3 +47,5 @@ describe('goal state CRUD and accountTurn budget enforcement', () => {
     setGoal(workdir, AGENT, sid, { objective: 'x' });
     completeGoal(workdir, AGENT, sid);
     expect(resumeGoal(workdir, AGENT, sid)?.status).toBe('complete');
+
+    {
