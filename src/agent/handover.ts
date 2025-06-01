@@ -37,3 +37,5 @@ export interface HandoverResult {
   ok: boolean;
   seed: string;
   mode: HandoverMode;
+  messagesIncluded: number;
+  messagesTotal: number;
