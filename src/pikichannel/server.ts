@@ -57,3 +57,6 @@ export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
   if (!token) {
     token = crypto.randomBytes(24).toString('base64url');
     try { updateUserConfig({ pikichannelToken: token }); log('provisioned a new pikichannel access token'); }
+    catch (err) { log(`could not persist access token: ${(err as Error)?.message}`); }
+  }
+  const strict = cfg.pikichannelStrictAuth === true || process.env.PIKICHANNEL_STRICT === '1';
