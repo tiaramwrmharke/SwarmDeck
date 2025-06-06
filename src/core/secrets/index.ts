@@ -7,3 +7,5 @@ export {
 export { sealInline, unsealInline } from './inline-seal.js';
 
 import { writeKeychain, deleteKeychain, isKeychainAvailable } from './store.js';
+import { sealInline } from './inline-seal.js';
+import type { CredentialRef } from './ref.js';
