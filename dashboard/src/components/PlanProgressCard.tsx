@@ -22,3 +22,5 @@ function StepIcon({ status }: { status: StreamPlan['steps'][number]['status'] })
         <polyline points="20 6 9 17 4 12" />
       </svg>
     );
+  }
+  if (status === 'inProgress') {
