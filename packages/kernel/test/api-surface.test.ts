@@ -15,3 +15,5 @@ const MAIN = [
   'FsSessionStore', 'NullModelResolver', 'NoopToolProvider', 'PassthroughSystemPromptBuilder',
   'AutoCancelInteractionHandler', 'DeferToTerminalInteractionHandler', 'NoopCatalog', 'defaultBaseDir',
   // drivers & surfaces
+  'EchoDriver', 'ClaudeDriver', 'CodexDriver', 'GeminiDriver', 'AcpDriver', 'HermesDriver',
+  'WebSurface', 'CliSurface',
