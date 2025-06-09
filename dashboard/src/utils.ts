@@ -97,3 +97,7 @@ export const agentMeta: Record<string, AgentMeta> = {
     bg: 'rgba(196,181,253,0.12)',
     letter: 'G',
     glow: 'rgba(196,181,253,0.2)',
+    border: 'rgba(196,181,253,0.2)',
+    advantageKey: 'config.agentAdvantageGemini',
+  },
+  hermes: {

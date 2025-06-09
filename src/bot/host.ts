@@ -76,3 +76,5 @@ function getLinuxBatteryData(): HostBatteryData | null {
       };
     }
   } catch {}
+
+  try {
