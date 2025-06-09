@@ -33,3 +33,4 @@ const brandIcons: Record<string, string> = {
   telegram: telegramLogo,
   feishu: feishuLogo,
   weixin: weixinLogo,
+  slack: slackLogo,
