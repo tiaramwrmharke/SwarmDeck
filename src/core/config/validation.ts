@@ -150,3 +150,7 @@ function invalidChannelState(channel: ChannelSetupState['channel'], detail: stri
 }
 
 function errorChannelState(channel: ChannelSetupState['channel'], detail: string): ChannelSetupState {
+  return {
+    channel,
+    configured: true,
+    ready: false,
