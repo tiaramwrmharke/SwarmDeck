@@ -38,3 +38,4 @@ describe('humanizeCodexError — ChatGPT-account rejects third-party models', ()
     expect(humanizeCodexError('')).toBeNull();
   });
 });
+
