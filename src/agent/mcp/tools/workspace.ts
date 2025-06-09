@@ -69,3 +69,7 @@ function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolR
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     const workspaceRelDir = path.relative(ctx.workspace, dir);
     const files = entries.map(e => {
+      const entry: Record<string, unknown> = { name: e.name, type: e.isDirectory() ? 'directory' : 'file' };
+      const relPath = workspaceRelDir && workspaceRelDir !== '' && workspaceRelDir !== '.'
+        ? path.posix.join(toPosix(workspaceRelDir), e.name)
+        : e.name;
