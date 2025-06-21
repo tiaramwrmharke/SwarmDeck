@@ -42,3 +42,6 @@ describe('snapshotGate — null is "no info"', () => {
 
   it('rejects a null while active state is held (symptom: post-stop send swallowed / stale clear)', () => {
     expect(snapshotGate({ ...base, isNull: true, holdsActiveState: true })).toBe('reject-null');
+  });
+
+  it('applies a null when genuinely idle (settles an idle mount)', () => {
