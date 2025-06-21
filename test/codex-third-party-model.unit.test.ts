@@ -39,3 +39,7 @@ describe('humanizeCodexError — ChatGPT-account rejects third-party models', ()
   });
 });
 
+describe('recoverProfileIdForModel — recover a lost provider binding by model id', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
