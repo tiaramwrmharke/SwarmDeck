@@ -45,3 +45,6 @@ export class StdioRpcClient {
    * without emitting its completion notification leaves the turn hanging forever.
    */
   onClose(cb: () => void): void { this.closeCb = cb; }
+  /** Rolling tail of the process' stderr — startup/crash diagnostics. */
+  stderrText(): string { return this.stderrTail.join('\n'); }
+
