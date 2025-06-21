@@ -28,3 +28,6 @@ class WsConnection extends BaseConnection {
     });
     ws.on('close', () => this.emitClose());
     ws.on('error', () => this.emitClose());
+  }
+
+  send(frame: string): void {

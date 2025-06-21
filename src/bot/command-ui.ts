@@ -150,3 +150,5 @@ export function decodeCommandAction(data: string): CommandAction | null {
     } catch {
       return null;
     }
+  }
+  if (data.startsWith('mod:')) {
