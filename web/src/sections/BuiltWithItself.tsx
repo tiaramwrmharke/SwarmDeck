@@ -15,3 +15,5 @@ export default function BuiltWithItself() {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               The truest test of an orchestrator: can it build itself?
             </h2>
+            <p className="mt-5 text-lg leading-relaxed text-neutral-300">
+              swarmdeck can. We use swarmdeck to develop, test, release, and operate swarmdeck —
