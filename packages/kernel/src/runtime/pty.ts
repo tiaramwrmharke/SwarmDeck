@@ -29,3 +29,7 @@ export class PtyBridge {
     proc.onExit((e: { exitCode: number; signal?: number }) => {
       for (const cb of this.exitCbs) { try { cb({ exitCode: e.exitCode, signal: e.signal }); } catch { /* isolate */ } }
     });
+  }
+
+  static open(spec: TuiSpec, opts: PtyOpenOpts = {}): PtyBridge {
+    const pty = loadPty();
