@@ -41,3 +41,7 @@ Every port has a default (zero config). Override any: sessionStore, modelResolve
 
 ## UniversalSnapshot — the shape you render (accumulates across a turn)
 
+```ts
+interface UniversalSnapshot {
+  phase: 'idle'|'queued'|'streaming'|'done';
+  taskId?; sessionId?; agent?; model?; effort?; prompt?: string|null;

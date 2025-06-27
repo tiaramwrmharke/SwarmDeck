@@ -54,3 +54,4 @@ import os
 import subprocess
 import sys
 
+script, log_file, workdir, *args = sys.argv[1:]
