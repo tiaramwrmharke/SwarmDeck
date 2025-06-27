@@ -10,3 +10,5 @@ export function hasPendingChannelValidation(channels: ChannelSetupState[] | null
   return Array.isArray(channels) && channels.some(channel => isChannelValidationPending(channel));
 }
 
+export function channelSummaryText(channel: ChannelSetupState | null | undefined, t: Translate): string {
+  if (!channel || !channel.configured) return t('status.needsConfig');
