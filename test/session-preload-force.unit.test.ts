@@ -27,3 +27,5 @@ const withAssistant = {
     { role: 'user', text: 'u', blocks: [] },
     { role: 'assistant', text: 'A', blocks: [{ type: 'text', content: 'A' }] },
   ],
+  messages: [],
+  totalTurns: 1,
