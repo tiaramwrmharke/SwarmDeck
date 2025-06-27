@@ -41,3 +41,5 @@ float snoise(vec2 v){
   );
 
   vec3 m = max(
+      0.5 - vec3(
+          dot(x0, x0),
