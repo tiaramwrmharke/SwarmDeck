@@ -44,3 +44,4 @@ export default function Stats() {
   }, []);
 
   const items = [
+    { label: 'npm installs / month', node: <StatValue value={downloads} />, href: LINKS.npm },
