@@ -10,3 +10,5 @@ export function getHome(): string {
   return os.homedir();
 }
 
+export function expandTilde(p: string): string {
+  if (!p || p[0] !== '~') return p;
