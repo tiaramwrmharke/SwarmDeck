@@ -35,3 +35,6 @@ export function StatusOverview({
   const defaultAgentLabel = getAgentMeta(defaultAgent).label;
 
   return (
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <Card className="p-4">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-5">{t('sessions.runStatus')}</div>
