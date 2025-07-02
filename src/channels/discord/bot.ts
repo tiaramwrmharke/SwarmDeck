@@ -96,3 +96,4 @@ export class DiscordBot extends Bot {
       const handler = this.signalHandlers[signal];
       if (handler) process.off(signal, handler);
     }
+    this.signalHandlers = {};

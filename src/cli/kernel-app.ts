@@ -25,3 +25,6 @@ const DEMO_MODELS: Record<string, any[]> = {
   codex: [
     { id: 'gpt-5.6-sol', label: 'GPT-5.6-Sol', providerName: 'openai', contextWindow: 372000 },
     { id: 'gpt-5.6-terra', label: 'GPT-5.6-Terra', providerName: 'openai', contextWindow: 372000 },
+    { id: 'gpt-5.6-luna', label: 'GPT-5.6-Luna', providerName: 'openai', contextWindow: 372000 },
+  ],
+  gemini: [{ id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', providerName: 'google', contextWindow: 1000000 }],
