@@ -95,3 +95,5 @@ function truncate(s: string, n: number): string { return s.length > n ? s.slice(
 // so it can be unit-tested against the raw ACP wire without spawning a process.
 export function applyAcpUpdate(update: any, s: any, tools: Set<string>, emit: (e: DriverEvent) => void): void {
   if (!update) return;
+  switch (update.sessionUpdate) {
+    case 'agent_message_chunk': {
