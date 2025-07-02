@@ -233,3 +233,7 @@
                     - img
                   - button "重跑":
                     - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e318]:
+                - generic [ref=e320]: "After-fix oscillation check: print 1 to 25, one per line \"N — <word>\". No preamble."
