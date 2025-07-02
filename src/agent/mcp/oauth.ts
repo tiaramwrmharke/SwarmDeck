@@ -95,3 +95,5 @@ async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs = 8_000):
   } finally {
     clearTimeout(timer);
   }
+}
+
