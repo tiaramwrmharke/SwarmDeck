@@ -12,3 +12,4 @@ export function hasPendingChannelValidation(channels: ChannelSetupState[] | null
 
 export function channelSummaryText(channel: ChannelSetupState | null | undefined, t: Translate): string {
   if (!channel || !channel.configured) return t('status.needsConfig');
+  if (channel.detail) return channel.detail;
