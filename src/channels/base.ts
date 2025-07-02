@@ -23,3 +23,5 @@ export const DEFAULT_CHANNEL_CAPABILITIES: ChannelCapabilities = Object.freeze({
 
 export type ChannelCapability = keyof ChannelCapabilities;
 
+export interface SendOpts {
+  replyTo?: number | string;

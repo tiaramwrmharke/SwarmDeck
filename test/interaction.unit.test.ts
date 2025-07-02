@@ -97,3 +97,7 @@ describe('Bot interaction handler via submitSessionTask (dashboard path)', () =>
     const selectResult = bot.interactionSelectOption(promptId, 'Allow');
     expect(selectResult).toBeTruthy();
     expect(selectResult!.completed).toBe(true);
+
+    deadline = Date.now() + 2000;
+    while (Date.now() < deadline) {
+      if (bot.getStreamSnapshot('codex:sess-interaction')?.phase === 'done') break;
