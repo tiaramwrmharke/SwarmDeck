@@ -97,3 +97,6 @@ async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs = 8_000):
   }
 }
 
+interface DiscoveredResource {
+  authorizationServer: string;
+  canonicalResource: string;

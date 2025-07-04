@@ -11,3 +11,7 @@ describe('importFilesIntoWorkspace', () => {
     cleanup.length = 0;
   });
 
+  it('recognizes an in-workspace file referenced via a symlinked path (no re-copy)', () => {
+    const realRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'imp-real-'));
+    cleanup.push(realRoot);
+    const ws = path.join(realRoot, 'workspace');
