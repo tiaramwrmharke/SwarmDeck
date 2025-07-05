@@ -37,3 +37,5 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
       dotPulse: true,
     };
   }
+
+  if (state.ready) {
