@@ -12,3 +12,6 @@ describe('agent install specs', () => {
   it('npm agents resolve to an npm spec derived from their package (no drift)', () => {
     for (const [agent, pkg] of NPM_AGENTS) {
       const spec = getAgentInstall(agent);
+      expect(spec, agent).not.toBeNull();
+      expect(spec!.method).toBe('npm');
+      expect(spec!.command).toBe(`npm install -g ${pkg}`);
