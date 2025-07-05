@@ -29,3 +29,4 @@ describe('per-session serial queue (hermetic)', () => {
   afterEach(async () => { await loom.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
 
   it('a 2nd prompt to a busy session queues, then promotes in order on finish', async () => {
+    const w = watchAll(loom.io);
