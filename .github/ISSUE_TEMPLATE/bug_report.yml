@@ -32,3 +32,5 @@ body:
         - macOS
         - Windows
         - Linux
+    validations:
+      required: true
