@@ -23,3 +23,6 @@ export function snapshotGate(input: SnapshotGateInput): SnapshotGateDecision {
     return 'apply';
   }
   const updatedAt = typeof input.updatedAt === 'number' ? input.updatedAt : 0;
+  if (updatedAt < input.lastAppliedUpdatedAt) return 'reject-stale';
+  return 'apply';
+}
