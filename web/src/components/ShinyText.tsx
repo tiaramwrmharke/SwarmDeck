@@ -45,3 +45,7 @@ const ShinyText: React.FC<ShinyTextProps> = ({
 
     if (lastTimeRef.current === null) {
       lastTimeRef.current = time;
+      return;
+    }
+
+    const deltaTime = time - lastTimeRef.current;
