@@ -19,3 +19,6 @@ export function makeStreamResult(
     cachedInputTokens: null,
     cacheCreationInputTokens: null,
     contextWindow: null,
+    contextUsedTokens: null,
+    contextPercent: null,
+    codexCumulative: null,
