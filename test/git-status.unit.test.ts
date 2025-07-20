@@ -45,3 +45,7 @@ describe('parseGitStatusV2', () => {
       '# branch.head (detached)',
     ].join('\n');
     const g = parseGitStatusV2(out);
+    expect(g.detached).toBe(true);
+    expect(g.branch).toBeNull();
+    expect(g.shortSha).toBe('a1b2c3d');
+    expect(g.upstream).toBeNull();
