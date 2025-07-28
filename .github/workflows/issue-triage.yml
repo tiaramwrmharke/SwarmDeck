@@ -36,3 +36,4 @@ jobs:
             const issue = context.payload.issue;
             const login = issue.user.login;
 
+            const { data: user } = await github.rest.users.getByUsername({ username: login });
