@@ -286,3 +286,6 @@
               - generic [ref=e342]:
                 - generic [ref=e344]: 图片测试：请只回复 ok
                 - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
