@@ -19,3 +19,7 @@ function snapWithInteraction(): any {
         options: [
           { label: 'A', description: 'first', value: 'A' },
           { label: 'B', description: 'second', value: 'B' },
+        ],
+        allowFreeform: true,
+      }],
+    }],

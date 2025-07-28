@@ -14,3 +14,4 @@ export function SystemTab({
 }) {
   const state = useStore(s => s.state);
   const host = useStore(s => s.host);
+  const locale = useStore(s => s.locale);
