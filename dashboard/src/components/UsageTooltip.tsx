@@ -10,3 +10,4 @@ export function UsageTooltipContent({ usage, t, title }: {
   if (!usage?.ok || !usage.windows.length) {
     return <>{usage?.error || t('config.balanceUnavailable')}</>;
   }
+  const capturedAt = usage.capturedAt ? formatCapturedAt(usage.capturedAt) : null;
