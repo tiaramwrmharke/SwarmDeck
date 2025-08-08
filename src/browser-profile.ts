@@ -101,3 +101,4 @@ async function resolveBrowserCdpEndpoint(endpoint: string): Promise<string | nul
     if (!response.ok) return null;
     const payload = await response.json().catch(() => null) as { webSocketDebuggerUrl?: unknown } | null;
     return typeof payload?.webSocketDebuggerUrl === 'string' ? normalizedEndpoint : null;
+  } catch {

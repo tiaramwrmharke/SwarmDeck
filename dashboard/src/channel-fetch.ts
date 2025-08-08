@@ -25,3 +25,6 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
   const req = input instanceof Request ? input : null;
   const method = (init?.method || req?.method || 'GET').toUpperCase();
+
+  let body: string | undefined;
+  const rawBody = init?.body;

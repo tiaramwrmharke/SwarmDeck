@@ -76,3 +76,4 @@ export function AccountsPanel({ agentId }: { agentId: string }) {
 
   const setActive = useCallback(async (id: string | null) => {
     setBusy(id || '__clear__');
+    try {
