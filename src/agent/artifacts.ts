@@ -54,3 +54,4 @@ export function stageDeliveredArtifact(
   const stat = fs.statSync(srcPath);
   const dir = deliveredDir(agent, sessionId);
   fs.mkdirSync(dir, { recursive: true });
+  const stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
