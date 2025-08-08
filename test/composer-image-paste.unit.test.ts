@@ -19,3 +19,5 @@ describe('isLikelyImageFile', () => {
     expect(isLikelyImageFile(new File([], 'screenshot.png', { type: '' }))).toBe(true);
     expect(isLikelyImageFile(new File([], 'photo.JPEG', { type: '' }))).toBe(true);
     expect(isLikelyImageFile(new File([], 'clip.heic', { type: '' }))).toBe(true);
+  });
+

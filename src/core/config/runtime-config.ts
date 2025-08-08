@@ -54,3 +54,6 @@ export function agentEffortEnv(agent: Agent, env: Record<string, string | undefi
   }
   return '';
 }
+
+export function resolveAgentModel(config: Partial<UserConfig> | Record<string, any>, agent: Agent): string {
+  let value = '';
