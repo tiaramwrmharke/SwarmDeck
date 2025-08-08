@@ -256,3 +256,7 @@ function getCopy(locale: Locale): Copy {
     modalAddHint: tpl => tpl ? `Pre-filled from the ${tpl} template — just paste your API key.` : 'Enter endpoint and credential. After saving, choose models on the agent cards above.',
     modalEditTitle: 'Edit Provider',
     modalEditHint: 'Update the endpoint, credential, or model. Changing the credential clears the validated state.',
+    fieldName: 'Display name',
+    fieldNamePlaceholder: 'e.g. OpenRouter · Personal',
+    fieldKind: 'API kind',
+    fieldBaseURL: 'Base URL',

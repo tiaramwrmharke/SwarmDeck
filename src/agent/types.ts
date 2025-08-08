@@ -115,3 +115,5 @@ export interface StreamOpts {
   claudeExtraArgs?: string[];
   claudeWorkflowEnabled?: boolean;
   claudeAccessMode?: 'subscription' | 'api';
+  geminiModel?: string;
+  geminiApprovalMode?: string;
