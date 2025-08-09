@@ -24,3 +24,5 @@ export async function resolveCredential(ref: CredentialRef, opts: ResolveOptions
       if (!value) throw new Error(`Environment variable not set: ${ref.varName}`);
       return value;
     }
+    case 'command': {
+      if (!ref.argv.length) throw new Error('Empty command argv');
