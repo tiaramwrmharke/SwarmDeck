@@ -69,3 +69,5 @@ describe('buildClaudeOAuthUsage (2026 limits[] schema)', () => {
         { kind: 'weekly_all', percent: 10, severity: 'exceeded', resets_at: '2026-07-13T12:00:00.000000+00:00' },
       ],
     };
+    const usage = buildClaudeOAuthUsage(data)!;
+    expect(usage.windows[0].status).toBe('warning');
