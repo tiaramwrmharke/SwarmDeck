@@ -158,3 +158,6 @@ describe('CodexDriver completed-item fallback (no deltas)', () => {
 
 describe('codexToolSummary (content items must NOT become Activity tools)', () => {
   it('returns null for agentMessage and reasoning — they are content, rendered below', () => {
+    expect(codexToolSummary({ id: 'm1', type: 'agentMessage', phase: 'final_answer', text: 'the answer' })).toBeNull();
+    expect(codexToolSummary({ id: 'r1', type: 'reasoning', summary: ['thinking'] })).toBeNull();
+  });

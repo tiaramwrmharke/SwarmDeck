@@ -60,3 +60,5 @@ export function normalizeSkillSourceKey(source: string): string {
 
 function readLedger(opts: LedgerScope): SkillLedger {
   const p = ledgerPath(opts);
+  if (!p) return { version: 1, entries: {} };
+  try {
