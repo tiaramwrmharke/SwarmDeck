@@ -74,3 +74,5 @@ describe('resolveAgentInjection — Claude BYOK ANTHROPIC_BASE_URL', () => {
     expect(inj.env.ANTHROPIC_BASE_URL).toBe('https://open.bigmodel.cn/api/anthropic');
   });
 
+  it('leaves Anthropic-native untouched (minus a trailing /v1)', async () => {
+    const inj = await bindClaude('anthropic', 'https://api.anthropic.com', 'claude-sonnet-4-5');
