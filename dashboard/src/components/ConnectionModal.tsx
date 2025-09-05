@@ -36,3 +36,4 @@ export function ClientConnectionPanel({ active = true }: { active?: boolean }) {
   const connect = () => {
     if (mode === 'local') { clearEndpoint(); }
     else if (mode === 'direct') {
+      if (!host.trim()) { toast(t('conn.needHost'), false); return; }
