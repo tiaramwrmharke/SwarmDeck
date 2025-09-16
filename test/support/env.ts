@@ -29,3 +29,7 @@ export async function withEnv<T>(
     return await run();
   } finally {
     restoreEnv(snapshot);
+  }
+}
+
+export async function withTempHome<T>(
