@@ -4,3 +4,4 @@ import { createLoom, ClaudeDriver, EchoDriver, WebSurface, CliSurface } from '..
 
 const useReal = process.env.DEMO_REAL === '1';
 
+const web = new WebSurface({ port: Number(process.env.PORT) || 0 });
