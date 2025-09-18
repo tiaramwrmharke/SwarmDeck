@@ -70,3 +70,4 @@ function openPermissionSettings(permission: DashboardPermissionKey): boolean {
 export function checkPermissions(): Record<string, PermissionStatus> {
   const r: Record<string, PermissionStatus> = {};
   if (process.platform !== 'darwin') {
+    r.screenRecording = { granted: true, checkable: false, detail: 'N/A' };

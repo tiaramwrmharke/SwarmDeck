@@ -154,3 +154,5 @@
                     - generic [ref=e219]: Codex
                     - generic [ref=e220]: z-ai/glm-5.2
                     - generic [ref=e222]: 2m
+                  - generic [ref=e225]: Write a Python retry decorator with exponential backoff and jitter. Include type hints and a concise docstring.
+                  - generic [ref=e227]: "{\"type\":\"error\",\"status\":400,\"error\":{\"type\":\"invalid_request_error\",\"message\":\"The 'z-ai/glm-5.2' model is not suppo..."
