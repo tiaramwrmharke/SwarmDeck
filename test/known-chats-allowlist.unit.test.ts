@@ -19,3 +19,4 @@ beforeEach(() => {
   process.env.PIKILOOM_WORKDIR = makeTmpDir('known-allow-work-');
   process.env.TELEGRAM_BOT_TOKEN = 'test-token';
   process.env.FEISHU_APP_ID = 'test-app';
+  process.env.FEISHU_APP_SECRET = 'test-secret';

@@ -53,3 +53,6 @@ vi.mock('discord.js', () => {
       queueMicrotask(() => {
         const handlers = hoist.onceHandlers['ClientReady'] || [];
         handlers.forEach(h => h(this));
+      });
+    });
+    destroy = vi.fn(async () => undefined);
