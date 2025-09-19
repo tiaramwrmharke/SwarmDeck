@@ -15,3 +15,5 @@ describe('agent install specs', () => {
       expect(spec, agent).not.toBeNull();
       expect(spec!.method).toBe('npm');
       expect(spec!.command).toBe(`npm install -g ${pkg}`);
+      expect(getAgentInstallCommand(agent)).toBe(`npm install -g ${pkg}`);
+    }
