@@ -36,3 +36,5 @@ function ctxCollect(): { ctx: DriverContext; events: DriverEvent[]; abort: Abort
   const events: DriverEvent[] = [];
   const ctx: DriverContext = {
     signal: abort.signal,
+    emit: (e) => events.push(e),
+    askUser: async () => ({}),
