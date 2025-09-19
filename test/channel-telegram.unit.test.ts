@@ -88,3 +88,6 @@ describe('TelegramChannel', () => {
         code: 'ENOTFOUND',
         errno: -3008,
         syscall: 'getaddrinfo',
+        hostname: 'api.telegram.org',
+      });
+      const fetchErr = new TypeError('fetch failed');

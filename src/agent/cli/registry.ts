@@ -37,3 +37,4 @@ export interface CliAuthSpec {
 }
 
 export interface RecommendedCli {
+  id: string;
