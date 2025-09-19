@@ -11,3 +11,5 @@ export function useIsDesktop() {
     update();
     big.addEventListener('change', update);
     reduced.addEventListener('change', update);
+    return () => {
+      big.removeEventListener('change', update);
