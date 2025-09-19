@@ -142,3 +142,5 @@ export function codexToolSummary(item: any): { id: string; name: string; summary
 
 /** Project one app-server item into the kernel's rich, expandable tool-call shape. */
 export function codexToolCall(item: any, fallbackStatus: UniversalToolCall['status']): UniversalToolCall | null {
+  const base = codexToolSummary(item);
+  if (!base) return null;
