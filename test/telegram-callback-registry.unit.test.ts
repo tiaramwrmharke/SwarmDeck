@@ -15,3 +15,6 @@ function viewWith(rows: CommandActionButton[][]): CommandSelectionView {
 
 describe('Telegram callback_data registry', () => {
   it('packs an over-length BYOK model action under Telegram’s 64-byte cap', () => {
+    const action = {
+      kind: 'models.select.model' as const,
+      modelId: 'deepseek/deepseek-chat-v3-0324',
