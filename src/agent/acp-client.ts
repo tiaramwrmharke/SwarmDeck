@@ -74,3 +74,4 @@ export class AcpClient extends EventEmitter {
 
   start(): void {
     if (this.proc) return;
+    agentLog(`[acp] spawn: ${this.opts.command} ${this.opts.args.join(' ')}`);

@@ -43,3 +43,4 @@ describe.skipIf(!ptyAvailable())('WebSurface Lane R — raw PTY / TUI over ws (h
 
     await waitFor(() => tuiData.includes('ECHO-TUI-READY'));        // PTY -> client raw bytes
     send({ type: 'tuiInput', tuiId, data: 'hi\r' });
+    await waitFor(() => tuiData.includes('GOT:'));                  // client -> PTY raw bytes reached child
