@@ -31,3 +31,5 @@ describe('extractLastSessionTurn', () => {
     expect(turn?.assistantText).toContain('后台 agent');
     expect(turn?.assistantText).toContain('四层');
     expect(turn?.assistantText).not.toContain('task-notification');
+  });
+
