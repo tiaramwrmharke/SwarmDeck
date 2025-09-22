@@ -66,3 +66,6 @@
   <input id="node" placeholder="nodeId (NAT)" title="The host's NodeID to dial through the rendezvous." style="width:110px" />
   <input id="token" placeholder="token (remote)" title="Access token — required for remote/NAT clients. Get it from the local dashboard / GET /pikichannel/pair." style="width:120px" />
   <button class="btn primary" id="connect">Connect</button>
+  <button class="btn" id="disconnect">Disconnect</button>
+  <div class="stats">
+    <span class="stat"><span class="dot" id="dot"></span> <b id="state">idle</b></span>
