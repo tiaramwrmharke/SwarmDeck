@@ -31,3 +31,6 @@ export interface DeliveredTurn {
 // sides normalize identically: collapse whitespace, trim, cap length. Case is preserved (matching
 // is mostly CJK / mixed-script prose).
 export function normalizeSnapshotPrompt(s: string): string {
+  return (s || '').replace(/\s+/g, ' ').trim().slice(0, 240);
+}
+

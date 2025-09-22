@@ -202,3 +202,7 @@ function printHelp(): never {
   process.stdout.write(
 `swarmdeck v${VERSION} — Run local coding agents through IM.
 
+Run a bot that forwards IM messages to a local AI coding agent
+(Claude Code or Codex CLI), streams responses in real-time, and manages
+sessions, models, and workdirs.
+
