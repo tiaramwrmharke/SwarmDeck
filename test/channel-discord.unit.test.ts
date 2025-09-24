@@ -56,3 +56,7 @@ vi.mock('discord.js', () => {
       });
     });
     destroy = vi.fn(async () => undefined);
+    on = vi.fn((event: string, handler: any) => {
+      hoist.onHandlers[event] = hoist.onHandlers[event] || [];
+      hoist.onHandlers[event].push(handler);
+      return this;

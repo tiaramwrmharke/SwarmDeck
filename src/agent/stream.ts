@@ -240,3 +240,5 @@ export async function run(
     if (e?.code !== 'EPIPE') agentWarn(`[stdin] write failed: ${e?.message || e}`);
   });
   const abortStream = () => {
+    if (interrupted || proc.killed) return;
+    interrupted = true;
