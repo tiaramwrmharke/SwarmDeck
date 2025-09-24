@@ -276,3 +276,5 @@ function buildClaudeMcpConfig(servers: RegisteredMcpServer[]) {
   return {
     mcpServers: Object.fromEntries(servers.map(server => [
       server.name,
+      { type: 'stdio', command: server.command, args: server.args, ...(server.env ? { env: server.env } : {}) },
+    ])),
