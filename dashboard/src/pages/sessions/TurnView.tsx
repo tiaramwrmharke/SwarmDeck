@@ -104,3 +104,5 @@ export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
+  };
+
