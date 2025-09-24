@@ -32,3 +32,4 @@ describe('ensureGitignore', () => {
       '',
     ].join('\n');
     fs.writeFileSync(gi, content);
+    ensureGitignore(dir);
