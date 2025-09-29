@@ -73,3 +73,7 @@ function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolR
       const relPath = workspaceRelDir && workspaceRelDir !== '' && workspaceRelDir !== '.'
         ? path.posix.join(toPosix(workspaceRelDir), e.name)
         : e.name;
+      entry.path = relPath;
+      entry.alias = `@workspace/${relPath}`;
+      if (e.isFile()) {
+        try { entry.size = fs.statSync(path.join(dir, e.name)).size; } catch {}

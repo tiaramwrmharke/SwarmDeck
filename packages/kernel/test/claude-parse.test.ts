@@ -108,3 +108,6 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
         { content: 'third', status: 'pending' },
       ] } }] } },
       // No TaskCreate store: id "2" = the 2nd todo item.
+      { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu1', name: 'TaskUpdate', input: { taskId: '2', status: 'completed' } }] } },
+    ]);
+    const planEvents = events.filter(e => e.type === 'plan') as any[];
