@@ -100,3 +100,6 @@ describe('turnLanded (the boundary rule)', () => {
 
 describe('Hub.forkSession', () => {
   let tmp: string;
+  let loom: Loom;
+  beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-fork-')); });
+  afterEach(async () => { await loom?.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
