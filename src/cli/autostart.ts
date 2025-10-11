@@ -44,3 +44,6 @@ function detectInvocation(): InvocationCommand | null {
 }
 
 function plistExists(): boolean {
+  try { return fs.statSync(PLIST_PATH).isFile(); } catch { return false; }
+}
+

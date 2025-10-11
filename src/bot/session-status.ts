@@ -25,3 +25,5 @@ function resolveIsRunning(session: SessionLookupInfo, runtime: SessionRuntime | 
   if (runtime?.runningTaskIds.size) return { isRunning: true, isStale: false };
   if (!session.running) return { isRunning: false, isStale: false };
   const stale = isRunningSessionStale(
+    {
+      runState: session.runState ?? 'running',

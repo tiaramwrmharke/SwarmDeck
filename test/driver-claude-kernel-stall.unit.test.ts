@@ -54,3 +54,4 @@ describe('claudeModelStallMs', () => {
   });
   it('honors a positive env override regardless of effort', () => {
     process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '5000';
+    expect(claudeModelStallMs()).toBe(5000);
