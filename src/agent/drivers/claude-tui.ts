@@ -347,3 +347,6 @@ export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
 
   if ((asksProceed || ds.includes('requiresconfirmation')) && hasCursorSelect) {
     return { state: 'confirm-prompt', affirmativeKey: '1', sample };
+  }
+  if (ds.includes('trustthisfolder')) return { state: 'confirm-prompt', affirmativeKey: '1', sample };
+  if ((asksProceed || ds.includes('doyouwant')) && ds.includes('(y/n)')) {
