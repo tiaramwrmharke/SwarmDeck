@@ -81,3 +81,7 @@ class RtcTransport {
           else if (d.kind === 'error') this.onerror && this.onerror(new Error(d.message || 'signaling error'));
         } else if (msg.t === 'error') { this.onerror && this.onerror(new Error(msg.message || 'rendezvous error')); }
         else if (msg.t === 'close') { this.onclose && this.onclose(); }
+      };
+      signal.onerror = () => this.onerror && this.onerror(new Error('rendezvous socket error'));
+    } else {
+      pc.onicecandidate = (e) => { if (e.candidate && signal.readyState === WebSocket.OPEN) signal.send(JSON.stringify({ kind: 'candidate', candidate: e.candidate.toJSON() })); };
