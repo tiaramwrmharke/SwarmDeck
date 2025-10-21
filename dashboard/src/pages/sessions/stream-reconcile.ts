@@ -26,3 +26,5 @@ export function snapshotGate(input: SnapshotGateInput): SnapshotGateDecision {
   if (updatedAt < input.lastAppliedUpdatedAt) return 'reject-stale';
   return 'apply';
 }
+
+export function nextAppliedUpdatedAt(

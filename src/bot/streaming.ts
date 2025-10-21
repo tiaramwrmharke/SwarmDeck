@@ -81,3 +81,5 @@ function parseClaudeShellActivity(line: string): {
   return { key: detail, status: 'active' };
 }
 
+export function parseActivitySummary(activity: string): ActivitySummary {
+  const narrative: string[] = [];
