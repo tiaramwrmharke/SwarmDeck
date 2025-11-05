@@ -28,3 +28,7 @@ const DEMO_MODELS: Record<string, any[]> = {
     { id: 'gpt-5.6-luna', label: 'GPT-5.6-Luna', providerName: 'openai', contextWindow: 372000 },
   ],
   gemini: [{ id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', providerName: 'google', contextWindow: 1000000 }],
+  opencode: [{ id: 'claude-sonnet-4-6', label: 'OpenCode · Sonnet 4.6 (ACP)', providerName: 'opencode', contextWindow: 200000 }],
+  echo: [{ id: 'echo-1', label: 'Echo (hermetic)', providerName: 'local', contextWindow: 8192 }],
+};
+
