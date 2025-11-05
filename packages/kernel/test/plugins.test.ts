@@ -18,3 +18,4 @@ class CapturingDriver implements AgentDriver {
   async run(input: AgentTurnInput, _ctx: DriverContext): Promise<DriverResult> {
     this.lastRun = input;
     return { ok: true, text: 'ok', sessionId: 'cap-1' };
+  }
