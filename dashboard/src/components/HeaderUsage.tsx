@@ -33,3 +33,7 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
             title={`${getAgentMeta(agent.agent).label} · ${t('usage.accountQuota')}`}
           />
         )}
+        onShow={() => void refreshAgentStatus()}
+        className="cursor-default items-center gap-1"
+      >
+        <BrandIcon brand={agent.agent} size={12} />
