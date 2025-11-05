@@ -33,3 +33,4 @@ describe('extractLastSessionTurn', () => {
     expect(turn?.assistantText).not.toContain('task-notification');
   });
 
+  it('skips <system-reminder> records and interrupt markers too', () => {
