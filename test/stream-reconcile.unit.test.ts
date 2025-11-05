@@ -45,3 +45,7 @@ describe('snapshotGate — null is "no info"', () => {
   });
 
   it('applies a null when genuinely idle (settles an idle mount)', () => {
+    expect(snapshotGate({ ...base, isNull: true, localStreamPending: false, holdsActiveState: false })).toBe('apply');
+  });
+});
+
