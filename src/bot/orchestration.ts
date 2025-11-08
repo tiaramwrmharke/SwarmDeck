@@ -43,3 +43,7 @@ export class SessionMessageRegistry<ChatKey extends ChatId, MessageId extends Ch
   private readonly messages = new Map<ChatKey, Map<MessageId, SessionMessageRef>>();
 
   constructor(private readonly maxPerChat = 1024) {}
+
+  clear() {
+    this.messages.clear();
+  }

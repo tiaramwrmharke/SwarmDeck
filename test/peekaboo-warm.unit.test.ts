@@ -21,3 +21,7 @@ describe('Peekaboo npx warm', () => {
   it('warms the SAME package the MCP server launches, so the cache is reused', () => {
     expect(pkgAfterFlag(PEEKABOO_MCP_ARGV)).toBe(PEEKABOO_NPX_PACKAGE);
     expect(pkgAfterFlag(PEEKABOO_WARM_ARGV)).toBe(PEEKABOO_NPX_PACKAGE);
+  });
+
+  it('runs the long-lived server bin for MCP but a quick-exit bin for warming', () => {
+    expect(PEEKABOO_MCP_ARGV).toContain('peekaboo-mcp');
