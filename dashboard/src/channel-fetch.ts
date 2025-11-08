@@ -28,3 +28,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Res
 
   let body: string | undefined;
   const rawBody = init?.body;
+  if (rawBody != null) {
+    if (typeof rawBody === 'string') body = rawBody;
+    else return originalFetch(input as RequestInfo, init);
+  } else if (req && method !== 'GET' && method !== 'HEAD') {
