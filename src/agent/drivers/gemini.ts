@@ -169,3 +169,7 @@ function geminiToolResultSummary(tool: { name: string; summary: string } | undef
     ),
     120,
   );
+  if (ev.status === 'error') return detail ? `${summary} failed: ${detail}` : `${summary} failed`;
+  return detail ? `${summary} -> ${detail}` : `${summary} done`;
+}
+

@@ -80,3 +80,6 @@ function defaultChannelState(channel: string, tokenProvided: boolean): ChannelSe
   if (channel === 'discord') {
     return {
       channel: 'discord',
+      configured: tokenProvided,
+      ready: tokenProvided,
+      validated: false,
