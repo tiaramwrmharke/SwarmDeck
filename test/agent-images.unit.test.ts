@@ -52,3 +52,7 @@ describe('attachAgentImage', () => {
 
 describe('attachInlineImage', () => {
   it('persists when requested, inlines as data URL otherwise, and rejects non-image MIME types', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-img-test-'));
+    const homeSnapshot = process.env.HOME;
+    process.env.HOME = tmp;
+    try {
