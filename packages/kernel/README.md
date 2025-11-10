@@ -101,3 +101,6 @@ loom.io.stop(sessionKey);
 
 To add an **IM channel**, implement `Surface.start(io)`: route inbound messages to
 `io.prompt(...)` and render `io.subscribe(...)` snapshots back out. Nothing else changes.
+
+### 3. Raw TUI passthrough — `runTui` / `openTui`
+

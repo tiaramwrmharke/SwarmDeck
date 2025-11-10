@@ -57,3 +57,5 @@ export function agentEffortEnv(agent: Agent, env: Record<string, string | undefi
 
 export function resolveAgentModel(config: Partial<UserConfig> | Record<string, any>, agent: Agent): string {
   let value = '';
+  switch (agent) {
+    case 'claude':
