@@ -29,3 +29,7 @@ process.stdin.on('data', (d) => {
 });
 `;
 
+// Fake codex app-server that holds the turn open until turn/steer arrives.
+const FAKE_CODEX = `#!/usr/bin/env node
+let buf = ''; const TID='codex-steer-1';
+const reply = (id, result) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', id, result }) + '\\n');
