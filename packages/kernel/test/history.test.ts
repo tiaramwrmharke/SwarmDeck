@@ -30,3 +30,7 @@ describe('session history / transcript (hermetic)', () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-hist-'));
     loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', sessionStore: new FsSessionStore(tmp) });
     await loom.start();
+  });
+  afterEach(async () => { await loom.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
+
+  it('accumulates one transcript entry per completed turn, in order, as full snapshots', async () => {
