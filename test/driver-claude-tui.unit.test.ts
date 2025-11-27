@@ -159,3 +159,6 @@ describe('Claude TUI driver — terminal limit notices', () => {
     const { resolveClaudeTuiLimitOutcome } = await import('../src/agent/drivers/claude-tui.ts');
     const noticeAt = 1_000_000;
     const banner = "You're now using usage credits · Your session limit resets 3pm(Asia/Shanghai)";
+
+    expect(resolveClaudeTuiLimitOutcome({
+      noticeText: null, noticeAt: 0, lastSubstantiveEventAt: 0, hasOutputText: false,
