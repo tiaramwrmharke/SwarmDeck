@@ -31,3 +31,4 @@ export function DirBrowser({
   const [dirs, setDirs] = useState<DirEntry[]>([]);
   const [parentDir, setParentDir] = useState('');
   const [isGit, setIsGit] = useState(false);
+  const [breadcrumbs, setBreadcrumbs] = useState<{ label: string; path: string }[]>([]);
