@@ -138,3 +138,6 @@
               - img [ref=e196]
               - generic [ref=e199]: Two Agents
               - generic [ref=e200]:
+                - button "新建会话" [ref=e201]:
+                  - img [ref=e202]
+                - button "扩展插件" [ref=e203]:
