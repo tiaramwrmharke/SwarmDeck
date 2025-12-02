@@ -46,3 +46,4 @@ rl.on('line', async (line) => {
     note(sid, { sessionUpdate: 'usage_update', size: 100000, used: 4242 });
     return send({ jsonrpc: '2.0', id: m.id, result: { stopReason: 'end_turn', usage: { inputTokens: 11, outputTokens: 7 } } });
   }
+  if (m.id != null) send({ jsonrpc: '2.0', id: m.id, result: {} });
