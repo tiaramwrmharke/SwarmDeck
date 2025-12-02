@@ -132,3 +132,6 @@
                   - img [ref=e186]
               - button "+ 还有 150 个" [ref=e190] [cursor=pointer]:
                 - generic [ref=e191]: + 还有 150 个
+                - img [ref=e192]
+          - generic [ref=e194]:
+            - generic [ref=e195] [cursor=pointer]:

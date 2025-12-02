@@ -56,3 +56,6 @@ export function isFileLocator(value: string): boolean {
   if (pathPart.startsWith('file://')) return pathPart.length > 'file://'.length;
   if (/^[A-Za-z]:[\\/]/.test(pathPart)) return true;
   if (/^(\/|~\/|\.{1,2}\/)/.test(pathPart)) return pathPart.length > 1;
+  if (pathPart.includes('/')) {
+    const firstSegment = pathPart.split('/')[0] || '';
+    if (/^[A-Za-z0-9-]+\.[A-Za-z]{2,}$/.test(firstSegment)) return false;
