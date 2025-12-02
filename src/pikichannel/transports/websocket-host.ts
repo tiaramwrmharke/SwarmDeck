@@ -31,3 +31,4 @@ class WsConnection extends BaseConnection {
   }
 
   send(frame: string): void {
+    if (this.ws.readyState === this.ws.OPEN) this.ws.send(frame);
