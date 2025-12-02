@@ -49,3 +49,4 @@ export async function addProvider(input: AddProviderInput): Promise<ProviderConf
     id,
     kind: input.kind,
     name: input.name.trim(),
+    baseURL: input.baseURL.trim().replace(/\/+$/, ''),
