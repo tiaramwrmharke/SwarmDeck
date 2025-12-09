@@ -11,3 +11,5 @@ async function monthlyInstalls(pkg) {
     return typeof data?.downloads === 'number' ? data.downloads : 0;
   } catch (err) {
     console.warn(`warn: ${pkg}: ${err.message}`);
+    return 0;
+  }
