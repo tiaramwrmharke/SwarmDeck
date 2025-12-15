@@ -49,3 +49,4 @@ describe('snapshotGate — null is "no info"', () => {
   });
 });
 
+describe('snapshotGate — expired hold escape hatch (worker replaced under the tab)', () => {

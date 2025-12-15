@@ -55,3 +55,5 @@ export function createEmptyHumanLoopAnswer(): HumanLoopAnswerState {
 export function currentHumanLoopQuestion(prompt: HumanLoopPromptState): HumanLoopQuestion | null {
   return prompt.questions[prompt.currentIndex] || null;
 }
+
+export function isHumanLoopQuestionAnswered(prompt: HumanLoopPromptState, questionIndex: number): boolean {

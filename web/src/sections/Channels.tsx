@@ -17,3 +17,4 @@ export default function Channels() {
           </p>
         </div>
 
+        <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
