@@ -41,3 +41,7 @@ app.post('/api/extensions/cli/auth/start', async (c) => {
   } catch (e: any) {
     return c.json({ ok: false, error: e?.message || 'start failed' }, 500);
   }
+});
+
+app.get('/api/extensions/cli/auth/stream', (c) => {
+  const sessionId = c.req.query('sessionId') || '';
