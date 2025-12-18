@@ -45,3 +45,40 @@ export default function Stats() {
 
   const items = [
     { label: 'npm installs / month', node: <StatValue value={downloads} />, href: LINKS.npm },
+    {
+      label: 'MCP servers, one-click',
+      node: (
+        <span className="tabular-nums">
+          <CountUp key="mcp" to={20} duration={1.5} className="tabular-nums" />+
+        </span>
+      ),
+      href: undefined,
+    },
+    { label: 'Native IM channels', node: <CountUp key="ch" to={7} duration={1.4} className="tabular-nums" />, href: undefined },
+    { label: 'Built-in agent drivers', node: <CountUp key="ag" to={4} duration={1.4} className="tabular-nums" />, href: undefined },
+  ];
+
+  return (
+    <section className="relative z-10 mx-auto -mt-6 max-w-5xl px-6">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 lg:grid-cols-4">
+        {items.map((it) => {
+          const inner = (
+            <div className="flex h-full flex-col items-center justify-center gap-1 bg-[#08090f] px-4 py-7 text-center transition group-hover:bg-[#0b0d14]">
+              <div className="text-3xl font-semibold text-white sm:text-4xl">{it.node}</div>
+              <div className="text-xs uppercase tracking-wide text-neutral-500">{it.label}</div>
+            </div>
+          );
+          return it.href ? (
+            <a key={it.label} href={it.href} target="_blank" rel="noreferrer" className="group">
+              {inner}
+            </a>
+          ) : (
+            <div key={it.label} className="group">
+              {inner}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
