@@ -16,3 +16,37 @@ beforeEach(() => {
   workdir = makeTmpDir('swarmdeck-await-');
 });
 
+afterEach(() => {
+  try { fs.rmSync(workdir, { recursive: true, force: true }); } catch {}
+});
+
+function workspaceFor(sessionId: string): string {
+  return path.join(path.dirname(sessionAwaitPath(workdir, AGENT, sessionId)), 'workspace');
+}
+
+describe('await-resume marker', () => {
+  it('round-trips, rejects empty reason, clears idempotently, and reads null for missing', () => {
+    const ctx = { workspace: workspaceFor(sid), stagedFiles: [], callbackUrl: '' };
+
+    const res = awaitResumeTools.handle('await_background', { reason: 'rebuilding, will confirm after restart' }, ctx);
+    expect('isError' in (res as any) ? (res as any).isError : false).toBeFalsy();
+
+    expect(fs.existsSync(sessionAwaitPath(workdir, AGENT, sid))).toBe(true);
+    const marker = readAwaitResume(workdir, AGENT, sid);
+    expect(marker?.reason).toBe('rebuilding, will confirm after restart');
+    expect(typeof marker?.since).toBe('string');
+    expect(Number.isNaN(Date.parse(marker!.since))).toBe(false);
+
+    expect(readAwaitResume(workdir, AGENT, sid)).not.toBeNull();
+    clearAwaitResume(workdir, AGENT, sid);
+    expect(readAwaitResume(workdir, AGENT, sid)).toBeNull();
+    expect(() => clearAwaitResume(workdir, AGENT, sid)).not.toThrow();
+
+    const res2 = awaitResumeTools.handle('await_background', { reason: '   ' }, ctx) as any;
+    expect(res2.isError).toBe(true);
+    expect(fs.existsSync(sessionAwaitPath(workdir, AGENT, sid))).toBe(false);
+    expect(readAwaitResume(workdir, AGENT, sid)).toBeNull();
+
+    expect(readAwaitResume(workdir, AGENT, 'never_parked')).toBeNull();
+  });
+});
