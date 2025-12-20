@@ -37,3 +37,188 @@ vi.mock('@slack/web-api', () => {
   }
   return { WebClient: MockWebClient };
 });
+
+vi.mock('@slack/socket-mode', () => {
+  class MockSocketModeClient {
+    constructor(_opts?: any) {}
+    on = vi.fn();
+    start = vi.fn(async () => undefined);
+    disconnect = vi.fn(async () => undefined);
+  }
+  return { SocketModeClient: MockSocketModeClient };
+});
+
+import { SlackChannel } from '../src/channels/slack/channel.ts';
+
+beforeEach(() => {
+  hoist.calls.length = 0;
+  vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+function makeChannel(overrides: Partial<ConstructorParameters<typeof SlackChannel>[0]> = {}) {
+  return new SlackChannel({
+    botToken: 'xoxb-test',
+    appToken: 'xapp-test',
+    ...overrides,
+  });
+}
+
+describe('SlackChannel connect, send, and edit', () => {
+  it('reads bot identity, posts messages, threads, edits, and swallows not-found errors', async () => {
+    {
+      const ch = makeChannel();
+      const bot = await ch.connect();
+      expect(bot.id).toBe('BOT_USER');
+      expect(bot.username).toBe('swarmdeck_bot');
+      expect(hoist.calls.find(c => c.method === 'auth.test')).toBeDefined();
+    }
+
+    hoist.calls.length = 0;
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      const ts = await ch.send('C123', 'hello world');
+      expect(ts).toMatch(/^\d+\.\d+/);
+      const post = hoist.calls.find(c => c.method === 'chat.postMessage');
+      expect(post?.payload).toMatchObject({ channel: 'C123', text: 'hello world', mrkdwn: true });
+    }
+
+    hoist.calls.length = 0;
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      await ch.send('C123', 'hi', { replyTo: 'parent.ts' });
+      const post = hoist.calls.find(c => c.method === 'chat.postMessage');
+      expect(post?.payload.thread_ts).toBe('parent.ts');
+    }
+
+    hoist.calls.length = 0;
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      await ch.editMessage('C123', '1.2', 'updated');
+      const update = hoist.calls.find(c => c.method === 'chat.update');
+      expect(update?.payload).toMatchObject({ channel: 'C123', ts: '1.2', text: 'updated' });
+    }
+
+    hoist.calls.length = 0;
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      const original = hoist.results['chat.update'];
+      hoist.results['chat.update'] = () => ({ ok: false, error: 'message_not_found' });
+      await expect(ch.editMessage('C123', '9.9', 'late')).resolves.toBeUndefined();
+      hoist.results['chat.update'] = original!;
+    }
+  });
+});
+
+describe('SlackChannel dispatch', () => {
+  async function feedEvent(ch: SlackChannel, event: any) {
+    await (ch as any).dispatchMessageEvent(event);
+  }
+
+  it('delivers DMs, drops non-mentions, dedups, drops self-messages, and enforces allowlists', async () => {
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      const seen: { text: string; chatId: string }[] = [];
+      ch.onMessage((msg, ctx) => {
+        seen.push({ text: msg.text, chatId: ctx.chatId });
+      });
+      await feedEvent(ch, {
+        type: 'message',
+        channel: 'D123',
+        channel_type: 'im',
+        user: 'U999',
+        text: '<@BOT_USER> please ship it',
+        ts: '111.222',
+      });
+      expect(seen).toEqual([{ text: 'please ship it', chatId: 'D123' }]);
+    }
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      await feedEvent(ch, {
+        type: 'message',
+        channel: 'C123',
+        channel_type: 'channel',
+        user: 'U999',
+        text: 'random chatter',
+        ts: '111.222',
+      });
+      expect(seen).toEqual([]);
+    }
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      const event = {
+        type: 'message',
+        channel: 'D123',
+        channel_type: 'im',
+        user: 'U999',
+        text: 'hi',
+        ts: '111.222',
+        client_msg_id: 'CLIENT-1',
+      };
+      await feedEvent(ch, event);
+      await feedEvent(ch, event);
+      expect(seen.length).toBe(1);
+    }
+
+    {
+      const ch = makeChannel();
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      await feedEvent(ch, {
+        type: 'message',
+        channel: 'D123',
+        channel_type: 'im',
+        user: 'BOT_USER',
+        text: 'echo',
+        ts: '111.222',
+      });
+      await feedEvent(ch, {
+        type: 'message',
+        channel: 'D123',
+        channel_type: 'im',
+        user: 'U999',
+        text: 'genuine',
+        ts: '111.223',
+        bot_id: 'B1',
+      });
+      expect(seen).toEqual([]);
+    }
+
+    {
+      const ch = makeChannel({ allowedChatIds: new Set(['C-OK']) });
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      await feedEvent(ch, {
+        type: 'message',
+        channel: 'D-NOPE',
+        channel_type: 'im',
+        user: 'U999',
+        text: 'hi',
+        ts: '1.1',
+      });
+      expect(seen).toEqual([]);
+    }
+  });
+});
