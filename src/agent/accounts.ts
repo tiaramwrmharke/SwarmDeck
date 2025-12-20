@@ -60,3 +60,186 @@ export async function addAccount(agent: string, label: string, token: string): P
   const name = (label || '').trim();
   if (!name) throw new Error('Account name is required');
   const t = (token || '').trim();
+  if (!TOKEN_RE.test(t)) throw new Error('Expected a token starting with "sk-ant-oat" (the output of `claude setup-token`)');
+  const existing = listAccounts(agent);
+  if (existing.length >= MAX_ACCOUNTS_PER_AGENT) throw new Error(`At most ${MAX_ACCOUNTS_PER_AGENT} accounts per agent`);
+
+  const id = randomUUID().slice(0, 8);
+  const credential = await persistSecret(`account/${agent}/${id}`, t);
+  const rec: AgentAccountRecord = { id, label: name, credential, createdAt: new Date().toISOString(), lastUsedAt: null };
+
+  const layer = getLayer();
+  const byAgent = { ...(layer.byAgent || {}) };
+  byAgent[agent] = [...existing, rec];
+  writeLayer({ ...layer, byAgent });
+  return rec;
+}
+
+export async function updateAccount(
+  agent: string,
+  id: string,
+  patch: { label?: string; token?: string; lastUsedAt?: string | null },
+): Promise<AgentAccountRecord> {
+  const list = listAccounts(agent);
+  const idx = list.findIndex(a => a.id === id);
+  if (idx < 0) throw new Error(`Account not found: ${id}`);
+  const cur = list[idx];
+
+  let credential = cur.credential;
+  if (patch.token !== undefined) {
+    const t = patch.token.trim();
+    if (!TOKEN_RE.test(t)) throw new Error('Expected a token starting with "sk-ant-oat"');
+    credential = await persistSecret(`account/${agent}/${id}`, t);
+  }
+  const next: AgentAccountRecord = {
+    ...cur,
+    credential,
+    ...('label' in patch && patch.label !== undefined ? { label: patch.label.trim() || cur.label } : {}),
+    ...('lastUsedAt' in patch ? { lastUsedAt: patch.lastUsedAt ?? null } : {}),
+  };
+  list[idx] = next;
+  const layer = getLayer();
+  writeLayer({ ...layer, byAgent: { ...(layer.byAgent || {}), [agent]: list } });
+  return next;
+}
+
+export async function removeAccount(agent: string, id: string): Promise<boolean> {
+  const rec = getAccount(agent, id);
+  if (!rec) return false;
+  const layer = getLayer();
+  const byAgent = { ...(layer.byAgent || {}) };
+  byAgent[agent] = listAccounts(agent).filter(a => a.id !== id);
+  const activeByAgent = { ...(layer.activeByAgent || {}) };
+  if (activeByAgent[agent] === id) activeByAgent[agent] = null;
+  writeLayer({ ...layer, byAgent, activeByAgent });
+  try { await forgetSecret(rec.credential); } catch { /* best-effort */ }
+  return true;
+}
+
+export function getActiveAccountId(agent: string): string | null {
+  const id = getLayer().activeByAgent?.[agent] || null;
+  if (id && !getAccount(agent, id)) return null;
+  return id;
+}
+export function setActiveAccount(agent: string, id: string | null): void {
+  if (id && !getAccount(agent, id)) throw new Error(`Account not found: ${id}`);
+  const layer = getLayer();
+  writeLayer({ ...layer, activeByAgent: { ...(layer.activeByAgent || {}), [agent]: id } });
+}
+
+/**
+ * Resolve the env to inject for a turn. Tri-state override (mirrors profileId):
+ *   undefined -> use the agent's globally-active account
+ *   null      -> no account (default login)
+ *   <id>      -> that specific account
+ */
+export async function resolveAccountEnv(
+  agent: string,
+  accountIdOverride?: string | null,
+): Promise<{ env: Record<string, string>; accountId: string } | null> {
+  if (!accountAgentSupported(agent)) return null;
+  const id = accountIdOverride === undefined ? getActiveAccountId(agent) : accountIdOverride;
+  if (!id) return null;
+  const rec = getAccount(agent, id);
+  if (!rec) return null;
+  let token = '';
+  try { token = await resolveCredential(rec.credential); } catch (e: any) {
+    agentWarn(`[account] could not resolve token for ${agent}/${id}: ${e?.message || e}`);
+    return null;
+  }
+  if (!token) return null;
+  const kernel = await loadKernel();
+  const env = kernel.accountTokenEnv(agent, token) as Record<string, string>;
+  return { env, accountId: id };
+}
+
+// Last-known per-account usage, kept so synchronous surfaces (the IM `/agents` view builder)
+// can render usage without awaiting a probe. Filled whenever `probeAccountUsage` resolves.
+const accountUsageById = new Map<string, UsageResult | null>();
+const usageKey = (agent: string, id: string) => `${agent}/${id}`;
+
+/** Best-effort per-account usage: read the account's quota from its token (see claudeUsageForToken). */
+export async function probeAccountUsage(agent: string, id: string, opts?: { force?: boolean; fresh?: boolean }): Promise<UsageResult | null> {
+  if (agent !== 'claude') return null;
+  const rec = getAccount(agent, id);
+  if (!rec) return null;
+  try {
+    const token = await resolveCredential(rec.credential);
+    const usage = token ? await claudeUsageForToken(token, opts) : null;
+    accountUsageById.set(usageKey(agent, id), usage);
+    return usage;
+  } catch { return null; }
+}
+
+/** Synchronous read of the last-probed usage for an account (no network), or null. */
+export function getCachedAccountUsage(agent: string, id: string): UsageResult | null {
+  return accountUsageById.get(usageKey(agent, id)) ?? null;
+}
+
+/** Fire-and-forget refresh of every account's usage (cached + de-duped under the hood). */
+export function warmAccountUsages(agent: string): void {
+  if (!accountAgentSupported(agent)) return;
+  for (const rec of listAccounts(agent)) void probeAccountUsage(agent, rec.id);
+}
+
+export interface AccountUsageSnapshotRow {
+  id: string;
+  label: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  active: boolean;
+  usage: UsageResult | null;
+}
+
+export interface AccountsUsageSnapshot {
+  supported: boolean;
+  activeAccountId: string | null;
+  accounts: AccountUsageSnapshotRow[];
+  /** Default-login quota, read in the same pass as the account rows. */
+  native: UsageResult | null;
+}
+
+/**
+ * THE query channel for "who can this agent run as, and how much quota does each identity have".
+ * Every consumer (dashboard header popover, accounts panel, IM /status) reads through here so all
+ * rows come from one pass and share one freshness policy. `fresh: true` is for surfaces the user
+ * is actively looking at: it re-probes past the short fresh window (20s tokens / 15s native)
+ * instead of the 5min background TTL — the debounce lives in the driver-level caches, so callers
+ * can request fresh on every view without stampeding probes. `force: true` is for an explicit
+ * user-clicked refresh only: it additionally bypasses the failure backoff so rows pinned at
+ * last-good by a rate-limited / failed probe get a real retry.
+ */
+export async function getAccountsUsageSnapshot(agent: string, opts?: { fresh?: boolean; force?: boolean }): Promise<AccountsUsageSnapshot> {
+  if (!accountAgentSupported(agent)) return { supported: false, activeAccountId: null, accounts: [], native: null };
+  const recs = listAccounts(agent);
+  const activeId = getActiveAccountId(agent);
+  const fresh = opts?.fresh === true;
+  const force = opts?.force === true;
+  const [native, ...usages] = await Promise.all([
+    claudeNativeUsage({ fresh, force }).catch(() => null),
+    ...recs.map(rec => probeAccountUsage(agent, rec.id, { fresh, force }).catch(() => getCachedAccountUsage(agent, rec.id))),
+  ]);
+  return {
+    supported: true,
+    activeAccountId: activeId,
+    accounts: recs.map((rec, i) => ({
+      id: rec.id,
+      label: rec.label,
+      createdAt: rec.createdAt,
+      lastUsedAt: rec.lastUsedAt ?? null,
+      active: rec.id === activeId,
+      usage: usages[i] ?? getCachedAccountUsage(agent, rec.id),
+    })),
+    native,
+  };
+}
+
+/** Compact "5h 100% · 7d 19%" summary from the cached usage, or null. */
+export function accountUsageSummary(agent: string, id: string): string | null {
+  const usage = getCachedAccountUsage(agent, id);
+  if (!usage?.ok || !usage.windows.length) return null;
+  const parts = usage.windows
+    .filter(w => w.usedPercent != null)
+    .map(w => `${w.label} ${Math.round(w.usedPercent as number)}%`);
+  return parts.length ? parts.join(' · ') : null;
+}
