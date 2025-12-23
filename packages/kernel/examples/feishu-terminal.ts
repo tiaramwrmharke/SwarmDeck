@@ -34,3 +34,4 @@ export class FeishuSurface implements Surface {
 
   async start(io: LoomIO): Promise<void> {
     this.io = io;
+    this.unsub = io.subscribe((key, snap) => { void this.onSnapshot(key, snap); });

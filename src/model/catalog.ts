@@ -32,3 +32,4 @@ function readDiskCache(): CacheEnvelope | null {
 function writeDiskCache(env: CacheEnvelope): void {
   try {
     fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
+    fs.writeFileSync(CACHE_PATH, JSON.stringify(env), { mode: 0o644 });
