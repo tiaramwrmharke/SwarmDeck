@@ -63,3 +63,4 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
     expect(pendingClaudeBackgroundTasks(s)).toBe(1);
   });
 
+  it('tracks multiple tasks independently', () => {
