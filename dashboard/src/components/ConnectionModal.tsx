@@ -37,3 +37,7 @@ export function ClientConnectionPanel({ active = true }: { active?: boolean }) {
     if (mode === 'local') { clearEndpoint(); }
     else if (mode === 'direct') {
       if (!host.trim()) { toast(t('conn.needHost'), false); return; }
+      setEndpoint({ host: host.trim(), token: token.trim() || undefined });
+    } else {
+      const d = decodeCode(code.trim());
+      if (!d) { toast(t('conn.badCode'), false); return; }

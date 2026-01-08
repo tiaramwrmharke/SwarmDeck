@@ -665,3 +665,4 @@ export class Bot {
       type: 'done', taskId,
       sessionId: opts.sessionId,
       incomplete: opts.incomplete,
+      ...(opts.error ? { error: opts.error } : {}),
