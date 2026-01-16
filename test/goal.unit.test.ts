@@ -50,3 +50,4 @@ describe('goal state CRUD and accountTurn budget enforcement', () => {
 
     {
       setGoal(workdir, AGENT, sid, { objective: 'x', tokenBudget: 1000 });
+      const r1 = accountTurn(workdir, AGENT, sid, { tokens: 300, seconds: 4 });
