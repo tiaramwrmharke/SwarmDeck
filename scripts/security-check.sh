@@ -39,3 +39,5 @@ forbidden_paths=(
   '(^|/)\.env$'                                # .env at root or nested
   '(^|/)\.env\.[^/]*$'                         # .env.local, .env.production, etc.
   '\.pem$'                                     # PEM key/cert
+  '\.p12$'                                     # PKCS#12 archive
+  '\.pfx$'                                     # PFX archive
