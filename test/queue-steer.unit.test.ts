@@ -36,3 +36,4 @@ describe('queuedIdsToDeferForSteer', () => {
 
 describe('steer run order (target jumps to front, rest keep relative order)', () => {
   const cases: Array<{ queue: string[]; target: string; expected: string[] }> = [
+    { queue: ['a', 'b'], target: 'b', expected: ['b', 'a'] },
