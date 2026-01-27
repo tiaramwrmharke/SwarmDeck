@@ -21,3 +21,19 @@ function frameToText(raw: string | Buffer | ArrayBuffer): string {
 export function decodeClient(raw: string | Buffer | ArrayBuffer, _fmt: WireFormat = DEFAULT_WIRE_FORMAT): ClientMessage | null {
   try {
     const value = JSON.parse(frameToText(raw));
+    if (!value || typeof value !== 'object' || typeof value.type !== 'string') return null;
+    return value as ClientMessage;
+  } catch {
+    return null;
+  }
+}
+
+export function decodeServer(raw: string | Buffer | ArrayBuffer, _fmt: WireFormat = DEFAULT_WIRE_FORMAT): ServerMessage | null {
+  try {
+    const value = JSON.parse(frameToText(raw));
+    if (!value || typeof value !== 'object' || typeof value.type !== 'string') return null;
+    return value as ServerMessage;
+  } catch {
+    return null;
+  }
+}

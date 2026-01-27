@@ -55,3 +55,76 @@ describe('claudeModelStallMs', () => {
   it('honors a positive env override regardless of effort', () => {
     process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '5000';
     expect(claudeModelStallMs()).toBe(5000);
+    expect(claudeModelStallMs('xhigh')).toBe(5000);
+  });
+  it('ignores a non-positive / garbage override', () => {
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '-1';
+    expect(claudeModelStallMs()).toBe(300_000);
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = 'nope';
+    expect(claudeModelStallMs('max')).toBe(600_000);
+  });
+});
+
+// Drive the real ClaudeDriver against a fake `claude` binary that emits a tool round then goes
+// silent — the watchdog must settle the turn as an incomplete 'stalled' result.
+function writeFakeClaude(bodyAfterInit: string): string {
+  const dir = mkdtempSync(join(tmpdir(), 'kernel-stall-'));
+  const bin = join(dir, 'fake-claude.mjs');
+  writeFileSync(bin, `#!/usr/bin/env node
+const emit = (o) => process.stdout.write(JSON.stringify(o) + '\\n');
+emit({ type: 'system', subtype: 'init', session_id: 'sess-test', model: 'claude-opus-4-8' });
+emit({ type: 'stream_event', event: { type: 'message_start', message: { usage: { input_tokens: 10 } } } });
+${bodyAfterInit}
+// Stay alive until the driver closes stdin (mirrors claude -p with stdin held open).
+process.stdin.resume();
+process.stdin.on('end', () => process.exit(0));
+process.stdin.on('close', () => process.exit(0));
+`);
+  chmodSync(bin, 0o755);
+  return bin;
+}
+
+describe('post-tool model-stall watchdog (integration)', () => {
+  const prev = process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
+  afterEach(() => {
+    if (prev === undefined) delete process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
+    else process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = prev;
+  });
+
+  it('settles an incomplete "stalled" result when the model goes silent after a tool_result', async () => {
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '200';
+    const bin = writeFakeClaude(`
+emit({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 'toolu_1', name: 'Bash', input: { command: 'grep x a.txt' } }], stop_reason: 'tool_use' } });
+emit({ type: 'user', message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'match', is_error: false }] } });
+// then silence — never deliver the model's reply
+`);
+    const driver = new ClaudeDriver(bin);
+    const { result } = await runTurn(driver, { prompt: 'find x', workdir: process.cwd() } as any);
+    expect(result.stopReason).toBe('stalled');
+    expect(result.ok).toBe(false);
+    expect((result.text || '').trim()).toBe('');
+  }, 8000);
+
+  it('does NOT stall when the model replies after the tool_result', async () => {
+    // The window must clear CLI spawn, not just the reply delay: the watchdog now arms at prompt
+    // delivery (the initial model wait), so its countdown starts before the fake binary's first
+    // line is even read. A budget tight enough to expire during spawn fires before the reply lands
+    // and this asserts a stall that production (300s/600s windows) would never see.
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '3000';
+    const bin = writeFakeClaude(`
+emit({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 'toolu_1', name: 'Bash', input: { command: 'grep x a.txt' } }], stop_reason: 'tool_use' } });
+emit({ type: 'user', message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'match', is_error: false }] } });
+// model replies well within the stall window, then ends the turn cleanly
+setTimeout(() => {
+  emit({ type: 'stream_event', event: { type: 'content_block_delta', delta: { type: 'text_delta', text: 'found it' } } });
+  emit({ type: 'stream_event', event: { type: 'message_delta', delta: { stop_reason: 'end_turn' } } });
+  emit({ type: 'result', subtype: 'success', is_error: false, stop_reason: 'end_turn', result: 'found it' });
+}, 80);
+`);
+    const driver = new ClaudeDriver(bin);
+    const { result } = await runTurn(driver, { prompt: 'find x', workdir: process.cwd() } as any);
+    expect(result.ok).toBe(true);
+    expect(result.stopReason).not.toBe('stalled');
+    expect(result.text).toContain('found it');
+  }, 8000);
+});
