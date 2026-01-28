@@ -32,3 +32,40 @@ class WsConnection extends BaseConnection {
 
   send(frame: string): void {
     if (this.ws.readyState === this.ws.OPEN) this.ws.send(frame);
+  }
+
+  isOpen(): boolean {
+    return this.ws.readyState === this.ws.OPEN;
+  }
+
+  close(): void {
+    try { this.ws.close(); } catch {  }
+    this.emitClose();
+  }
+}
+
+export class WebSocketTransport implements ChannelTransport {
+  readonly kind = 'websocket';
+  private wss = new WebSocketServer({ noServer: true });
+  private onConn: ((conn: ChannelConnection) => void) | null = null;
+
+  start(onConnection: (conn: ChannelConnection) => void): void {
+    this.onConn = onConnection;
+    this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
+      const remote = req.socket.remoteAddress ? `${req.socket.remoteAddress}:${req.socket.remotePort}` : undefined;
+      const keepalive = setInterval(() => {
+        if (ws.readyState === ws.OPEN) ws.ping();
+      }, WS_KEEPALIVE_MS);
+      ws.on('close', () => clearInterval(keepalive));
+      this.onConn?.(new WsConnection(ws, remote));
+    });
+  }
+
+  handleUpgrade(req: http.IncomingMessage, socket: internal.Duplex, head: Buffer): void {
+    this.wss.handleUpgrade(req, socket, head, (ws) => this.wss.emit('connection', ws, req));
+  }
+
+  stop(): void {
+    this.wss.close();
+  }
+}
