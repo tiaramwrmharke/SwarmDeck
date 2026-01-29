@@ -77,3 +77,106 @@ function handleListFiles(args: Record<string, unknown>, ctx: ToolContext): ToolR
       entry.alias = `@workspace/${relPath}`;
       if (e.isFile()) {
         try { entry.size = fs.statSync(path.join(dir, e.name)).size; } catch {}
+      }
+      return entry;
+    });
+    toolLog('im_list_files', `OK ${files.length} entries`);
+    return toolResult(JSON.stringify({
+      workspacePath: ctx.workspace,
+      workdirPath: ctx.workdir || null,
+      tempPath: os.tmpdir(),
+      pathAliases: {
+        workspaceRoot: '@workspace',
+        workdirRoot: ctx.workdir ? '@workdir' : null,
+        tempRoot: '@tmp',
+        notes: [
+          'Use @workspace/... for files in the session workspace.',
+          ctx.workdir ? 'Use @workdir/... for files in the agent workdir.' : null,
+          'Use @tmp/... for screenshots and other temp files.',
+          'A bare filename also works if it uniquely matches a staged file or /tmp file.',
+        ].filter(Boolean),
+      },
+      stagedFiles: ctx.stagedFiles.map(relPath => ({
+        path: relPath,
+        alias: `@workspace/${toPosix(relPath)}`,
+        basename: path.basename(relPath),
+      })),
+      files,
+    }, null, 2));
+  } catch (e: any) {
+    toolLog('im_list_files', `ERROR ${e.message}`);
+    return toolResult(`Error listing directory: ${e.message}`, true);
+  }
+}
+
+async function handleSendFile(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+  const filePath = typeof args?.path === 'string' ? args.path.trim() : '';
+  const caption = typeof args?.caption === 'string' ? args.caption.trim() : '';
+  const kind = typeof args?.kind === 'string' ? args.kind : undefined;
+  const argSummary = summarizeSendFileArgs(filePath, caption, kind);
+  toolLog('im_send_file', argSummary);
+  if (!filePath) { toolLog('im_send_file', 'ERROR missing path'); return toolResult(`Error: "path" is required (${argSummary})`, true); }
+  if (!caption) { toolLog('im_send_file', 'ERROR missing caption'); return toolResult(`Error: "caption" is required (${argSummary})`, true); }
+  if (!ctx.callbackUrl) { toolLog('im_send_file', 'ERROR no callback URL'); return toolResult(`Error: MCP callback URL is not configured (${argSummary})`, true); }
+
+  try {
+    const result = await callbackSendFile(ctx.callbackUrl, filePath, {
+      caption,
+      kind,
+    });
+    if (result.ok) {
+      toolLog('im_send_file', `OK sent ${filePath}`);
+      return toolResult(`File sent successfully: ${filePath}`);
+    } else {
+      toolLog('im_send_file', `FAILED ${result.error || 'unknown error'}`);
+      return toolResult(`Failed to send file: ${result.error || 'unknown error'} (${argSummary})`, true);
+    }
+  } catch (e: any) {
+    toolLog('im_send_file', `ERROR ${e.message}`);
+    return toolResult(`Error sending file: ${e.message} (${argSummary})`, true);
+  }
+}
+
+function callbackSendFile(
+  callbackUrl: string,
+  filePath: string,
+  opts: { caption?: string; kind?: string },
+): Promise<{ ok: boolean; error?: string }> {
+  const body = JSON.stringify({ path: filePath, ...opts });
+  const url = new URL('/send-file', callbackUrl);
+
+  return new Promise((resolve, reject) => {
+    const req = http.request(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+    }, res => {
+      let data = '';
+      res.on('data', (chunk: Buffer) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); } catch { resolve({ ok: false, error: 'invalid callback response' }); }
+      });
+    });
+    req.on('error', e => reject(e));
+    req.write(body);
+    req.end();
+  });
+}
+
+function safeRealpath(p: string): string | null {
+  try { return fs.realpathSync(p); } catch { return null; }
+}
+
+function toPosix(p: string): string {
+  return p.split(path.sep).join(path.posix.sep);
+}
+
+export const workspaceTools: McpToolModule = {
+  tools,
+  handle(name, args, ctx) {
+    switch (name) {
+      case 'im_list_files': return handleListFiles(args, ctx);
+      case 'im_send_file': return handleSendFile(args, ctx);
+      default: return toolResult(`Unknown workspace tool: ${name}`, true);
+    }
+  },
+};
