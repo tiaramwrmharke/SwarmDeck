@@ -16,3 +16,40 @@ export class FeishuLarkTransport implements FeishuTransport {
   private client: lark.Client;
   private ws: lark.WSClient;
   private dispatcher: lark.EventDispatcher;
+  private cb?: (m: InboundFeishuMessage) => void;
+
+  constructor(opts: FeishuLarkOptions) {
+    this.client = new lark.Client({ appId: opts.appId, appSecret: opts.appSecret });
+    this.ws = new lark.WSClient({ appId: opts.appId, appSecret: opts.appSecret });
+    this.dispatcher = new lark.EventDispatcher({}).register({
+      'im.message.receive_v1': async (data: any) => {
+        const msg = data?.message;
+        if (!msg) return;
+        let text = '';
+        try { text = JSON.parse(msg.content || '{}').text || ''; } catch { /* non-text */ }
+        this.cb?.({ chatId: msg.chat_id, text, messageId: msg.message_id });
+      },
+    });
+  }
+
+  async connect(): Promise<void> {
+    await this.ws.start({ eventDispatcher: this.dispatcher });
+  }
+
+  onMessage(cb: (m: InboundFeishuMessage) => void): void { this.cb = cb; }
+
+  async send(chatId: string, text: string): Promise<string> {
+    const resp = await this.client.im.message.create({
+      params: { receive_id_type: 'chat_id' },
+      data: { receive_id: chatId, msg_type: 'text', content: JSON.stringify({ text }) },
+    });
+    return resp?.data?.message_id || '';
+  }
+
+  async edit(messageId: string, text: string): Promise<void> {
+    await this.client.im.message.patch({
+      path: { message_id: messageId },
+      data: { content: JSON.stringify({ text }) },
+    });
+  }
+}
