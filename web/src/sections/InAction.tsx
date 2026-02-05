@@ -41,3 +41,6 @@ export default function InAction() {
           Gemini reviews <em>the previous agent's</em> code, Hermes recaps the whole thread.
         </p>
       </div>
+
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <figure className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0c12] shadow-2xl">
