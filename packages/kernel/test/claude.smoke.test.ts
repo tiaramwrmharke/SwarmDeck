@@ -9,3 +9,4 @@ import { FsSessionStore } from '../src/ports/defaults.js';
 import type { UniversalSnapshot } from '../src/protocol/index.js';
 
 function claudePresent(): boolean {
+  try { execSync('command -v claude', { stdio: 'ignore' }); return true; } catch { return false; }
