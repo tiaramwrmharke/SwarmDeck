@@ -44,3 +44,4 @@ export default function InAction() {
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
         <figure className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0c12] shadow-2xl">
+          <div className="flex items-center gap-2 border-b border-white/5 bg-white/[0.02] px-4 py-2.5">
