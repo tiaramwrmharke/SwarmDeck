@@ -27,3 +27,5 @@ const codexCurrentModel = (process.env.CODEX_MODEL || DEFAULT_AGENT_MODELS.codex
 
 const result = {
   generatedAt: new Date().toISOString(),
+  workdir,
+  claude: hasCmd('claude')
