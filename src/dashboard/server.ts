@@ -65,3 +65,4 @@ export async function startDashboard(opts: DashboardOptions = {}): Promise<Dashb
     root: dashboardRoot,
     onFound: (_path, c) => {
       c.header('Cache-Control', 'public, max-age=31536000, immutable');
+    },
