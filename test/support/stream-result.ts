@@ -22,3 +22,5 @@ export function makeStreamResult(
     contextUsedTokens: null,
     contextPercent: null,
     codexCumulative: null,
+    error: null,
+    stopReason: null,
