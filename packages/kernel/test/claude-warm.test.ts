@@ -38,3 +38,4 @@ function ctxCollect(): { ctx: DriverContext; events: DriverEvent[]; abort: Abort
     signal: abort.signal,
     emit: (e) => events.push(e),
     askUser: async () => ({}),
+    registerSteer: () => {},
