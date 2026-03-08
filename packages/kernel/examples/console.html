@@ -32,3 +32,66 @@
 <header>
   <span class="dot" id="dot"></span>
   <b>@swarmdeck/kernel</b>
+  <span class="tag" id="hosttag">connecting…</span>
+  <span class="tag" id="agenttag"></span>
+</header>
+<main id="log"></main>
+<footer><div class="row">
+  <textarea id="inp" placeholder="Ask the kernel-driven agent…  (Enter to send)"></textarea>
+  <button id="send" disabled>Send</button>
+</div></footer>
+<script>
+const log = document.getElementById('log');
+const dot = document.getElementById('dot');
+const hosttag = document.getElementById('hosttag');
+const agenttag = document.getElementById('agenttag');
+const inp = document.getElementById('inp');
+const sendBtn = document.getElementById('send');
+let agents = [];
+const snaps = {};        // sessionKey -> cumulative snapshot
+const cards = {};        // sessionKey -> DOM
+const userBubbles = {};  // taskId -> shown
+
+function applyPatch(prev, patch) {
+  if (patch.full) return patch.full;
+  const n = prev ? {...prev} : { phase:'idle', updatedAt:0 };
+  if (patch.appendText) n.text = (n.text||'') + patch.appendText;
+  if (patch.appendReasoning) n.reasoning = (n.reasoning||'') + patch.appendReasoning;
+  if (patch.set) Object.assign(n, patch.set);
+  return n;
+}
+function render(key) {
+  const s = snaps[key]; if (!s) return;
+  let c = cards[key];
+  if (!c) { c = document.createElement('div'); c.className='msg'; log.appendChild(c); cards[key]=c; }
+  const u = s.usage || {};
+  c.innerHTML =
+    '<div class="role">🧵 '+(s.agent||'agent')+(s.model?(' · '+s.model):'')+
+      ' <span class="phase '+s.phase+'">'+s.phase+'</span></div>'+
+    (s.reasoning ? '<div class="reasoning">'+esc(s.reasoning)+'</div>' : '')+
+    '<div class="text">'+esc(s.text||(s.phase==='streaming'?'…':''))+'</div>'+
+    (s.error ? '<div class="meta" style="color:#b91c1c">'+esc(s.error)+'</div>' : '')+
+    '<div class="meta">in '+(u.inputTokens??'–')+' · out '+(u.outputTokens??'–')+' tok'+(s.sessionId?(' · '+s.sessionId.slice(0,8)):'')+'</div>';
+  window.scrollTo(0, document.body.scrollHeight);
+}
+function esc(t){ return (t||'').replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function addUser(text){ const d=document.createElement('div'); d.className='msg user'; d.innerHTML='<div class="role">🙋 you</div><div class="text">'+esc(text)+'</div>'; log.appendChild(d); }
+
+const ws = new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/');
+ws.onopen = () => { ws.send(JSON.stringify({type:'hello', v:1, client:{name:'kernel-console', platform:navigator.userAgent}})); };
+ws.onclose = () => { dot.className='dot'; hosttag.textContent='disconnected'; sendBtn.disabled=true; };
+ws.onmessage = (e) => {
+  const m = JSON.parse(e.data);
+  if (m.type==='welcome'){ dot.className='dot on'; hosttag.textContent=m.host.name+' v'+m.host.version+' · '+m.host.transport; sendBtn.disabled=false; ws.send(JSON.stringify({type:'subscribe', sessionKey:'*'})); }
+  if (m.type==='session'){ snaps[m.sessionKey]=applyPatch(snaps[m.sessionKey], m.patch); render(m.sessionKey); }
+};
+function send(){
+  const prompt = inp.value.trim(); if(!prompt) return;
+  addUser(prompt); inp.value='';
+  ws.send(JSON.stringify({type:'prompt', prompt}));
+}
+sendBtn.onclick = send;
+inp.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }});
+</script>
+</body>
+</html>
