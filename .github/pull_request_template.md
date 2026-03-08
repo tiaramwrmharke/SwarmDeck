@@ -12,3 +12,11 @@
 
 <!-- Steps for reviewers to verify your changes -->
 
+1.
+
+## Checklist
+
+- [ ] `npm run build` passes
+- [ ] `npm test` passes
+- [ ] I've tested this manually (describe above)
+- [ ] New/changed behavior is covered by tests (if applicable)
