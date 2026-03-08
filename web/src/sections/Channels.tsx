@@ -18,3 +18,39 @@ export default function Channels() {
         </div>
 
         <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          {IM_CHANNELS.map(({ name, node, color }) => (
+            <div
+              key={name}
+              className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-3 py-6 transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.05]"
+            >
+              <span
+                className="grid h-12 w-12 place-items-center rounded-xl transition group-hover:scale-110"
+                style={{ background: `${color}1a`, color }}
+              >
+                <span className="flex h-6 w-6 items-center justify-center">{node}</span>
+              </span>
+              <span className="text-center text-sm text-neutral-300">{name}</span>
+            </div>
+          ))}
+          <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/10 px-3 py-6 text-center">
+            <span className="text-2xl text-neutral-500">+</span>
+            <span className="text-xs text-neutral-500">Web Dashboard &amp; more</span>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl">
+          <BrowserFrame
+            src={asset('media/promo-dashboard-im.png')}
+            alt="IM Access dashboard — connection status for all channels"
+            ratioW={1440}
+            ratioH={900}
+            badge="IM Access"
+          />
+          <p className="mt-3 text-center text-sm text-neutral-400">
+            IM Access — check and configure connection status for every channel from the Dashboard.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
