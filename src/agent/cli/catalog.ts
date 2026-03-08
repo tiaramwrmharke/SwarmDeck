@@ -20,3 +20,38 @@ export interface CliCatalogItem {
   platform: 'darwin' | 'linux' | 'win';
   autoInstall?: { label: string };
 }
+
+export async function getCliCatalog(): Promise<CliCatalogItem[]> {
+  const recs = getRecommendedClis();
+  const platform = currentPlatform();
+  const results = await Promise.all(recs.map(async (cli): Promise<CliCatalogItem> => {
+    const cached = getCachedCliStatus(cli.id);
+    const status: CliStatus = cached ?? await detectCli(cli);
+    const auto = resolveAutoInstallSpec(cli, platform);
+    return {
+      id: cli.id,
+      binary: cli.binary,
+      name: cli.name,
+      description: cli.description,
+      descriptionZh: cli.descriptionZh,
+      category: cli.category,
+      iconSlug: cli.iconSlug,
+      iconUrl: cli.iconUrl,
+      homepage: cli.homepage,
+      install: cli.install,
+      auth: cli.auth,
+      state: status.state,
+      version: status.version,
+      authDetail: status.authDetail,
+      platform,
+      autoInstall: auto ? { label: auto.label } : undefined,
+    };
+  }));
+  return results;
+}
+
+export async function refreshCliStatus(id: string): Promise<CliStatus | undefined> {
+  const cli = getRecommendedClis().find(c => c.id === id);
+  if (!cli) return undefined;
+  return await detectCli(cli);
+}
