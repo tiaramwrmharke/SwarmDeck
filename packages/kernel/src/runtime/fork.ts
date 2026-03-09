@@ -15,3 +15,21 @@ export function buildForkSeed(turns: UniversalSnapshot[], budget = FORK_SEED_BUD
     const text = (t.text || '').trim();
     if (prompt) messages.push(`User: ${prompt}`);
     if (text) messages.push(`Assistant: ${text}`);
+  }
+  if (!messages.length) return null;
+  // Tail-truncate whole messages into the budget — the most recent context matters most.
+  const kept: string[] = [];
+  let used = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const cost = messages[i].length + 1;
+    if (used + cost > budget && kept.length) break;
+    kept.unshift(messages[i]);
+    used += cost;
+  }
+  return [
+    `<fork-context turns=${turns.length}>`,
+    '[This conversation was forked from an earlier session; the transcript so far follows. Continue from this context — do not re-answer it. The next user message follows the closing tag.]',
+    ...kept,
+    '</fork-context>',
+  ].join('\n');
+}

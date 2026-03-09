@@ -36,3 +36,18 @@ export class PtyBridge {
     if (!pty) throw new Error('node-pty is not available — install the optional dependency `node-pty` to use TUI passthrough.');
     const proc = pty.spawn(spec.command, spec.args, {
       name: 'xterm-256color',
+      cols: opts.cols || 80,
+      rows: opts.rows || 24,
+      cwd: spec.cwd,
+      env: { ...process.env, ...(spec.env || {}) },
+    });
+    return new PtyBridge(proc);
+  }
+
+  onData(cb: (d: string) => void): () => void { this.dataCbs.add(cb); return () => this.dataCbs.delete(cb); }
+  onExit(cb: (e: PtyExit) => void): () => void { this.exitCbs.add(cb); return () => this.exitCbs.delete(cb); }
+  write(data: string): void { try { this.proc.write(data); } catch { /* closed */ } }
+  resize(cols: number, rows: number): void { try { this.proc.resize(Math.max(1, cols), Math.max(1, rows)); } catch { /* closed */ } }
+  kill(signal?: string): void { try { this.proc.kill(signal); } catch { /* closed */ } }
+  get pid(): number { return this.proc.pid; }
+}

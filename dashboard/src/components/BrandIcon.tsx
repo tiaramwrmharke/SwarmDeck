@@ -34,3 +34,85 @@ const brandIcons: Record<string, string> = {
   feishu: feishuLogo,
   weixin: weixinLogo,
   slack: slackLogo,
+  discord: discordLogo,
+  dingtalk: dingtalkLogo,
+  wecom: wecomLogo,
+  playwright: playwrightLogo,
+  vscode: vscodeLogo,
+  cursor: cursorLogo,
+  windsurf: windsurfLogo,
+  finder: finderLogo,
+  hermes: hermesLogo,
+  openrouter: openrouterLogo,
+  anthropic: anthropicLogo,
+  deepseek: deepseekLogo,
+  google: geminiLogo,
+  qwen: qwenLogo,
+  doubao: doubaoLogo,
+  glm: glmLogo,
+  minimax: minimaxLogo,
+  openai: openaiLogo,
+  ollama: ollamaLogo,
+  mlx: mlxLogo,
+};
+
+const letterFallbacks: Record<string, { letter: string; color: string; bg: string }> = {
+  custom: { letter: '+', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' },
+};
+
+export function BrandIcon({ brand, size = 18, className }: {
+  brand: string;
+  size?: number;
+  className?: string;
+}) {
+  const src = brandIcons[brand];
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className={cn('shrink-0 object-contain select-none', className)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  const fallback = letterFallbacks[brand];
+  if (!fallback) return null;
+  const isMulti = fallback.letter.length > 1;
+  return (
+    <span
+      aria-hidden="true"
+      className={cn('inline-flex shrink-0 items-center justify-center rounded-md font-semibold tracking-tight select-none', className)}
+      style={{
+        width: size,
+        height: size,
+        background: fallback.bg,
+        color: fallback.color,
+        fontSize: Math.round(size * (isMulti ? 0.42 : 0.55)),
+        lineHeight: 1,
+        letterSpacing: isMulti ? '-0.02em' : 'normal',
+      }}
+    >
+      {fallback.letter}
+    </span>
+  );
+}
+
+export function BrandBadge({ brand, size, iconSize = Math.round(size * 0.5), className, imageClassName }: {
+  brand: string;
+  size: number;
+  iconSize?: number;
+  className?: string;
+  imageClassName?: string;
+}) {
+  return (
+    <div
+      className={cn('flex shrink-0 items-center justify-center border border-edge bg-panel-alt', className)}
+      style={{ width: size, height: size }}
+    >
+      <BrandIcon brand={brand} size={iconSize} className={imageClassName} />
+    </div>
+  );
+}
