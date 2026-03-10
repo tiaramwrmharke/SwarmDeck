@@ -278,3 +278,7 @@ function buildClaudeMcpConfig(servers: RegisteredMcpServer[]) {
       server.name,
       { type: 'stdio', command: server.command, args: server.args, ...(server.env ? { env: server.env } : {}) },
     ])),
+  };
+}
+
+export function buildCodexMcpAddArgs(
