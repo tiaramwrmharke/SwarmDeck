@@ -26,3 +26,34 @@ export async function resolveCredential(ref: CredentialRef, opts: ResolveOptions
     }
     case 'command': {
       if (!ref.argv.length) throw new Error('Empty command argv');
+      const [cmd, ...args] = ref.argv;
+      try {
+        const { stdout } = await execFileP(cmd, args, {
+          timeout: opts.commandTimeoutMs ?? 5000,
+          encoding: 'utf8',
+          env,
+        });
+        const value = String(stdout).trim();
+        if (!value) throw new Error(`Command produced empty output: ${cmd}`);
+        return value;
+      } catch (e: any) {
+        throw new Error(`Credential command failed (${cmd}): ${e?.message || e}`);
+      }
+    }
+    case 'inline': {
+      try {
+        return unsealInline(ref.sealed);
+      } catch (e: any) {
+        throw new Error(`Inline credential decryption failed: ${e?.message || e}`);
+      }
+    }
+  }
+}
+
+export async function tryResolveCredential(ref: CredentialRef, opts: ResolveOptions = {}): Promise<string | null> {
+  try {
+    return await resolveCredential(ref, opts);
+  } catch {
+    return null;
+  }
+}
