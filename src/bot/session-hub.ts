@@ -109,3 +109,5 @@ export async function querySessions(opts: SessionQueryOpts): Promise<SessionQuer
 
   let allSessions: WorkspaceSessionInfo[] = [];
   const errors: string[] = [];
+  let anyOk = false;
+

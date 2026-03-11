@@ -60,3 +60,6 @@ export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
     catch (err) { log(`could not persist access token: ${(err as Error)?.message}`); }
   }
   const strict = cfg.pikichannelStrictAuth === true || process.env.PIKICHANNEL_STRICT === '1';
+  const authenticate = (presented: string | undefined, remote: string | undefined): boolean => {
+    if (!strict && isLoopback(remote)) return true;
+    return tokenMatches(presented, token);
