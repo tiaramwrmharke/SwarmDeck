@@ -45,3 +45,6 @@ describe('LivePreview placeholder lifecycle', () => {
       preview.update('text-2', '', '');
       await flush(preview);
       preview.update('text-3', '', '');
+      await flush(preview);
+
+      expect(preview.isPlaceholderAbandoned()).toBe(true);
