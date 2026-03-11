@@ -18,3 +18,6 @@ describe('formatSessionsDigestText', () => {
       agentTotals: { codex: 2, claude: 1 },
       total: 3,
       entries: [
+        {
+          index: 1,
+          agent: 'codex',

@@ -45,3 +45,5 @@ export class RendezvousBroker {
           rlog(`host registered nodeId=${nodeId} (hosts=${this.hosts.size})`);
           return;
         }
+        case 'dial': {
+          const nodeId = String(m.nodeId || '').trim();
