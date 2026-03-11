@@ -62,3 +62,6 @@ function readLedger(opts: LedgerScope): SkillLedger {
   const p = ledgerPath(opts);
   if (!p) return { version: 1, entries: {} };
   try {
+    const parsed = JSON.parse(fs.readFileSync(p, 'utf-8'));
+    if (parsed && typeof parsed === 'object' && parsed.entries && typeof parsed.entries === 'object') {
+      return { version: 1, entries: parsed.entries as Record<string, SkillLedgerEntry> };

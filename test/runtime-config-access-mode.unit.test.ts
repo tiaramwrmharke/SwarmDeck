@@ -24,3 +24,5 @@ describe('resolveClaudeAccessMode', () => {
   it('defaults to api (claude -p) with no config and no env', () => {
     expect(resolveClaudeAccessMode({})).toBe('api');
     expect(DEFAULT_CLAUDE_ACCESS_MODE).toBe('api');
+  });
+
