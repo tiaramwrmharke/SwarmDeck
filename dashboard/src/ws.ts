@@ -97,3 +97,4 @@ function channelToSnapshot(key: string, u: any): any {
       questions: Array.isArray(it.questions) ? it.questions.map((q: any) => ({
         id: q.id,
         header: q.header ?? '',
+        prompt: q.prompt ?? q.text ?? '',
