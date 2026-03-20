@@ -22,3 +22,7 @@ export class RendezvousHostClient {
 
   stop(): void {
     this.stopped = true;
+    const ws = this.ws; this.ws = null;
+    try { ws?.close(); } catch {  }
+    for (const a of this.answerers.values()) a.close();
+    this.answerers.clear();
