@@ -23,3 +23,4 @@ describe('responses-bridge toChatRequest — tool translation', () => {
     expect(names).toEqual(['exec_command', 'update_plan', 'spawn_agent', 'wait_agent', 'mem_search']);
     expect(names).not.toContain(''); // web_search / image_generation carry no function name → dropped
   });
+
