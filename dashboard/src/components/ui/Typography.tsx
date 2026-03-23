@@ -30,3 +30,6 @@ const TEXT_VARIANTS = {
 
 export type TextVariant = keyof typeof TEXT_VARIANTS;
 
+export interface TextProps extends HTMLAttributes<HTMLSpanElement> {
+  variant?: TextVariant;
+  as?: 'span' | 'p' | 'div';
