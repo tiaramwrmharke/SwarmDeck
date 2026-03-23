@@ -19,3 +19,4 @@ describe('formatFooterParts — BYOK profile name + provider', () => {
     const parts = formatFooterParts('codex', 1000, { profileName: '豆包 Seed 2.1', providerName: '豆包 (Volcengine Ark)' } as any, null, {
       model: 'gpt-5.5',
       effort: 'high',
+    });
