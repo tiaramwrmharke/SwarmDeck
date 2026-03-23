@@ -111,3 +111,6 @@ export async function querySessions(opts: SessionQueryOpts): Promise<SessionQuer
   const errors: string[] = [];
   let anyOk = false;
 
+  for (const result of results) {
+    if (result.ok) anyOk = true;
+    if (result.error) errors.push(result.error);
