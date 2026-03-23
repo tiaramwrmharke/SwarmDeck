@@ -45,3 +45,5 @@ describe('session-control', () => {
         attachments: ['/tmp/a.png'],
         workflowEnabled: false,
       });
+      expect(result).toEqual({ ok: true, queued: true, taskId: 'task-1', sessionKey: 'codex:sess-1' });
+    }

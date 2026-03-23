@@ -62,3 +62,6 @@ function modelsUrl(provider: ProviderConfig, apiKey: string): string {
   const base = provider.baseURL.replace(/\/+$/, '');
   if (provider.kind === 'google') {
     const sep = base.includes('?') ? '&' : '?';
+    return `${base}/models${sep}key=${encodeURIComponent(apiKey)}`;
+  }
+  if (provider.kind === 'anthropic') {
