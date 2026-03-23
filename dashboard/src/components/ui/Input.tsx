@@ -30,3 +30,4 @@ const input = tv({
         'focus:border-[var(--edge-strong)] focus:bg-[var(--surface-3)]',
       ].join(' '),
     },
+  },

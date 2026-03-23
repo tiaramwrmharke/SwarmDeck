@@ -369,3 +369,4 @@ function summarizeCodexToolCall(item: any): CodexActiveToolCall | null {
     case 'request_user_input': return { kind, summary: 'Request user input' };
     case 'view_image': return { kind, summary: 'Inspect image' };
     case 'parallel': return { kind, summary: 'Run multiple tools' };
+    default: {
