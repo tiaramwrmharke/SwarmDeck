@@ -34,3 +34,7 @@ describe('extractLastSessionTurn', () => {
   });
 
   it('skips <system-reminder> records and interrupt markers too', () => {
+    const turn = extractLastSessionTurn([
+      { role: 'user', text: 'real question' },
+      { role: 'assistant', text: 'real answer' },
+      { role: 'user', text: '<system-reminder>background context</system-reminder>' },

@@ -48,3 +48,6 @@ const vertex =  `
   uniform float uSizeRandomness;
 
   varying vec4 vRandom;
+  varying vec3 vColor;
+
+  void main() {
