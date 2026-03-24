@@ -65,3 +65,4 @@ function modelsUrl(provider: ProviderConfig, apiKey: string): string {
     return `${base}/models${sep}key=${encodeURIComponent(apiKey)}`;
   }
   if (provider.kind === 'anthropic') {
+    return `${base}/v1/models`;

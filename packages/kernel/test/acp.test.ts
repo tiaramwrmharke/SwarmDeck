@@ -47,3 +47,5 @@ rl.on('line', async (line) => {
     return send({ jsonrpc: '2.0', id: m.id, result: { stopReason: 'end_turn', usage: { inputTokens: 11, outputTokens: 7 } } });
   }
   if (m.id != null) send({ jsonrpc: '2.0', id: m.id, result: {} });
+});
+`;

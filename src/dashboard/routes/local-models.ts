@@ -129,3 +129,7 @@ interface BackendStatus {
 async function probeOllama(spec: BackendSpec): Promise<{ detected: boolean; version?: string; models: DetectedModel[] }> {
   type VersionRes = { version: string };
   type TagsRes = { models?: Array<{ name: string; size?: number }> };
+  const ver = await fetchJson<VersionRes>(`${spec.baseURL}${spec.probePath}`);
+  if (!ver) return { detected: false, models: [] };
+  const tags = await fetchJson<TagsRes>(`${spec.baseURL}/api/tags`, 3000);
+  const models: DetectedModel[] = (tags?.models || []).map(m => ({
