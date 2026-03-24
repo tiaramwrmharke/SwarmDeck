@@ -17,3 +17,7 @@ export default function BuiltWithItself() {
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-neutral-300">
               swarmdeck can. We use swarmdeck to develop, test, release, and operate swarmdeck —
+              driving every commit and every release.
+            </p>
+            <p className="mt-4 leading-relaxed text-neutral-400">
+              All streams run entirely in parallel. A single human steers them all — from a phone, in a coffee shop.

@@ -217,3 +217,7 @@ export class FeishuBot extends Bot {
     this.removeSignalHandlers();
     const onSigint = () => this.beginShutdown('SIGINT');
     const onSigterm = () => this.beginShutdown('SIGTERM');
+    this.signalHandlers = { SIGINT: onSigint, SIGTERM: onSigterm };
+    process.once('SIGINT', onSigint);
+    process.once('SIGTERM', onSigterm);
+  }
