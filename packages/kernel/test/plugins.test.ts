@@ -19,3 +19,6 @@ class CapturingDriver implements AgentDriver {
     this.lastRun = input;
     return { ok: true, text: 'ok', sessionId: 'cap-1' };
   }
+  tui(input: TuiInput): TuiSpec {
+    this.lastTui = input;
+    return { command: 'echo', args: [...(input.extraArgs || [])], cwd: input.workdir, env: input.env };
