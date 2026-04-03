@@ -221,3 +221,4 @@ export class FeishuBot extends Bot {
     process.once('SIGINT', onSigint);
     process.once('SIGTERM', onSigterm);
   }
+
