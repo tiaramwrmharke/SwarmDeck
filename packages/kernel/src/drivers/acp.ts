@@ -97,3 +97,6 @@ export function applyAcpUpdate(update: any, s: any, tools: Set<string>, emit: (e
   if (!update) return;
   switch (update.sessionUpdate) {
     case 'agent_message_chunk': {
+      const t = acpContentText(update.content);
+      if (t) { s.text = (s.text || '') + t; emit({ type: 'text', delta: t }); }
+      return;

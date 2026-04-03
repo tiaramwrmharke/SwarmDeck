@@ -28,3 +28,4 @@ const COMPANIES: LogoItem[] = [
   { node: <Co logo={brand(Minimax)} name="MiniMax" />, title: 'MiniMax' },
   { node: <Co logo={brand(Stepfun)} name="StepFun" />, title: 'StepFun' },
 ];
+
