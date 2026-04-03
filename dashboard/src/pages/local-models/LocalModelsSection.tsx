@@ -294,3 +294,6 @@ export function useLocalBackends(): LocalBackendsSnapshot {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
+  return { backends, catalog, currentOs, loading, error, refresh };
+}
+

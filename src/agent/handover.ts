@@ -39,3 +39,6 @@ export interface HandoverResult {
   mode: HandoverMode;
   messagesIncluded: number;
   messagesTotal: number;
+  turnsTotal: number;
+  charsIncluded: number;
+  budgetChars: number;
