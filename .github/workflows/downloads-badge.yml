@@ -5,3 +5,5 @@ name: Refresh download badge
 # shields.io endpoint. Commits only when the rounded value changes, and tags the
 # commit [skip ci] so it never re-triggers the build matrix.
 
+on:
+  schedule:
