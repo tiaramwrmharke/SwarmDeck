@@ -135,3 +135,6 @@ function getCopy(locale: Locale): Copy {
     fieldModelIdHint: 'Picked from the provider\'s live /v1/models list.',
     fieldModelIdLoading: 'Loading the provider\'s model list…',
     fieldModelIdEmpty: 'This provider returned no model list (or has not been validated yet). Enter a model ID manually.',
+    fieldModelIdToggleManual: 'Enter manually',
+    fieldModelIdToggleList: 'Pick from list',
+    fieldModelIdSearchPlaceholder: 'Search models',
