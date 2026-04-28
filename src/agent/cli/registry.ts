@@ -38,3 +38,28 @@ export interface CliAuthSpec {
 
 export interface RecommendedCli {
   id: string;
+  binary: string;
+  name: string;
+  description: string;
+  descriptionZh: string;
+  category: CliCategory;
+  iconSlug?: string;
+  iconUrl?: string;
+  homepage?: string;
+  install: CliInstallSpec;
+  auth: CliAuthSpec;
+  versionArgv?: string[];
+  recommendedScope?: 'global' | 'workspace' | 'both';
+}
+
+import { CLI_TOOLS } from '../../catalog/index.js';
+
+const RECOMMENDED_CLIS: RecommendedCli[] = CLI_TOOLS;
+
+export function getRecommendedClis(): RecommendedCli[] {
+  return RECOMMENDED_CLIS;
+}
+
+export function getRecommendedCli(id: string): RecommendedCli | undefined {
+  return RECOMMENDED_CLIS.find(c => c.id === id);
+}
