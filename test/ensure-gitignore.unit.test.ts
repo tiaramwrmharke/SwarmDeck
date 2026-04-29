@@ -33,3 +33,43 @@ describe('ensureGitignore', () => {
     ].join('\n');
     fs.writeFileSync(gi, content);
     ensureGitignore(dir);
+    // Regression: must NOT relocate its own block to the end (which shuffled the
+    // user's trailing rule above it on every run).
+    expect(fs.readFileSync(gi, 'utf8')).toBe(content);
+  });
+
+  it('preserves blank lines', () => {
+    const content = 'node_modules/\n\n.swarmdeck/*\n!.swarmdeck/skills/\n!.swarmdeck/skills/**\n';
+    fs.writeFileSync(gi, content);
+    ensureGitignore(dir);
+    expect(fs.readFileSync(gi, 'utf8')).toBe(content);
+  });
+
+  it('appends missing managed lines without disturbing existing content', () => {
+    fs.writeFileSync(gi, 'node_modules/\n');
+    ensureGitignore(dir);
+    const out = fs.readFileSync(gi, 'utf8');
+    expect(out.startsWith('node_modules/\n')).toBe(true);
+    expect(out).toContain('.swarmdeck/*');
+    expect(out).toContain('!.swarmdeck/skills/');
+    expect(out).toContain('!.swarmdeck/skills/**');
+  });
+
+  it('removes legacy lines while keeping managed ones in place', () => {
+    fs.writeFileSync(gi, '.swarmdeck/\n.claude/skills/\n.swarmdeck/*\n!.swarmdeck/skills/\n!.swarmdeck/skills/**\n');
+    ensureGitignore(dir);
+    const out = fs.readFileSync(gi, 'utf8').split('\n');
+    expect(out).not.toContain('.swarmdeck/');
+    expect(out).not.toContain('.claude/skills/');
+    expect(out.filter(l => l === '.swarmdeck/*')).toHaveLength(1);
+  });
+
+  it('is idempotent across repeated runs', () => {
+    fs.writeFileSync(gi, 'node_modules/\nproducts/eval-studio/package-lock.json\n');
+    ensureGitignore(dir);
+    const first = fs.readFileSync(gi, 'utf8');
+    ensureGitignore(dir);
+    const second = fs.readFileSync(gi, 'utf8');
+    expect(second).toBe(first);
+  });
+});
