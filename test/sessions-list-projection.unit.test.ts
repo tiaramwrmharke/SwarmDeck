@@ -42,3 +42,51 @@ describe('projectSessionForList', () => {
     expect(out.lastAnswer).toBeNull();
   });
 
+  it('preserves all non-preview fields verbatim', () => {
+    const session = makeSession({ lastAnswer: 'y'.repeat(9000), numTurns: 42, title: 'Keep me' });
+    const out = projectSessionForList(session as any);
+    expect(out.sessionId).toBe('s1');
+    expect(out.model).toBe('claude-opus-4-8');
+    expect(out.numTurns).toBe(42);
+    expect(out.title).toBe('Keep me');
+    expect(out.userStatus).toBe('active');
+  });
+});
+
+describe('projectWorkspacesForDashboard', () => {
+  it('adds the runtime workdir as the default non-removable workspace when missing', () => {
+    const out = projectWorkspacesForDashboard([], '/repo/current', '2026-07-07T00:00:00.000Z');
+    expect(out).toEqual([
+      {
+        path: '/repo/current',
+        name: 'current',
+        order: -1,
+        addedAt: '2026-07-07T00:00:00.000Z',
+        isDefault: true,
+        removable: false,
+      },
+    ]);
+  });
+
+  it('marks an existing runtime workspace as default and keeps other workspaces removable', () => {
+    const out = projectWorkspacesForDashboard([
+      { path: '/repo/other', name: 'Other', order: 0, addedAt: '2026-07-01T00:00:00.000Z' },
+      { path: '/repo/current', name: 'Current', order: 1, addedAt: '2026-07-02T00:00:00.000Z' },
+    ], '/repo/current');
+
+    expect(out).toHaveLength(2);
+    expect(out[0]).toMatchObject({ path: '/repo/other', removable: true });
+    expect(out[1]).toMatchObject({ path: '/repo/current', isDefault: true, removable: false });
+  });
+});
+
+describe('isRemovableWorkspacePath', () => {
+  it('refuses to remove the runtime default workspace', () => {
+    expect(isRemovableWorkspacePath('/repo/current', '/repo/current')).toBe(false);
+    expect(isRemovableWorkspacePath('/repo/current/../current', '/repo/current')).toBe(false);
+  });
+
+  it('allows non-default workspaces', () => {
+    expect(isRemovableWorkspacePath('/repo/other', '/repo/current')).toBe(true);
+  });
+});
