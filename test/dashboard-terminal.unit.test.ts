@@ -43,3 +43,65 @@ describe('isSetupReady — dashboard is a first-class terminal', () => {
 
   it('is NOT ready when no agent is installed (channel alone is insufficient)', () => {
     const state = collectSetupState({ agents: NONE, channel: 'telegram', tokenProvided: true });
+    expect(isSetupReady(state)).toBe(false);
+  });
+});
+
+describe('HeadlessBot — dashboard terminal with no IM transport', () => {
+  const envSnapshot = captureEnv(ISOLATION_ENV_KEYS);
+
+  beforeEach(() => {
+    restoreEnv(envSnapshot);
+    isolatedChannellessConfig();
+  });
+
+  afterEach(() => restoreEnv(envSnapshot));
+
+  it('reports connected while running and disconnects on requestStop', async () => {
+    const { HeadlessBot } = await import('../src/bot/headless-bot.ts');
+    const bot = new HeadlessBot();
+    expect(bot.connected).toBe(false);
+
+    let resolved = false;
+    const runPromise = bot.run().then(() => { resolved = true; });
+    expect(bot.connected).toBe(true);
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    bot.requestStop();
+    await runPromise;
+    expect(resolved).toBe(true);
+    expect(bot.connected).toBe(false);
+  });
+});
+
+describe('ChannelSupervisor — headless attaches to the dashboard with zero channels', () => {
+  const envSnapshot = captureEnv(ISOLATION_ENV_KEYS);
+
+  beforeEach(() => {
+    restoreEnv(envSnapshot);
+    isolatedChannellessConfig();
+  });
+
+  afterEach(() => restoreEnv(envSnapshot));
+
+  it('starts a connected headless bot and attaches it to the dashboard', async () => {
+    const { ChannelSupervisor } = await import('../src/cli/channel-supervisor.ts');
+    const { loadUserConfig } = await import('../src/core/config/user-config.ts');
+
+    const attached: { connected: boolean }[] = [];
+    const dashboard = { attachBot: vi.fn((bot: { connected: boolean }) => attached.push(bot)) };
+
+    const supervisor = new ChannelSupervisor({ dashboard: dashboard as any, log: () => {} });
+    await supervisor.reconcile(loadUserConfig());
+
+    expect(dashboard.attachBot).toHaveBeenCalledTimes(1);
+    expect(attached[0]?.connected).toBe(true);
+
+    await supervisor.reconcile(loadUserConfig());
+    expect(dashboard.attachBot).toHaveBeenCalledTimes(1);
+
+    await supervisor.stop();
+    expect(attached[0]?.connected).toBe(false);
+  });
+});
