@@ -23,3 +23,51 @@ export default function Compare() {
       </div>
 
       <div className="mt-12 overflow-x-auto">
+        <table className="w-full min-w-[760px] border-separate border-spacing-0 text-sm">
+          <thead>
+            <tr>
+              <th className="sticky left-0 z-10 bg-[#05060a] p-3 text-left font-medium text-neutral-500" />
+              {COLS.map((c, i) => (
+                <th
+                  key={c}
+                  className={
+                    i === 0
+                      ? 'rounded-t-xl border-x border-t border-emerald-400/30 bg-emerald-400/[0.06] p-3 text-left font-semibold text-white'
+                      : 'p-3 text-left font-medium text-neutral-400'
+                  }
+                >
+                  {c}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ROWS.map((row, r) => (
+              <tr key={row.feature}>
+                <td className="sticky left-0 z-10 whitespace-nowrap border-t border-white/5 bg-[#05060a] py-3 pr-4 font-medium text-neutral-300">
+                  {row.feature}
+                </td>
+                {row.cells.map((cell, i) => {
+                  const isPiki = i === 0;
+                  const isLast = r === ROWS.length - 1;
+                  return (
+                    <td
+                      key={i}
+                      className={
+                        isPiki
+                          ? `border-x border-emerald-400/30 bg-emerald-400/[0.06] p-3 align-top text-neutral-100 ${isLast ? 'rounded-b-xl border-b' : ''}`
+                          : 'border-t border-white/5 p-3 align-top text-neutral-500'
+                      }
+                    >
+                      {cell}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
