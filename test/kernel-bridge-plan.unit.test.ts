@@ -15,3 +15,37 @@ describe('kernel-bridge toSwarmDeckPlan (text -> step)', () => {
         { text: 'verify', status: 'pending' },
       ],
     });
+    expect(out).toEqual({
+      explanation: 'doing work',
+      steps: [
+        { step: 'read code', status: 'completed' },
+        { step: 'apply fix', status: 'inProgress' },
+        { step: 'verify', status: 'pending' },
+      ],
+    });
+  });
+
+  it('drops empty-text steps and normalizes unknown status to pending', () => {
+    const out = toSwarmDeckPlan({
+      explanation: null,
+      steps: [
+        { text: 'keep', status: 'weird' },
+        { text: '   ', status: 'completed' },
+        { text: '', status: 'pending' },
+      ],
+    });
+    expect(out).toEqual({ explanation: null, steps: [{ step: 'keep', status: 'pending' }] });
+  });
+
+  it('returns null for missing / empty / all-blank plans', () => {
+    expect(toSwarmDeckPlan(null)).toBeNull();
+    expect(toSwarmDeckPlan({ steps: [] })).toBeNull();
+    expect(toSwarmDeckPlan({ steps: [{ text: '  ', status: 'pending' }] })).toBeNull();
+    expect(toSwarmDeckPlan({})).toBeNull();
+  });
+
+  it('accepts an already-swarmdeck-shaped { step } plan idempotently', () => {
+    const out = toSwarmDeckPlan({ explanation: null, steps: [{ step: 'already', status: 'completed' }] });
+    expect(out).toEqual({ explanation: null, steps: [{ step: 'already', status: 'completed' }] });
+  });
+});
