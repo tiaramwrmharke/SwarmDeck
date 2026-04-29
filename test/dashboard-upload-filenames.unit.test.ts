@@ -13,3 +13,8 @@ describe('dashboard upload filenames', () => {
 
   it('dedupes names case-insensitively for case-insensitive filesystems', () => {
     const used = new Set<string>();
+
+    expect(reserveUploadFileName('Image.PNG', 'image/png', 0, used)).toBe('Image.png');
+    expect(reserveUploadFileName('image.png', 'image/png', 1, used)).toBe('image-2.png');
+  });
+});
