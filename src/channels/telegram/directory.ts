@@ -39,3 +39,103 @@ const DIR_PAGE_SIZE = 8;
 function buildDirKeyboard(browsePath: string, page: number): TelegramInlineKeyboard {
   const dirs = listSubdirs(browsePath);
   const totalPages = Math.max(1, Math.ceil(dirs.length / DIR_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(0, page), totalPages - 1);
+  const slice = dirs.slice(currentPage * DIR_PAGE_SIZE, (currentPage + 1) * DIR_PAGE_SIZE);
+  const rows: TelegramInlineKeyboard['inline_keyboard'] = [];
+
+  for (let i = 0; i < slice.length; i += 2) {
+    const row: TelegramInlineKeyboard['inline_keyboard'][number] = [];
+    for (let j = i; j < Math.min(i + 2, slice.length); j++) {
+      const fullPath = path.join(browsePath, slice[j]);
+      const id = pathRegistry.register(fullPath);
+      row.push({ text: slice[j], callback_data: `sw:n:${id}:0` });
+    }
+    rows.push(row);
+  }
+
+  const navRow: TelegramInlineKeyboard['inline_keyboard'][number] = [];
+  const parent = path.dirname(browsePath);
+  if (parent !== browsePath) {
+    navRow.push({ text: '⬆ ..', callback_data: `sw:n:${pathRegistry.register(parent)}:0` });
+  }
+  if (totalPages > 1) {
+    const browseId = pathRegistry.register(browsePath);
+    if (currentPage > 0) navRow.push({ text: `◀ ${currentPage}/${totalPages}`, callback_data: `sw:n:${browseId}:${currentPage - 1}` });
+    if (currentPage < totalPages - 1) navRow.push({ text: `${currentPage + 2}/${totalPages} ▶`, callback_data: `sw:n:${browseId}:${currentPage + 1}` });
+  }
+  if (navRow.length) rows.push(navRow);
+
+  rows.push([{ text: 'Use This', callback_data: `sw:s:${pathRegistry.register(browsePath)}` }]);
+  return { inline_keyboard: rows };
+}
+
+export function buildSwitchWorkdirView(
+  currentWorkdir: string,
+  browsePath: string,
+  page = 0,
+  opts: { savedWorkspaceCount?: number } = {},
+): {
+  text: string;
+  keyboard: TelegramInlineKeyboard;
+} {
+  const lines = [buildCompactSelectionTitle('Workdir')];
+  lines.push(`● ${compactCode(currentWorkdir, 42)}`);
+  if (browsePath !== currentWorkdir) lines.push(`○ ${compactCode(browsePath, 42)}`);
+  if (opts.savedWorkspaceCount && opts.savedWorkspaceCount > 0) {
+    lines.push('', `<i>Tip: ${opts.savedWorkspaceCount} saved workspace${opts.savedWorkspaceCount === 1 ? '' : 's'} — use /workspaces for one-tap switching.</i>`);
+  }
+  return {
+    text: lines.join('\n'),
+    keyboard: buildDirKeyboard(browsePath, page),
+  };
+}
+
+export function resolveRegisteredPath(id: number): string | undefined {
+  return pathRegistry.resolve(id);
+}
+
+const WORKSPACES_PAGE_SIZE = 10;
+
+export function buildWorkspacesView(data: WorkspacesData, page = 0): {
+  text: string;
+  keyboard: TelegramInlineKeyboard;
+} {
+  const { workspaces, currentWorkdir } = data;
+  const lines = [buildCompactSelectionTitle('Workspaces')];
+
+  if (workspaces.length === 0) {
+    lines.push(
+      'No saved workspaces yet.',
+      '',
+      'Add workspaces from the Dashboard (Sessions → Add Workspace), then come back to switch with one tap.',
+      '',
+      'You can still browse the file system with /switch.',
+    );
+    return { text: lines.join('\n'), keyboard: { inline_keyboard: [] } };
+  }
+
+  lines.push(`● ${compactCode(currentWorkdir, 42)}`);
+
+  const totalPages = Math.max(1, Math.ceil(workspaces.length / WORKSPACES_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(0, page), totalPages - 1);
+  const slice = workspaces.slice(currentPage * WORKSPACES_PAGE_SIZE, (currentPage + 1) * WORKSPACES_PAGE_SIZE);
+
+  const rows: TelegramInlineKeyboard['inline_keyboard'] = [];
+  for (const ws of slice) {
+    const marker = ws.isCurrent ? '✓ ' : ws.exists ? '' : '⚠ ';
+    const id = pathRegistry.register(ws.path);
+    const label = `${marker}${truncateMiddle(ws.name, 40)}`;
+    rows.push([{ text: label, callback_data: `wsp:s:${id}` }]);
+  }
+
+  if (totalPages > 1) {
+    const navRow: TelegramInlineKeyboard['inline_keyboard'][number] = [];
+    if (currentPage > 0) navRow.push({ text: `◀ ${currentPage}/${totalPages}`, callback_data: `wsp:p:${currentPage - 1}` });
+    if (currentPage < totalPages - 1) navRow.push({ text: `${currentPage + 2}/${totalPages} ▶`, callback_data: `wsp:p:${currentPage + 1}` });
+    if (navRow.length) rows.push(navRow);
+  }
+
+  lines.push('', `Tap a workspace to switch. ${workspaces.length} saved.`);
+
+  return { text: lines.join('\n'), keyboard: { inline_keyboard: rows } };
+}
