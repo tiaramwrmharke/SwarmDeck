@@ -71,3 +71,7 @@ export function checkPermissions(): Record<string, PermissionStatus> {
   const r: Record<string, PermissionStatus> = {};
   if (process.platform !== 'darwin') {
     r.screenRecording = { granted: true, checkable: false, detail: 'N/A' };
+    r.fullDiskAccess = { granted: true, checkable: false, detail: 'N/A' };
+    return r;
+  }
+  const screenRecordingGranted = checkScreenRecordingPermission();
