@@ -138,3 +138,6 @@ const useAnimationLoop = (
       window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    const seqSize = isVertical ? seqHeight : seqWidth;
+
+    if (seqSize > 0) {
