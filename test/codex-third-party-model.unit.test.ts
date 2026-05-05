@@ -47,3 +47,5 @@ describe('recoverProfileIdForModel — recover a lost provider binding by model 
     process.env.PIKILOOM_CONFIG = path.join(tmpDir, 'setting.json');
     fs.writeFileSync(process.env.PIKILOOM_CONFIG, JSON.stringify({ models: {} }));
   });
+  afterEach(() => { fs.rmSync(tmpDir, { recursive: true, force: true }); });
+
