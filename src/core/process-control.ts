@@ -68,3 +68,7 @@ interface ProcessRestartOptions {
   argv?: string[];
   restartCmd?: string;
   log?: (message: string) => void;
+  exit?: (code?: number) => never | void;
+}
+
+const runtimes = new Map<number, ProcessRuntimeRegistration>();
