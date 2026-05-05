@@ -40,3 +40,7 @@ export function Field({
       <div className={cn('mt-1 break-words text-[13px] leading-relaxed text-fg-2', mono && 'font-mono text-[12px] text-fg-3')}>
         {children}
       </div>
+    </div>
+  );
+}
+
