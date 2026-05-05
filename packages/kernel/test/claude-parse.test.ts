@@ -112,3 +112,7 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
     ]);
     const planEvents = events.filter(e => e.type === 'plan') as any[];
     expect(planEvents.length).toBe(2);
+    expect(planEvents[1].plan.steps).toEqual([
+      { text: 'first', status: 'completed' },
+      { text: 'second', status: 'completed' },
+      { text: 'third', status: 'pending' },

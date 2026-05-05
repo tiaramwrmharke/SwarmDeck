@@ -46,3 +46,7 @@ afterEach(() => {
 
 describe('process-control restart flow', () => {
   it('restarts without consulting task counts and hands off to the supervisor in daemon mode', async () => {
+    const mod = await loadModule();
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-restart-'));
+    const stateFile = path.join(tmpDir, 'restart.json');
+    process.env.PIKILOOM_DAEMON_CHILD = '1';
