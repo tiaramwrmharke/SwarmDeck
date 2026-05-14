@@ -60,3 +60,6 @@ export function shellSplit(str: string): string[] {
   for (const ch of str) {
     if (ch === "'" && !inD) { inS = !inS; continue; }
     if (ch === '"' && !inS) { inD = !inD; continue; }
+    if (ch === ' ' && !inS && !inD) { if (cur) { args.push(cur); cur = ''; } continue; }
+    cur += ch;
+  }
