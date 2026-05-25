@@ -58,3 +58,7 @@ export function StatusBadge({
   }
   return <StatusPill state={TONE_TO_STATE[tone]} label={label} />;
 }
+
+export function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return <MetricPrimitive label={label} value={value} hint={hint} />;
+}
