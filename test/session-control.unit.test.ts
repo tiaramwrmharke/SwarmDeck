@@ -47,3 +47,5 @@ describe('session-control', () => {
       });
       expect(result).toEqual({ ok: true, queued: true, taskId: 'task-1', sessionKey: 'codex:sess-1' });
     }
+
+    vi.clearAllMocks();

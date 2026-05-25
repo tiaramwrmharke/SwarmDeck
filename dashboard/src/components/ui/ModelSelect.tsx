@@ -103,3 +103,5 @@ export function ModelSelect({
         width: rect.width,
         maxHeight,
       });
+    };
+    updatePosition();
