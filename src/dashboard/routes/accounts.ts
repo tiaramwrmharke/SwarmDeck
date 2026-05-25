@@ -52,3 +52,6 @@ app.get('/api/agents/:agent/accounts', async (c) => {
   });
 });
 
+app.post('/api/agents/:agent/accounts', async (c) => {
+  const agent = c.req.param('agent');
+  const err = agentError(agent);
