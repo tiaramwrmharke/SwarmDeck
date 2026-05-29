@@ -1,0 +1,35 @@
+import type { ComponentType } from 'react';
+import {
+  LuLayoutDashboard,
+  LuMessagesSquare,
+  LuTerminal,
+  LuFolderOpen,
+  LuFile,
+  LuChrome,
+  LuMonitor,
+  LuServer,
+  LuBoxes,
+} from 'react-icons/lu';
+import { LogoLoop } from '@/components/LogoLoop';
+import Orb from '@/components/Orb';
+import InView from '@/components/InView';
+import SafeWebGL from '@/components/SafeWebGL';
+import { agentLogos, modelLogos, toolLogos } from '@/logos';
+
+const PAGE_BG = '#05060a';
+
+type Node = { icon: ComponentType<{ className?: string }>; label: string };
+
+const ENTRY: Node[] = [
+  { icon: LuLayoutDashboard, label: 'Web Dashboard' },
+  { icon: LuMessagesSquare, label: 'Chat Apps · IM' },
+  { icon: LuTerminal, label: 'API / CLI' },
+];
+
+const ACTIONS: Node[] = [
+  { icon: LuFolderOpen, label: 'Workspace' },
+  { icon: LuFile, label: 'Files' },
+  { icon: LuChrome, label: 'Browser' },
+  { icon: LuMonitor, label: 'Desktop' },
+  { icon: LuServer, label: 'MCP Tools' },
+];
