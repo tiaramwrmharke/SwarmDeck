@@ -41,3 +41,6 @@ function trimFileToken(value: string): { text: string; trailing: string } {
     if (!last || !/[),.;!?]/.test(last)) break;
     if (last === '.' && /^\.[A-Za-z0-9_-]+$/.test(text)) break;
     trailing = last + trailing;
+    text = text.slice(0, -1);
+  }
+  return { text, trailing };
