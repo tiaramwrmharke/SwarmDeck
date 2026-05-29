@@ -13,3 +13,4 @@ describe('snapshot diff/apply', () => {
     expect(applied.phase).toBe('streaming');
     expect(applied.updatedAt).toBe(2);
   });
+
