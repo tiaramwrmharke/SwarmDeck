@@ -28,3 +28,7 @@ rl.on('line', async (line) => {
   if (m.method === 'initialize') return send({ jsonrpc: '2.0', id: m.id, result: { protocolVersion: 1 } });
   if (m.method === 'session/new') { mcpCount = Array.isArray(m.params.mcpServers) ? m.params.mcpServers.length : 0; return send({ jsonrpc: '2.0', id: m.id, result: { sessionId: 'mock-1' } }); }
   if (m.method === 'session/set_model') { model = m.params.modelId; return send({ jsonrpc: '2.0', id: m.id, result: {} }); }
+  if (m.method === 'session/set_mode') return send({ jsonrpc: '2.0', id: m.id, result: {} });
+  if (m.method === 'session/prompt') {
+    const sid = m.params.sessionId;
+    note(sid, { sessionUpdate: 'agent_thought_chunk', content: { type: 'text', text: 'thinking ' } });
