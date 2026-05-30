@@ -22,3 +22,5 @@ export class ChannelHealth {
   private readonly initialDelayMs: number;
   private readonly maxDelayMs: number;
   private readonly log: ChannelHealthLogger;
+  private readonly sustainedThresholdMs: number;
+  private readonly sustainedFailureHint: string;
