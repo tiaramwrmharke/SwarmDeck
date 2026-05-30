@@ -31,3 +31,6 @@ async function fetchStarredAt() {
       { headers },
     );
     if (!res.ok) throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
+    const batch = await res.json();
+    if (!Array.isArray(batch) || batch.length === 0) break;
+    for (const s of batch) if (s?.starred_at) dates.push(new Date(s.starred_at).getTime());
