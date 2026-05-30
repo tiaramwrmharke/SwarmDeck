@@ -1,0 +1,49 @@
+import type { RecommendedSkillRepo } from '../agent/mcp/registry.js';
+
+export const SKILL_REPOS: RecommendedSkillRepo[] = [
+  {
+    id: 'swarmdeck-skills',
+    name: 'SwarmDeck Skills',
+    description: 'First-party SwarmDeck skills — image generation, recorded demo videos, and the embeddable tech-intel signal pipeline',
+    descriptionZh: 'SwarmDeck 官方技能 — 生图、产品导览视频、可嵌入的 tech-intel 信号流水线',
+    source: 'xiaotonng/swarmdeck-skills',
+    category: 'productivity',
+    recommendedScope: 'both',
+    homepage: 'https://github.com/xiaotonng/swarmdeck-skills',
+    pinned: true,
+  },
+  {
+    id: 'anthropics-skills',
+    name: 'Anthropic Skills',
+    description: 'Official skill collection from Anthropic',
+    descriptionZh: 'Anthropic 官方技能集',
+    source: 'anthropics/skills',
+    category: 'general',
+    recommendedScope: 'global',
+    homepage: 'https://github.com/anthropics/skills',
+  },
+  {
+    id: 'vercel-agent-skills',
+    name: 'Vercel Agent Skills',
+    description: 'Next.js, deployment, and TypeScript workflows',
+    descriptionZh: 'Next.js、部署、TypeScript 工作流',
+    source: 'vercel-labs/agent-skills',
+    category: 'dev',
+    recommendedScope: 'both',
+    homepage: 'https://github.com/vercel-labs/agent-skills',
+  },
+
+  {
+    id: 'obra-superpowers',
+    name: 'Obra Superpowers',
+    description: 'Opinionated productivity skills — focus, writing, research',
+    descriptionZh: '精选生产力技能 — 专注、写作、调研',
+    source: 'obra/superpowers',
+    category: 'productivity',
+    recommendedScope: 'global',
+    homepage: 'https://github.com/obra/superpowers',
+  },
+  {
+    id: 'antigravity-awesome-skills',
+    name: 'Antigravity Awesome Skills',
+    description: 'Installable library of 1,400+ agentic skills',
