@@ -1,0 +1,13 @@
+name: Publish kernel
+
+# Manual, on-demand publish of @swarmdeck/kernel for external reuse, using the same
+# NPM_TOKEN as the release flow. swarmdeck does NOT depend on this — it bundles the
+# kernel in its own tarball. Use this when the kernel needs to go out without cutting
+# a full swarmdeck release (e.g. after the @swarmdeck org was first created).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:

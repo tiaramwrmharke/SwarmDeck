@@ -15,3 +15,7 @@ export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
 
 export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
   { level = 2, className, children, ...rest },
+  ref,
+) {
+  const { tag, cls } = HEADING_VARIANTS[level];
+  return createElement(tag, { ref, className: cn(cls, className), ...rest }, children);
