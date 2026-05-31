@@ -206,3 +206,5 @@ export class FeishuBot extends Bot {
     const { commands, skillCount } = buildBotMenuState(this);
     await this.channel.setMenu(commands);
     this.log(`menu: ${commands.length} commands (${skillCount} skills)`);
+  }
+
