@@ -1,0 +1,123 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "swarmdeck" [ref=e47]
+        - generic [ref=e8]: v0.4.29
+      - navigation [ref=e9]:
+        - generic [ref=e10]:
+          - link "工作台" [ref=e11] [cursor=pointer]:
+            - /url: /
+          - link "IM 接入" [ref=e12] [cursor=pointer]:
+            - /url: /im
+          - link "智能体配置" [ref=e13] [cursor=pointer]:
+            - /url: /agents
+          - link "扩展插件" [ref=e14] [cursor=pointer]:
+            - /url: /extensions
+          - link "系统设置" [ref=e15] [cursor=pointer]:
+            - /url: /system
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - img [ref=e19]
+            - img "38%" [ref=e617]
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - img "11%" [ref=e618]
+        - button "重启进程" [ref=e28] [cursor=pointer]:
+          - img [ref=e29]
+          - generic [ref=e32]: 重启进程
+        - button "Light mode" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - button "EN" [ref=e40] [cursor=pointer]
+  - main [ref=e41]:
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - textbox "搜索…" [ref=e56]
+          - generic [ref=e57]:
+            - button "全部" [ref=e58] [cursor=pointer]
+            - button "运行中" [ref=e59] [cursor=pointer]
+            - button "待审查" [ref=e60] [cursor=pointer]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63] [cursor=pointer]:
+              - img [ref=e64]
+              - generic [ref=e66]:
+                - generic [ref=e67]: swarmdeck
+                - img [ref=e69]
+              - generic [ref=e75]:
+                - button "新建会话" [ref=e76]:
+                  - img [ref=e77]
+                - button "扩展插件" [ref=e78]:
+                  - img [ref=e79]
+                - button [ref=e81]:
+                  - img [ref=e82]
+            - generic [ref=e85]:
+              - generic [ref=e106]:
+                - 'button "Claude opus-4-8 3 <1m STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work.... The History of Computing" [ref=e581] [cursor=pointer]':
+                  - generic [ref=e108]:
+                    - img [ref=e109]
+                    - generic [ref=e110]: Claude
+                    - generic [ref=e111]: opus-4-8
+                    - generic [ref=e112]:
+                      - generic [ref=e113]:
+                        - img [ref=e114]
+                        - text: "3"
+                      - generic [ref=e116]: <1m
+                  - generic [ref=e119]: "STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work...."
+                  - generic [ref=e121]: The History of Computing
+                - button "更多操作" [ref=e122] [cursor=pointer]:
+                  - img [ref=e123]
+              - generic [ref=e86]:
+                - 'button "Claude 1 <1m 我感觉现在 dashboard 整体的刷新流程很有问题，比如经常出现停止后的消息被吞，排队中的消息已经撤回仍然反复出现，以及刚发送的消息要先等待一段时间才被确认返回，同时新建会话的时候顶部会先 pending 然后才会到具体的 ses... The queued bar is live: `排队中` / \"QUEUED-Q1-RECALL-ME-NOW\" with 撤回 `e573`, while the essay streams (`运行中` `e542`). **This is the exact reproduction setup.** Recalling Q1 now:" [ref=e582] [cursor=pointer]':
+                  - generic [ref=e88]:
+                    - img [ref=e89]
+                    - generic [ref=e90]: Claude
+                    - generic [ref=e91]:
+                      - generic [ref=e92]:
+                        - img [ref=e93]
+                        - text: "1"
+                      - generic [ref=e95]: <1m
+                  - generic [ref=e98]: 我感觉现在 dashboard 整体的刷新流程很有问题，比如经常出现停止后的消息被吞，排队中的消息已经撤回仍然反复出现，以及刚发送的消息要先等待一段时间才被确认返回，同时新建会话的时候顶部会先 pending 然后才会到具体的 ses...
+                  - generic [ref=e100]: "The queued bar is live: `排队中` / \"QUEUED-Q1-RECALL-ME-NOW\" with 撤回 `e573`, while the essay streams (`运行中` `e542`). **This is the exact reproduction setup.** Recalling Q1 now:"
+                - button "更多操作" [ref=e101] [cursor=pointer]:
+                  - img [ref=e102]
+              - generic [ref=e127]:
+                - button "Claude opus-4-8 7 17m 插队这个问题还是有啊，你之前是怎么修改的问题很多 Two new bugs reported, both pointing at the WS/transport path:" [ref=e583] [cursor=pointer]:
+                  - generic [ref=e129]:
+                    - img [ref=e130]
+                    - generic [ref=e131]: Claude
+                    - generic [ref=e132]: opus-4-8
+                    - generic [ref=e133]:
+                      - generic [ref=e134]:
+                        - img [ref=e135]
+                        - text: "7"
+                      - generic [ref=e137]: 17m
+                  - generic [ref=e140]: 插队这个问题还是有啊，你之前是怎么修改的问题很多
+                  - generic [ref=e142]: "Two new bugs reported, both pointing at the WS/transport path:"
+                - button "更多操作" [ref=e143] [cursor=pointer]:
+                  - img [ref=e144]
+              - generic [ref=e148]:
+                - 'button "Claude opus-4-8 25 19m Automated queue test. Call the im_ask_user tool ONCE: title ''ANCHOR'', question ''hold the queue — reply when ready'', o... PRIMES_DONE" [ref=e584] [cursor=pointer]':
+                  - generic [ref=e150]:
+                    - img [ref=e151]
+                    - generic [ref=e152]: Claude
+                    - generic [ref=e153]: opus-4-8
+                    - generic [ref=e154]:
+                      - generic [ref=e155]:
+                        - img [ref=e156]
+                        - text: "25"
+                      - generic [ref=e158]: 19m
+                  - generic [ref=e161]: "Automated queue test. Call the im_ask_user tool ONCE: title 'ANCHOR', question 'hold the queue — reply when ready', o..."
+                  - generic [ref=e163]: PRIMES_DONE
+                - button "更多操作" [ref=e164] [cursor=pointer]:
+                  - img [ref=e165]
+              - generic [ref=e169]:
+                - button "Claude opus-4-8 3 37m 你帮我打开浏览器，然后把飞书后台我的机器人（盛大机器人那个）改一下机器人菜单配置，改成图里这样 You're at the computer now — that's much easier. Let me bring up a fresh QR code; you can scan it directly off the sc..." [ref=e585] [cursor=pointer]:
+                  - generic [ref=e171]:
+                    - img [ref=e172]
+                    - generic [ref=e173]: Claude
+                    - generic [ref=e174]: opus-4-8
