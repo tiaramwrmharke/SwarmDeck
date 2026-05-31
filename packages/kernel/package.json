@@ -1,0 +1,13 @@
+{
+  "name": "@swarmdeck/kernel",
+  "version": "0.3.31",
+  "description": "Heterogeneous coding agents (Claude / Codex / Gemini / ACP) -> an interaction-friendly, accumulating session snapshot + control handle, over pluggable surfaces (IM, Web, tunnel, TUI). The reusable core swarmdeck itself is built on.",
+  "type": "module",
+  "license": "MIT",
+  "author": "xiaotonng",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaotonng/swarmdeck.git",
+    "directory": "packages/kernel"
+  },
+  "keywords": [
