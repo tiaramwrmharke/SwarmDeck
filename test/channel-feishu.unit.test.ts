@@ -23,3 +23,6 @@ function createTestChannel() {
 describe('FeishuChannel.editCard', () => {
   beforeEach(() => {
     vi.useRealTimers();
+  });
+
+  it('succeeds silently, swallows not-modified responses, and no-ops on empty markdown', async () => {
