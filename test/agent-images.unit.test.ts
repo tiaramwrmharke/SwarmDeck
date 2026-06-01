@@ -57,3 +57,7 @@ describe('attachInlineImage', () => {
     process.env.HOME = tmp;
     try {
       const persisted = attachInlineImage({
+        bytes: PNG_BYTES,
+        mime: 'image/png',
+        persist: { agent: 'codex', sessionId: 'abc', hint: 'cover' },
+        inlineThresholdBytes: 1,
