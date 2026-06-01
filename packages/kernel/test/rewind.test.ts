@@ -22,3 +22,5 @@ class RewindDriver implements AgentDriver {
   get capabilities() { return { steer: false, interact: false, resume: true, tui: false, fork: false, rewind: this.canRewind }; }
   anchorResolvable(opts: { sessionId: string; workdir: string; anchor: string }): boolean {
     return this.unresolvable ? !this.unresolvable.has(opts.anchor) : true;
+  }
+  async run(input: AgentTurnInput, ctx: DriverContext): Promise<DriverResult> {
