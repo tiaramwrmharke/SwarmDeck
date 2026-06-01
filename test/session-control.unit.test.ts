@@ -19,3 +19,5 @@ vi.mock('../src/dashboard/runtime.ts', () => ({
 
 describe('session-control', () => {
   afterEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
