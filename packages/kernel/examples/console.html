@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>@swarmdeck/kernel — console</title>
+<style>
+  :root { --bg:#f6f8fa; --panel:#fff; --line:#e3e8ef; --ink:#1f2937; --muted:#6b7280; --accent:#0ea5b7; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; align-items:center; gap:10px; padding:12px 18px; background:var(--panel); border-bottom:1px solid var(--line); }
+  header .dot { width:9px; height:9px; border-radius:50%; background:#cbd5e1; }
+  header .dot.on { background:#10b981; }
+  header b { font-size:15px; } header .tag { font-size:12px; color:var(--muted); background:#eef2f7; padding:2px 8px; border-radius:999px; }
+  main { max-width:860px; margin:0 auto; padding:18px; }
+  .msg { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:12px; }
+  .msg.user { background:#eef9fb; border-color:#cdeef2; }
+  .role { font-size:12px; color:var(--muted); margin-bottom:4px; display:flex; gap:8px; align-items:center; }
+  .phase { font-size:11px; padding:1px 7px; border-radius:999px; background:#eef2f7; color:var(--muted); }
+  .phase.streaming { background:#fff7ed; color:#c2410c; } .phase.done { background:#ecfdf5; color:#047857; }
+  .reasoning { color:var(--muted); font-style:italic; white-space:pre-wrap; border-left:2px solid var(--line); padding-left:10px; margin:6px 0; }
+  .text { white-space:pre-wrap; }
+  .meta { font-size:11px; color:var(--muted); margin-top:8px; }
+  footer { position:sticky; bottom:0; background:var(--panel); border-top:1px solid var(--line); padding:12px 18px; }
+  .row { max-width:860px; margin:0 auto; display:flex; gap:10px; }
+  textarea { flex:1; resize:none; height:46px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font:inherit; }
