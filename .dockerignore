@@ -1,0 +1,17 @@
+# --- Reproducible builds: keep the build context small + deterministic ---
+
+# Local installs / build outputs (the image rebuilds these from package-lock.json
+# and `npm run build` inside the builder stage).
+node_modules
+dist
+dashboard/dist
+dashboard/node_modules
+
+# Secrets and local state — must never enter an image we may publish.
+.env
+.env.*
+!.env.example
+.pikiclaw
+.scratch
+**/.DS_Store
+**/Thumbs.db
