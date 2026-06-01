@@ -78,3 +78,7 @@ function getLinuxBatteryData(): HostBatteryData | null {
   } catch {}
 
   try {
+    const output = execSync(
+      'upower -e | grep -m1 battery | xargs -I{} upower -i "{}"',
+      { encoding: 'utf-8', timeout: 3000 },
+    ).trim();

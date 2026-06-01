@@ -537,3 +537,5 @@ export function claudeParse(ev: any, s: any) {
           rebuildClaudePlanFromTasks(s);
         } else if (taskId) {
           const updated = applyClaudeTaskUpdateToPlan(s.claudeTodoPlan, taskId, rawStatus);
+          if (updated) { s.plan = updated; s.claudeTodoPlan = updated; }
+        }
