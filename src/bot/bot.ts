@@ -653,3 +653,4 @@ export class Bot {
     const key = this.liveSessionKey(taskId, fallbackKey);
     const snap = this.streamSnapshots.get(key);
     this.debug(`[stream-lifecycle] text task=${taskId} key=${key} bytes=${text.length}/${thinking.length} snap=${snap ? snap.phase : 'NONE'}`);
+    this.emitStream(key, {
