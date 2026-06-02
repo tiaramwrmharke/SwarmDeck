@@ -37,3 +37,6 @@ describe('claudeUserEventHasToolResult', () => {
 describe('claudeModelStallMs', () => {
   const prev = process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
   afterEach(() => {
+    if (prev === undefined) delete process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
+    else process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = prev;
+  });
