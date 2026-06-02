@@ -6,3 +6,6 @@ dashboard/dist/
 # The web/ landing page IS tracked (open source). Its node_modules/ and dist/ are
 # already covered by the global ignores above; it's kept OUT of the npm package via
 # the package.json "files" allowlist, not via gitignore.
+*.tgz
+tmp/
+dashboard-loaded.png

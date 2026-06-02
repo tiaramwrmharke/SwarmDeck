@@ -137,3 +137,4 @@ function missingChannelState(channel: ChannelSetupState['channel'], detail: stri
     detail,
   };
 }
+

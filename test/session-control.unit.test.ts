@@ -21,3 +21,7 @@ describe('session-control', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+  });
+
+  it('queues tasks and surfaces stream state, cancel, and steer through public bot methods', async () => {
+    {
