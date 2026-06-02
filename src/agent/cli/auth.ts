@@ -68,3 +68,6 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
 
   const session: AuthSession & { _child?: ChildProcess } = {
     sessionId,
+    cliId: cli.id,
+    startedAt: Date.now(),
+    events,
