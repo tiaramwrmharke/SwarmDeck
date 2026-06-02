@@ -100,3 +100,5 @@ function claudeUsesNativeAnthropic(provider: ProviderConfig): boolean {
   return false;
 }
 
+type AgentInjector = (
+  provider: ProviderConfig,
