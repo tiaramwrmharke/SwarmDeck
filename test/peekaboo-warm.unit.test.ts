@@ -11,3 +11,4 @@ vi.mock('node:child_process', async (importOriginal) => {
 import {
   PEEKABOO_NPX_PACKAGE,
   PEEKABOO_MCP_ARGV,
+  PEEKABOO_WARM_ARGV,

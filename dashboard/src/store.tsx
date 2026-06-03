@@ -57,3 +57,4 @@ function getInitialTheme(): Theme {
 
 function getInitialLocale(): Locale {
   try {
+    const stored = localStorage.getItem('swarmdeck-locale');
