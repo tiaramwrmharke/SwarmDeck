@@ -56,3 +56,7 @@ Commands:
   gemini-tail     Show last N messages of a Gemini session
 
 Options:
+  -p, --prompt <text>   Prompt text (or pass after command as positional args)
+  -m, --model <model>   Model to use / highlight
+  -w, --workdir <dir>   Working directory  [default: current process cwd]
+  -s, --session <id>    Session ID (for tail; omit to use latest session)
