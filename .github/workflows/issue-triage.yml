@@ -1,0 +1,24 @@
+name: Issue reputation guard
+
+# Auto-screens NEWLY OPENED issues from accounts with zero GitHub footprint and
+# no prior interaction with this repo, then closes + labels them for maintainer
+# review.
+#
+# Design notes (deliberately conservative to minimise false positives):
+#   * Owners / members / collaborators / past contributors are skipped entirely.
+#   * It only acts when the author has 0 public repos AND 0 followers AND has
+#     never opened an issue/PR here before. Any real track record => untouched.
+#   * Flagged issues are closed + labelled but NOT locked, so a genuine newcomer
+#     caught by mistake can simply comment to appeal and a maintainer reopens.
+#   * Account age is logged but intentionally NOT used as a gate: the accounts
+#     this targets pre-age themselves, so footprint/interaction is the signal.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  guard:
