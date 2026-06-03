@@ -61,3 +61,6 @@ Sitting in the middle is the **SwarmDeck Orchestration Core** — the runtime th
 
 > The most credible test of an Agent orchestrator is whether it can build itself. swarmdeck can. We use swarmdeck to develop, test, release, and operate swarmdeck—driving every commit and every release.
 
+A typical day of development inside swarmdeck:
+
+- A Claude Code session in pane 1 implements a new dashboard route.
