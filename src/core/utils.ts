@@ -51,3 +51,7 @@ export function envInt(name: string, def: number): number {
   const raw = process.env[name];
   if (raw == null || raw.trim() === '') return def;
   const n = parseInt(raw, 10);
+  return Number.isNaN(n) ? def : n;
+}
+
+export function shellSplit(str: string): string[] {
