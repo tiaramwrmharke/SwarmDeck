@@ -25,3 +25,7 @@ describe('session-control', () => {
 
   it('queues tasks and surfaces stream state, cancel, and steer through public bot methods', async () => {
     {
+      const submitSessionTask = vi.fn(() => ({ ok: true, queued: true, taskId: 'task-1', sessionKey: 'codex:sess-1' }));
+      getBotRefMock.mockReturnValue({ submitSessionTask });
+
+      const { queueDashboardSessionTask } = await import('../src/dashboard/session-control.ts');
