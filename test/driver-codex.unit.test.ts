@@ -77,3 +77,6 @@ describe('Codex session history', () => {
           },
         }),
         JSON.stringify({
+          timestamp: '2026-03-29T10:25:20.000Z',
+          type: 'response_item',
+          payload: {
