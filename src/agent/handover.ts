@@ -24,3 +24,4 @@ const HANDOVER_WINDOW_FRACTION = 0.5;
 const CHARS_PER_TOKEN = 4;
 
 export type HandoverMode = 'verbatim' | 'tail' | 'empty';
+
