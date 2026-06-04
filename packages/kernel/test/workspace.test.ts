@@ -65,3 +65,6 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     expect(out).toHaveLength(1);
     expect(out[0].sessionId).toBe('sess-abc');
     expect(out[0].title).toBe('fix the build');
+    expect(out[0].model).toBe('claude-opus-4-8');
+    expect(out[0].preview).toBe('done');
+  });
