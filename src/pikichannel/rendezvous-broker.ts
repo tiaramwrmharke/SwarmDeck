@@ -25,3 +25,6 @@ export class RendezvousBroker {
 
   get stats() { return { hosts: this.hosts.size, sessions: this.sessions.size }; }
 
+  private send(ws: WebSocket, msg: unknown): void {
+    if (ws.readyState === ws.OPEN) { try { ws.send(JSON.stringify(msg)); } catch {  } }
+  }

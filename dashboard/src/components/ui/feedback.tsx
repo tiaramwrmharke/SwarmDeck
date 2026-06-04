@@ -9,3 +9,7 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn('animate-shimmer rounded-md', className)} />;
+}
+
+export function Spinner({ className }: { className?: string }) {
+  return (
