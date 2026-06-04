@@ -354,3 +354,4 @@ function compactPathTarget(value: unknown, max = 80): string {
   return `...${compact.slice(-(max - 3))}`;
 }
 
+function summarizeCodexToolCall(item: any): CodexActiveToolCall | null {
