@@ -94,3 +94,7 @@ layout), each environment keeps its own independent session history.
 > nor does it tolerate two binaries of different versions opening the same db.
 > If you mount `~/.codex` into the container, you **must** treat it as a
 > single-writer file:
+>
+> - Do not run the host's Codex desktop app while the docker container is
+>   also running with codex active. Stop one before using the other.
+> - When you `docker pull` a newer swarmdeck image, the codex CLI baked into
