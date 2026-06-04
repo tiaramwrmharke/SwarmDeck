@@ -9,3 +9,4 @@ dashboard/dist/
 *.tgz
 tmp/
 dashboard-loaded.png
+dashboard-*.png
