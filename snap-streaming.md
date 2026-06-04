@@ -273,3 +273,7 @@
                   - button "重跑":
                     - img
                   - button "编辑":
+                    - img
+              - generic [ref=e338]:
+                - generic [ref=e340]: ZZMARK_48071 请只回复 ok
+                - generic:
