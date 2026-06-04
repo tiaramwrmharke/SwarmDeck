@@ -350,3 +350,7 @@ function compactPathTarget(value: unknown, max = 80): string {
   const normalized = raw.replace(/\\/g, '/');
   const parts = normalized.split('/').filter(Boolean);
   const compact = parts.length >= 2 ? parts.slice(-2).join('/') : normalized;
+  if (compact.length <= max) return compact;
+  return `...${compact.slice(-(max - 3))}`;
+}
+
