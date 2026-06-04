@@ -20,3 +20,4 @@ const waitFor = async (pred: () => boolean | Promise<boolean>, ms = 5000) => {
     if (Date.now() - t0 > ms) throw new Error('waitFor timeout');
     await new Promise(r => setTimeout(r, 5));
   }
+};

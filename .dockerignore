@@ -15,3 +15,5 @@ dashboard/node_modules
 .scratch
 **/.DS_Store
 **/Thumbs.db
+
+# Git internals (the image doesn't need history).
