@@ -47,3 +47,7 @@ export const SKILL_REPOS: RecommendedSkillRepo[] = [
     id: 'antigravity-awesome-skills',
     name: 'Antigravity Awesome Skills',
     description: 'Installable library of 1,400+ agentic skills',
+    descriptionZh: '可安装的 1,400+ 智能体技能合集',
+    source: 'sickn33/antigravity-awesome-skills',
+    category: 'general',
+    recommendedScope: 'global',
