@@ -37,3 +37,7 @@ export class WebSurface implements Surface {
   private unsubSessions?: () => void;
   private readonly peers = new Set<Peer>();
 
+  constructor(private readonly opts: WebSurfaceOptions = {}) {}
+
+  get port(): number | null {
+    const a = this.wss?.address();
