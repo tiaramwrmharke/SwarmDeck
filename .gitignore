@@ -10,3 +10,5 @@ dashboard/dist/
 tmp/
 dashboard-loaded.png
 dashboard-*.png
+# Browser-MCP / dev screenshots dropped at the project root.
+/*.png
