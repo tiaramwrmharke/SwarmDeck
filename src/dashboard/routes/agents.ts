@@ -111,3 +111,5 @@ async function installAgentViaNpm(agent: Agent, log: (msg: string) => void): Pro
   let result = await runCommand('npm', ['install', '-g', `${pkg}@latest`], {
     timeoutMs: AGENT_INSTALL_TIMEOUT_MS,
   });
+  if (!result.ok && /ENOTEMPTY/.test(result.stderr)) {
+    const removed = cleanupNpmStagingFromError(result.stderr);
