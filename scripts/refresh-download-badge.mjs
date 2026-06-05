@@ -4,3 +4,5 @@ import { writeFileSync } from 'node:fs';
 const PACKAGES = ['swarmdeck', 'pikiclaw'];
 const OUT = new URL('../docs/downloads.json', import.meta.url);
 
+async function monthlyInstalls(pkg) {
+  try {
