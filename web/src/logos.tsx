@@ -29,3 +29,7 @@ import {
 } from 'react-icons/lu';
 import type { LogoItem } from '@/components/LogoLoop';
 
+const SZ = 18;
+
+type ColoredIcon = ComponentType<{ size?: number; className?: string }>;
+function brand(Icon: unknown, size = SZ): ReactNode {

@@ -124,3 +124,5 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
       status: discordConfigured ? 'checking' : 'missing',
       detail: discordConfigured ? 'Validating Discord credentials…' : 'Discord is not configured.',
     },
+    {
+      channel: 'dingtalk',
