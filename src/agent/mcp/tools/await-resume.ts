@@ -15,3 +15,4 @@ const tools: McpToolModule['tools'] = [
       'This is a passive status hint for the dashboard — it does NOT change how you run, does NOT keep the turn open, and does NOT wake you when the work finishes. Do not call it for ordinary tool calls or foreground work, and do not call it just because a task is large.',
       'The marker is cleared automatically the next time this session runs, so you never need to clear it yourself.',
     ].join('\n'),
+    inputSchema: {
