@@ -25,3 +25,5 @@ export function Modal({ open, onClose, size, wide, panelStyle, children }: Modal
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);

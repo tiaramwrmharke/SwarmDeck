@@ -45,3 +45,4 @@ async function snapshotRemote(remoteUrl: string, now: number): Promise<ManagedBr
   if (!healthy) {
     if (cached?.cdpEndpoint === remoteUrl) cached = null;
     log(`remote CDP endpoint ${remoteUrl} not reachable`, 'warn');
+    return { cdpEndpoint: null, connectionMode: 'unavailable' };
