@@ -14,3 +14,6 @@ export interface CliInstallCommand {
   cmd: string;
   label?: string;
 }
+
+export interface CliInstallSpec {
+  darwin?: CliInstallCommand[];
