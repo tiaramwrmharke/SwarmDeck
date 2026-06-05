@@ -208,3 +208,5 @@ export class FeishuBot extends Bot {
     this.log(`menu: ${commands.length} commands (${skillCount} skills)`);
   }
 
+  protected override afterSwitchWorkdir(_oldPath: string, _newPath: string) {
+    if (!this.channel) return;
