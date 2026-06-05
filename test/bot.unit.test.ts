@@ -109,3 +109,5 @@ describe('Bot.runStream', () => {
       key: 'claude:session-1',
       workdir: sessionWorkdir,
       agent: 'claude',
+      sessionId: 'session-1',
+      workspacePath,

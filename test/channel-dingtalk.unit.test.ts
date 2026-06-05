@@ -24,3 +24,6 @@ import { DingtalkChannel } from '../src/channels/dingtalk/channel.ts';
 const fetchCalls: { url: string; init?: any }[] = [];
 
 beforeEach(() => {
+  fetchCalls.length = 0;
+  global.fetch = vi.fn(async (url: any, init?: any) => {
+    fetchCalls.push({ url: String(url), init });
