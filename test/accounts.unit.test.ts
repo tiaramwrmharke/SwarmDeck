@@ -46,3 +46,7 @@ describe('kernel account token capability', () => {
     expect(kernel.accountTokenSupported('claude')).toBe(true);
     expect(kernel.accountTokenSupported('claude-tui')).toBe(true);
     expect(kernel.accountTokenSupported('codex')).toBe(false);
+    expect(kernel.accountTokenEnvVar('claude')).toBe('CLAUDE_CODE_OAUTH_TOKEN');
+    expect(kernel.accountTokenEnv('claude', 'sk-ant-oat01-x')).toEqual({ CLAUDE_CODE_OAUTH_TOKEN: 'sk-ant-oat01-x' });
+    expect(kernel.accountTokenEnv('codex', 'x')).toEqual({});
+  });
