@@ -78,3 +78,7 @@ function isImageMime(mime: string): boolean {
 export interface AttachAgentImageOpts {
   imagePath: string;
   mime?: string;
+  caption?: string;
+  captionKind?: 'prompt' | 'caption';
+  phase?: 'commentary' | 'final_answer';
+  inlineThresholdBytes?: number;
