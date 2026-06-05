@@ -42,3 +42,5 @@ export interface SkillMeta {
   description: string | null;
   mcpRequires?: string[];
 }
+
+/**

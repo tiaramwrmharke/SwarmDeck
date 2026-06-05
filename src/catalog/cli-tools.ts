@@ -70,3 +70,6 @@ export const CLI_TOOLS: RecommendedCli[] = [
     versionArgv: ['vercel', '--version'],
     install: {
       docs: 'https://vercel.com/docs/cli#installing-vercel-cli',
+      darwin: [{ label: 'npm', cmd: 'npm i -g vercel' }],
+      linux:  [{ label: 'npm', cmd: 'npm i -g vercel' }],
+      win:    [{ label: 'npm', cmd: 'npm i -g vercel' }],

@@ -13,3 +13,4 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function Spinner({ className }: { className?: string }) {
   return (
+    <svg
