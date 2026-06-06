@@ -42,3 +42,7 @@ describe('claudeModelStallMs', () => {
   });
   // Subscription accounts stream nothing during extended thinking, and at the reasoning rungs a
   // legitimate silent think regularly exceeds 2 minutes — the old 120s default settled LIVE turns
+  // as 'stalled' and the leak-guard then killed their still-running tools (mirasim#111). The
+  // window is now effort-laddered and errs long (a hung turn showing its spinner longer is the
+  // cheap side of the asymmetry).
+  it('defaults to 5min for light rungs and 10min for deep-reasoning rungs', () => {
