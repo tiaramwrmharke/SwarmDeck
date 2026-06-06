@@ -16,3 +16,7 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
   spotlightColor = 'rgba(255, 255, 255, 0.25)'
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState<number>(0);
+
