@@ -267,3 +267,5 @@ export class ClaudeDriver implements AgentDriver {
       // rate-limit backoff, or an unreachable model that the CLI is silently retrying), NOT on a tool
       // (a running tool has no tool_result yet, so this is never armed then) and NOT on background work
       // (its own hold, re-checked below). Left alone the kernel turn hangs forever with the answer never
+      // delivered. Bound it: settle gracefully (no kill) as incomplete with stopReason 'stalled' so the
+      // terminal shows a clear "resend to continue" note instead of a dead spinner. Armed for the initial
