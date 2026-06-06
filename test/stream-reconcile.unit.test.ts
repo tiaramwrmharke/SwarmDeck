@@ -30,3 +30,5 @@ describe('snapshotGate — monotonic version guard', () => {
   });
 
   it('rejects an older snapshot regardless of source (stale REST clobber)', () => {
+    expect(snapshotGate({ ...base, source: 'seed', updatedAt: 90, lastAppliedUpdatedAt: 100 })).toBe('reject-stale');
+    expect(snapshotGate({ ...base, source: 'ws', updatedAt: 90, lastAppliedUpdatedAt: 100 })).toBe('reject-stale');
