@@ -51,3 +51,5 @@ function validRecords(agent: string): AgentAccountRecord[] {
 export function listAccounts(agent: string): AgentAccountRecord[] {
   return validRecords(agent).slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
+export function getAccount(agent: string, id: string): AgentAccountRecord | null {
+  return validRecords(agent).find(a => a.id === id) || null;

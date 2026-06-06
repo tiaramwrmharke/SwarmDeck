@@ -766,3 +766,4 @@ function skillCountSummary(item: SkillCatalogItem, locale: string): string {
     : L(locale, '未安装', 'Not installed');
 }
 
+function SkillConnectedCard({
