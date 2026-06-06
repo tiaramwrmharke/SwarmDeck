@@ -29,3 +29,4 @@ function agent(id: AgentInfo['agent'], installed: boolean): AgentInfo {
 
 const CLAUDE_ONLY = [agent('claude', true), agent('codex', false)];
 const NONE = [agent('claude', false), agent('codex', false)];
+

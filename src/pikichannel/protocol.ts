@@ -56,3 +56,4 @@ export interface UniversalArtifact {
 }
 
 export interface UniversalInteraction {
+  promptId: string;
