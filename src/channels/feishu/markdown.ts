@@ -21,3 +21,4 @@ function adaptLine(line: string): string {
   next = next.replace(/^#{1,6}\s+/, '**');
   if (next.startsWith('**') && !next.endsWith('**')) next = `${next}**`;
   next = next.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 <$2>');
+  next = next.replace(/`([^`\n]+)`/g, '$1');
