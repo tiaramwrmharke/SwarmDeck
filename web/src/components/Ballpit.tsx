@@ -161,3 +161,7 @@ class X {
     this.size.ratio = w / h;
     this.#updateCamera();
     this.#updateRenderer();
+    this.onAfterResize(this.size);
+  }
+
+  #updateCamera() {
