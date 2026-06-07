@@ -37,3 +37,5 @@ function restoreEnv(snap: Record<string, string | undefined>) {
     if (snap[k] === undefined) delete process.env[k];
     else process.env[k] = snap[k]!;
   }
+}
+
