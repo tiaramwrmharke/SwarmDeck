@@ -295,3 +295,7 @@ export class WeixinBot extends Bot {
       `PID: ${d.pid} | RSS: ${fmtBytes(d.memRss)} | Heap: ${fmtBytes(d.memHeap)}`,
       `Workdir: ${d.workdir}`,
       ...(gitLine ? [`Git: ${gitLine}`] : []),
+      '',
+      `Agent: ${d.agent}`,
+      `Model: ${d.model || '-'}`,
+      `Session: ${d.sessionId ? d.sessionId.slice(0, 16) : '(new)'}`,
