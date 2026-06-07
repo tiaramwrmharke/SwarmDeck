@@ -98,3 +98,5 @@ layout), each environment keeps its own independent session history.
 > - Do not run the host's Codex desktop app while the docker container is
 >   also running with codex active. Stop one before using the other.
 > - When you `docker pull` a newer swarmdeck image, the codex CLI baked into
+>   the image (see §5) may be newer than the host's. Either pin the
+>   `CODEX_VERSION` build-arg to match the host, or upgrade the host's codex
