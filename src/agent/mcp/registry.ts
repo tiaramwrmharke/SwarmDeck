@@ -29,3 +29,4 @@ export type McpCategory = 'dev' | 'productivity' | 'communication' | 'data' | 's
 export type RecommendedScope = 'global' | 'workspace' | 'both';
 
 export interface RecommendedMcpServer {
+  id: string;

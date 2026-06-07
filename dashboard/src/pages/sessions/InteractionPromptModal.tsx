@@ -32,3 +32,5 @@ export function InteractionPromptModal({ snapshot }: Props) {
       setCurrentIndex(idx => idx + 1);
       setFreeformText('');
     }
+  };
+
