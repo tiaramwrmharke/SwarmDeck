@@ -138,3 +138,6 @@ function missingChannelState(channel: ChannelSetupState['channel'], detail: stri
   };
 }
 
+function invalidChannelState(channel: ChannelSetupState['channel'], detail: string): ChannelSetupState {
+  return {
+    channel,
