@@ -30,3 +30,7 @@ beforeEach(() => {
     return new Response(JSON.stringify({ errcode: 0 }), { status: 200 });
   }) as any;
 });
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
