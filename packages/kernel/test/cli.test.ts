@@ -12,3 +12,4 @@ import type { Catalog } from '../src/contracts/ports.js';
 const catalog: Catalog = {
   async listModels({ agent }) { return [{ id: `${agent}-m1` }, { id: `${agent}-m2` }]; },
   async listEffort() { return []; },
+  async listTools() { return []; },
