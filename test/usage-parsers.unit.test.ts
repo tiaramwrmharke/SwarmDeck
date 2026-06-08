@@ -53,3 +53,5 @@ describe('buildClaudeOAuthUsage (2026 limits[] schema)', () => {
     expect(usage.status).toBe('allowed');
   });
 
+  it('keeps the Extra credit spend as a dollar detail', () => {
+    const usage = buildClaudeOAuthUsage(CLAUDE_OAUTH_2026)!;
