@@ -149,3 +149,4 @@ export function resolveOpenPathLocator(rawPath: string, basePath?: string | null
   const absolute = path.isAbsolute(expanded)
     ? path.resolve(expanded)
     : path.resolve(resolveOpenBasePath(basePath), expanded);
+  return splitExistingLineSuffix(absolute);
