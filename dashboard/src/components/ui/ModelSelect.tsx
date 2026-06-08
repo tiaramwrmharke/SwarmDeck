@@ -84,3 +84,5 @@ export function ModelSelect({
       return () => window.clearTimeout(handle);
     }
     return undefined;
+  }, [open]);
+
