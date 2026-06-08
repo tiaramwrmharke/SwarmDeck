@@ -14,3 +14,4 @@ const ENV_KEYS = [
 const snapshot = captureEnv(ENV_KEYS);
 
 beforeEach(() => {
+  restoreEnv(snapshot);
