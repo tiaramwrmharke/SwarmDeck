@@ -15,3 +15,7 @@ export interface ProviderValidationStatus {
 
 export interface ProviderConfig {
   id: string;
+  kind: ProviderKind;
+  name: string;
+  baseURL: string;
+  credential: CredentialRef;
