@@ -38,3 +38,4 @@ const PERMISSIONS: PermissionMeta[] = [
     key: 'screenRecording',
     labelKey: 'perm.screenRecording',
     reasonZh: '用于截图与界面分析',
+    reasonEn: 'For screenshots and UI inspection',
