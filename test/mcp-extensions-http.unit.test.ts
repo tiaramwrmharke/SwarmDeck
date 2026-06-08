@@ -37,3 +37,7 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
         headers: { Authorization: 'Bearer tok-abc' },
       });
     });
+
+    await withTempHome(async () => {
+      saveUserConfig({
+        extensions: {
