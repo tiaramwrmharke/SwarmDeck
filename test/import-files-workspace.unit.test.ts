@@ -9,3 +9,5 @@ describe('importFilesIntoWorkspace', () => {
   afterEach(() => {
     for (const dir of cleanup) fs.rmSync(dir, { recursive: true, force: true });
     cleanup.length = 0;
+  });
+
