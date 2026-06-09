@@ -102,3 +102,5 @@ function claudeUsesNativeAnthropic(provider: ProviderConfig): boolean {
 
 type AgentInjector = (
   provider: ProviderConfig,
+  profile: ModelProfileConfig,
+  apiKey: string,
