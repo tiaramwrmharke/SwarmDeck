@@ -7,3 +7,5 @@ const DASHBOARD_TAB_ITEMS: ReadonlyArray<{
 }> = [
   { key: 'sessions', labelKey: 'tab.sessions', descriptionKey: 'tabDesc.sessions' },
   { key: 'im', labelKey: 'tab.im', descriptionKey: 'tabDesc.im' },
+  { key: 'agents', labelKey: 'tab.agent', descriptionKey: 'tabDesc.agent' },
+  { key: 'extensions', labelKey: 'tab.extensions', descriptionKey: 'tabDesc.extensions' },

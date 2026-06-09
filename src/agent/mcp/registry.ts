@@ -30,3 +30,5 @@ export type RecommendedScope = 'global' | 'workspace' | 'both';
 
 export interface RecommendedMcpServer {
   id: string;
+  name: string;
+  description: string;
