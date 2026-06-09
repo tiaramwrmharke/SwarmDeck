@@ -47,3 +47,5 @@ describe('formatUsageWindowsSummary', () => {
     u.status = 'warning';
     u.windows = [{
       label: '<1m ago',
+      usedPercent: null,
+      remainingPercent: null,
