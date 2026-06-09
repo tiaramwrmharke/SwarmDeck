@@ -47,3 +47,5 @@ describe('claude sub-agent lifecycle (background/run_in_background default)', ()
     const { out, s } = run([
       SPAWN,
       {
+        type: 'user',
+        message: { content: [{ type: 'tool_result', tool_use_id: 'tu1', content: [{ type: 'text', text: 'Final report: all mapped.' }] }] },

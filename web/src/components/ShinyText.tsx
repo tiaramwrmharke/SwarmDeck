@@ -33,3 +33,4 @@ const ShinyText: React.FC<ShinyTextProps> = ({
   const elapsedRef = useRef(0);
   const lastTimeRef = useRef<number | null>(null);
   const directionRef = useRef(direction === 'left' ? 1 : -1);
+
