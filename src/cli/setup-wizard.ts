@@ -63,3 +63,6 @@ function createTerminalIO(): PromptIO {
         });
         child.on('exit', code => resolve(code ?? 1));
         child.on('error', () => resolve(1));
+      });
+    },
+    close() {

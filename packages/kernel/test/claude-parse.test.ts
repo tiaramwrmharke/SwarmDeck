@@ -90,3 +90,7 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
       { type: 'user', toolUseResult: { task: { id: '1' } }, message: { content: [{ type: 'tool_result', tool_use_id: 'tc1', content: 'Task #1' }] } },
       { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tw1', name: 'TodoWrite', input: { todos: [
         { content: 'fresh todo', status: 'in_progress' },
+      ] } }] } },
+      // The update's id lives in the TaskCreate store → the plan reflects the store AFTER it.
+      { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu1', name: 'TaskUpdate', input: { taskId: '1', status: 'completed' } }] } },
+    ]);
