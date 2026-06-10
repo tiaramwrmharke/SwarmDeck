@@ -34,3 +34,7 @@ describe('sameUserText (image-dedup whitespace robustness)', () => {
     expect(sameUserText('line1\n\nline2', 'line1 line2')).toBe(true);
   });
 
+  it('still distinguishes genuinely different messages', () => {
+    expect(sameUserText('那这个报告说的是什么', '换一个问题')).toBe(false);
+  });
+
