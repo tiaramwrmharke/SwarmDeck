@@ -10,3 +10,6 @@ export class CliSurface implements Surface {
   private rl?: readline.Interface;
   private unsub?: () => void;
 
+  constructor(private readonly opts: { agent?: string; input?: NodeJS.ReadableStream; output?: NodeJS.WritableStream } = {}) {}
+
+  async start(io: LoomIO): Promise<void> {
