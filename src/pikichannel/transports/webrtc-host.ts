@@ -1,0 +1,12 @@
+import type http from 'node:http';
+import type internal from 'node:stream';
+import { WebSocketServer, type WebSocket } from 'ws';
+import { writeScopedLog } from '../../core/logging.js';
+import type { ChannelConnection, ChannelTransport } from '../transport.js';
+import { createAnswerer, type SignalData } from './webrtc-shared.js';
+
+const dlog = (msg: string) => writeScopedLog('pikichannel', `[webrtc] ${msg}`, { level: 'info' });
+
+export class WebRTCTransport implements ChannelTransport {
+  readonly kind = 'webrtc';
+  private wss = new WebSocketServer({ noServer: true });
