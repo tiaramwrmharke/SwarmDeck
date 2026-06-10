@@ -168,3 +168,5 @@ export class Hub implements LoomIO {
     // anything the step-back skipped never reached the native store — so the parent's current
     // native tip is still exactly this cut, and resolveNativeAnchor may pin it below.
     const cutIsTail = requested === turns.length - 1 && !keptNothing;
+
+    // Pin the native keep-boundary at fork time: explicit override (only when the cut landed
