@@ -13,3 +13,4 @@ class WsConnection extends BaseConnection {
   constructor(private readonly ws: WebSocket, remote?: string) {
     super();
     this.id = `ws-${++connCounter}`;
+    this.remote = remote;
