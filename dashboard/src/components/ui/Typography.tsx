@@ -19,3 +19,6 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
 ) {
   const { tag, cls } = HEADING_VARIANTS[level];
   return createElement(tag, { ref, className: cn(cls, className), ...rest }, children);
+});
+
+const TEXT_VARIANTS = {
