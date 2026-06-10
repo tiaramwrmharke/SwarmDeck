@@ -28,3 +28,6 @@ class TestBot extends Bot {
       title: 'Tool Permission Required',
       hint: 'The agent wants to execute a shell command. Please approve or deny.',
       questions: [
+        {
+          id: 'approval',
+          header: 'Shell Command Approval',
