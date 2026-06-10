@@ -28,3 +28,7 @@ class RewindDriver implements AgentDriver {
     ctx.emit({ type: 'session', sessionId: this.nativeId });
     const text = `reply to: ${input.prompt.slice(0, 40)}`;
     ctx.emit({ type: 'text', delta: text });
+    return { ok: true, text, sessionId: this.nativeId, anchor: `${this.nativeId}/a${++this.turn}`, stopReason: 'end_turn' };
+  }
+}
+
