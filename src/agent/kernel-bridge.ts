@@ -71,3 +71,5 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
     // ignored by claude/codex/gemini (they carry MCP via config file / native registration).
     extraMcpServers: mcpRecordToKernelSpecs(opts.mcpServers),
   };
+  // Any registered generic ACP agent (OpenCode, …) -> the kernel's AcpDriver.
+  const acp = acpAgentConfig(opts.agent);
