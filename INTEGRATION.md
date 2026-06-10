@@ -38,3 +38,7 @@ Responsibilities:
 
 - connect and authenticate
 - receive messages / commands / callbacks
+- send, edit, delete messages
+- upload and download files
+- expose channel capability flags
+
