@@ -33,3 +33,6 @@ function resetEnv() {
 
 beforeEach(() => {
   vi.resetModules();
+  spawnMock.mockReset();
+  spawnMock.mockReturnValue({ pid: 4321, unref: vi.fn() } as any);
+  execFileSyncMock.mockReset();

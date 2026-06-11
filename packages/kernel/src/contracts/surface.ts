@@ -51,3 +51,7 @@ export interface ForkSessionResult {
   // How that first dispatch will materialize the branch: resume the parent's native session with
   // a fork flag, or start fresh and replay the copied transcript as a context seed.
   mode: 'native' | 'seed';
+  // Turns skipped by the step-back, in transcript order (the requested cut last) — rounds the
+  // agent refused, which are therefore absent from the branch. Empty on a normal fork. The
+  // caller owns what happens next: a UI typically hands the first prompt back to its composer.
+  droppedTaskIds: string[];
