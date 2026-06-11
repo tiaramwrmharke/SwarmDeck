@@ -41,3 +41,7 @@ export interface LoomConfig {
   systemPromptBuilder?: SystemPromptBuilder;
   catalog?: Catalog;              // discovery of models/effort/tools/skills (app SSOT); default empty
   interactionHandler?: InteractionHandler;  // HITL resolver; default defers to a terminal's interact()
+  serialPerSession?: boolean;     // default true: queue concurrent prompts to one session (no clobber)
+  systemPromptBase?: string;
+  log?: (msg: string) => void;
+}
