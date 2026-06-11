@@ -48,3 +48,6 @@ const AVAILABLE = new Set(
 const IS_CODEX = process.env.MCP_AGENT === 'codex';
 
 const TOOL_MODULES: McpToolModule[] = [
+  ...(AVAILABLE.has('workspace') ? [workspaceTools] : []),
+  ...(IS_CODEX ? [] : [goalTools]),
+  ...(IS_CODEX ? [] : [awaitResumeTools]),

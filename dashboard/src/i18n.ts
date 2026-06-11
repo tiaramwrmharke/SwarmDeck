@@ -285,3 +285,6 @@ const zhCN: Record<string, string> = {
   'hub.nMore': '还有 {n} 个',
   'hub.workspace': '工作区',
   'hub.result': '结果',
+  'hub.plan': '计划',
+  'hub.planProgress': '{done}/{total} 项任务已完成',
+  'hub.planDone': '已完成',
