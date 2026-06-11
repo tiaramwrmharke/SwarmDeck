@@ -38,3 +38,4 @@ export interface LivePreviewOptions {
 export class LivePreview {
   readonly initialText: string;
 
+  private readonly agent: Agent;
