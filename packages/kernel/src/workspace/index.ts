@@ -9,3 +9,11 @@ export {
   type ManagedSessionInfo, type SessionSource, type ListSessionsOptions,
   type SearchSessionsOptions, type SessionsManagerDeps,
 } from './sessions.js';
+export {
+  SkillsManager, ensureDirSymlink, parseSkillMeta,
+  type SkillInfo, type SkillMeta, type SkillSearchResult, type SkillsManagerOptions,
+} from './skills.js';
+export {
+  McpRegistry,
+  type McpCatalogEntry, type McpSearchResult, type McpRegistryOptions,
+} from './mcp.js';
