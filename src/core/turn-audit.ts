@@ -12,3 +12,4 @@ const MAX_AUDIT_BYTES = 2 * 1024 * 1024;
 export interface TurnAuditEntry {
   agent: string;
   sessionId: string | null;
+  ok: boolean;
