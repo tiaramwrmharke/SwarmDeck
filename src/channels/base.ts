@@ -25,3 +25,56 @@ export type ChannelCapability = keyof ChannelCapabilities;
 
 export interface SendOpts {
   replyTo?: number | string;
+  parseMode?: string;
+  keyboard?: any;
+  disablePreview?: boolean;
+  messageThreadId?: number;
+}
+
+export abstract class Channel {
+  bot: BotInfo | null = null;
+  readonly capabilities: ChannelCapabilities = DEFAULT_CHANNEL_CAPABILITIES;
+
+  abstract connect(): Promise<BotInfo>;
+  abstract listen(): Promise<void>;
+  abstract disconnect(): void;
+
+  abstract send(chatId: number | string, text: string, opts?: SendOpts): Promise<number | string | null>;
+  abstract editMessage(chatId: number | string, msgId: number | string, text: string, opts?: SendOpts): Promise<void>;
+  abstract deleteMessage(chatId: number | string, msgId: number | string): Promise<void>;
+  abstract sendTyping(chatId: number | string, opts?: SendOpts): Promise<void>;
+
+  async sendImage(
+    _chatId: number | string,
+    _bytes: Buffer,
+    _opts: { mime: string; caption?: string; replyTo?: number | string; messageThreadId?: number; filename?: string },
+  ): Promise<number | string | null> {
+    throw new Error(`${this.constructor.name} does not implement sendImage`);
+  }
+
+  async setMenu(_commands: MenuCommand[]): Promise<void> {}
+  async clearMenu(): Promise<void> {}
+}
+
+export function supportsChannelCapability(
+  channel: { capabilities?: Partial<ChannelCapabilities> } | null | undefined,
+  capability: ChannelCapability,
+): boolean {
+  return channel?.capabilities?.[capability] ?? false;
+}
+
+export function splitText(text: string, max: number): string[] {
+  if (text.length <= max) return [text];
+  const chunks: string[] = [];
+  let rest = text;
+  while (rest.length > max) {
+    let cut = rest.lastIndexOf('\n', max);
+    if (cut < max * 0.3) cut = max;
+    chunks.push(rest.slice(0, cut));
+    rest = rest.slice(cut);
+  }
+  if (rest) chunks.push(rest);
+  return chunks;
+}
+
+export function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
