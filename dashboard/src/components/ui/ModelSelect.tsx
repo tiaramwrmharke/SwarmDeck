@@ -86,3 +86,7 @@ export function ModelSelect({
     return undefined;
   }, [open]);
 
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    const updatePosition = () => {
+      const trigger = rootRef.current;
