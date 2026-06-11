@@ -15,3 +15,4 @@ export function sendWillQueue(input: SendClassificationInput): boolean {
 }
 
 export interface OptimisticSendQueuedInput {
+  pendingTaskId: string | null | undefined;
