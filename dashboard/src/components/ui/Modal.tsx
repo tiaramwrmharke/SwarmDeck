@@ -27,3 +27,6 @@ export function Modal({ open, onClose, size, wide, panelStyle, children }: Modal
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
