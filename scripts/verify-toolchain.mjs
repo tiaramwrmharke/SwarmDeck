@@ -39,3 +39,7 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(expectedTypeScript ?? '')) {
   fail('devDependencies.typescript must be an exact version');
 }
 const expectedNodeTypes = pkg.devDependencies?.['@types/node'];
+if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(expectedNodeTypes ?? '')) {
+  fail('devDependencies.@types/node must be an exact version');
+}
+expectEqual('@types/node major', expectedNodeTypes.split('.')[0], expectedNode.split('.')[0]);
