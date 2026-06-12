@@ -26,3 +26,7 @@ describe('FeishuChannel.editCard', () => {
   });
 
   it('succeeds silently, swallows not-modified responses, and no-ops on empty markdown', async () => {
+    {
+      const { ch, patchMock } = createTestChannel();
+      patchMock.mockResolvedValue({ code: 0, msg: 'success', data: {} });
+      await expect(
