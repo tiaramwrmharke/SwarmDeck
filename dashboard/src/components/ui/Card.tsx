@@ -22,3 +22,6 @@ const card = tv({
       sm: 'p-2.5',
       md: 'p-4',
       lg: 'p-5',
+    },
+    interactive: {
+      true: 'cursor-pointer hover:border-[var(--edge-strong)] hover:bg-[var(--surface-3)]',
