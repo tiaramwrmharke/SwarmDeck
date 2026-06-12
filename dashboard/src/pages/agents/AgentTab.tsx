@@ -274,3 +274,4 @@ function getCopy(locale: Locale): CopyPack {
       modelGroupProfiles: '我的模型',
       modelPickerEmpty: '没有可选模型',
       modelPickerEmptyHint: '该智能体的官方模型列表为空，且你还没有登记任何"我的模型"。',
+      saveChanges: '保存',
