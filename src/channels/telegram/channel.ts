@@ -193,3 +193,5 @@ function isPollingConflictError(err: unknown): boolean {
   return msg.startsWith('Telegram polling conflict:');
 }
 
+class TelegramChannel extends Channel {
+  override readonly capabilities = {
