@@ -305,3 +305,6 @@ export default function SplashCursor({
       vertexShader: WebGLShader | null;
       fragmentShaderSource: string;
       programs: Record<number, WebGLProgram | null>;
+      activeProgram: WebGLProgram | null;
+      uniforms: Record<string, WebGLUniformLocation | null>;
+

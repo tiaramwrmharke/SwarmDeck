@@ -34,3 +34,5 @@ const ShinyText: React.FC<ShinyTextProps> = ({
   const lastTimeRef = useRef<number | null>(null);
   const directionRef = useRef(direction === 'left' ? 1 : -1);
 
+  const animationDuration = speed * 1000;
+  const delayDuration = delay * 1000;
