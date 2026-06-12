@@ -28,3 +28,4 @@ export class RendezvousBroker {
   private send(ws: WebSocket, msg: unknown): void {
     if (ws.readyState === ws.OPEN) { try { ws.send(JSON.stringify(msg)); } catch {  } }
   }
+
