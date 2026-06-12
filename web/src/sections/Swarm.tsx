@@ -34,3 +34,65 @@ function SwarmStage() {
     <div className="relative h-72 overflow-hidden rounded-3xl border border-white/10 bg-[#070810] sm:h-80">
       {isDesktop ? (
         <InView className="absolute inset-0" keepMounted={false} fallback={placeholder}>
+          <SafeWebGL fallback={placeholder}>
+            <Suspense fallback={placeholder}>
+              <Ballpit
+                count={140}
+                gravity={0.4}
+                friction={0.9975}
+                wallBounce={0.95}
+                followCursor
+                colors={[0x7cff67, 0x38bdf8, 0xa78bfa]}
+                className="absolute inset-0"
+              />
+            </Suspense>
+          </SafeWebGL>
+        </InView>
+      ) : (
+        placeholder
+      )}
+      {caption}
+    </div>
+  );
+}
+
+export default function Swarm() {
+  return (
+    <section className="relative border-y border-white/5 bg-white/[0.015]">
+      <div className="mx-auto max-w-6xl px-6 py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">A swarm by default</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            N agents × N windows × one operator.
+          </h2>
+          <p className="mt-4 text-neutral-400">
+            Most "AI dev tools" assume one user, one agent, one task. swarmdeck assumes the opposite — a swarm of
+            agents at one creator's fingertips, sharing a single unified toolkit.
+          </p>
+        </div>
+
+        <div className="mt-12">
+          <SwarmStage />
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {POINTS.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition hover:border-white/20 hover:bg-white/[0.04]">
+              <div className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-emerald-300">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold text-white">{title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">{desc}</p>
+            </div>
+          ))}
+          <div className="grid place-items-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] p-6 text-center">
+            <div>
+              <div className="font-mono text-sm text-neutral-400">1 · 2 · 3 · 6 panes</div>
+              <p className="mt-1 text-xs text-neutral-500">light / dark · EN / 中文</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
