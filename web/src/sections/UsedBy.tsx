@@ -12,3 +12,7 @@ function brand(Icon: unknown, size = 22): ReactNode {
 function Co({ logo, name }: { logo: ReactNode; name: string }) {
   return (
     <span className="flex items-center gap-2.5 whitespace-nowrap text-lg font-medium tracking-tight text-neutral-300">
+      <span className="grid h-6 w-6 place-items-center">{logo}</span>
+      {name}
+    </span>
+  );

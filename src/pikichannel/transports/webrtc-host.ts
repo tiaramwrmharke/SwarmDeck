@@ -10,3 +10,4 @@ const dlog = (msg: string) => writeScopedLog('pikichannel', `[webrtc] ${msg}`, {
 export class WebRTCTransport implements ChannelTransport {
   readonly kind = 'webrtc';
   private wss = new WebSocketServer({ noServer: true });
+  private onConn: ((conn: ChannelConnection) => void) | null = null;
