@@ -146,3 +146,375 @@
   --th-fg-6: rgba(71,85,105,0.22);
 
   --th-panel: rgba(255,255,255,0.94);
+  --th-panel-h: rgba(255,255,255,0.96);
+  --th-panel-alt: rgba(255,255,255,0.88);
+  --th-inset: rgba(15,23,42,0.05);
+
+  --th-edge: rgba(15,23,42,0.10);
+  --th-edge-h: rgba(15,23,42,0.16);
+  --edge-subtle: rgba(15,23,42,0.06);
+  --edge-default: rgba(15,23,42,0.10);
+  --edge-strong: rgba(15,23,42,0.18);
+
+  --brand-accent: #0f172a;
+  --brand-accent-fg: #f8fafc;
+  --brand-glow-a: rgba(56,189,248,0.24);
+  --brand-glow-b: rgba(139,92,246,0.18);
+  --brand-glow-idle: rgba(56,189,248,0);
+
+  /* Form controls — pure white in light theme so inputs read as fillable. */
+  --th-control-bg: #ffffff;
+  --th-control-bg-h: rgba(255,255,255,0.98);
+  --th-control-border: rgba(15,23,42,0.18);
+  --th-control-border-h: rgba(15,23,42,0.32);
+
+  --th-primary: #0f172a;
+  --th-primary-fg: #f8fafc;
+  --th-primary-h: #020617;
+
+  --th-sidebar: rgba(238,242,246,0.9);
+  --th-header: rgba(238,242,246,0.88);
+  --th-modal-bg: rgba(255,255,255,0.96);
+  --th-overlay: rgba(15,23,42,0.18);
+  --th-dropdown: rgba(255,255,255,0.99);
+
+  --th-grid-dot: rgba(100,116,139,0.1);
+  --th-grad-start: #0f172a;
+  --th-grad-mid: #334155;
+  --th-grad-end: #64748b;
+  --th-glow-a: rgba(100,116,139,0.18);
+  --th-glow-b: rgba(56,189,248,0.1);
+  --th-shimmer-a: rgba(15,23,42,0.045);
+  --th-shimmer-b: rgba(100,116,139,0.12);
+  --th-orb1: rgba(148,163,184,0.12);
+  --th-orb2: rgba(56,189,248,0.08);
+  --th-orb3: rgba(14,165,233,0.05);
+  --th-noise: 0.012;
+  --th-card-shadow: 0 16px 40px rgba(15,23,42,0.1);
+
+  --th-ok: #22c55e;
+  --th-ok-glow: rgba(34,197,94,0.35);
+  --th-warn: #f59e0b;
+  --th-warn-glow: rgba(245,158,11,0.35);
+  --th-err: #ef4444;
+  --th-err-glow: rgba(239,68,68,0.35);
+  --th-info: #0ea5e9;
+  --th-info-glow: rgba(14,165,233,0.35);
+  --th-running: #3b82f6;
+  --th-running-glow: rgba(59,130,246,0.35);
+  --th-idle: rgba(71,85,105,0.45);
+
+  --th-badge-ok-text: #166534;
+  --th-badge-ok-bg: rgba(34,197,94,0.12);
+  --th-badge-ok-border: rgba(34,197,94,0.22);
+  --th-badge-warn-text: #92400e;
+  --th-badge-warn-bg: rgba(245,158,11,0.14);
+  --th-badge-warn-border: rgba(245,158,11,0.24);
+  --th-badge-err-text: #991b1b;
+  --th-badge-err-bg: rgba(239,68,68,0.12);
+  --th-badge-err-border: rgba(239,68,68,0.22);
+  --th-badge-accent-text: #0c4a6e;
+  --th-badge-accent-bg: rgba(14,165,233,0.12);
+  --th-badge-accent-border: rgba(14,165,233,0.22);
+  --th-badge-info-text: #0c4a6e;
+  --th-badge-info-bg: rgba(14,165,233,0.12);
+  --th-badge-info-border: rgba(14,165,233,0.22);
+  --th-badge-running-text: #1e3a8a;
+  --th-badge-running-bg: rgba(59,130,246,0.12);
+  --th-badge-running-border: rgba(59,130,246,0.24);
+  --th-badge-muted-text: rgba(51,65,85,0.82);
+  --th-badge-muted-bg: rgba(255,255,255,0.76);
+  --th-badge-muted-border: rgba(15,23,42,0.12);
+
+  --th-inset-hl: rgba(255,255,255,0.72);
+  --th-selected-bg: rgba(15,23,42,0.06);
+  --th-selected-bg-h: rgba(15,23,42,0.09);
+}
+
+/* ── Tailwind theme tokens ── */
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --color-surface: var(--th-surface);
+  --color-foreground: var(--th-fg);
+
+  --color-fg: var(--th-fg);
+  --color-fg-2: var(--th-fg-2);
+  --color-fg-3: var(--th-fg-3);
+  --color-fg-4: var(--th-fg-4);
+  --color-fg-5: var(--th-fg-5);
+  --color-fg-6: var(--th-fg-6);
+
+  --color-panel: var(--th-panel);
+  --color-panel-h: var(--th-panel-h);
+  --color-panel-alt: var(--th-panel-alt);
+  --color-inset: var(--th-inset);
+
+  --color-edge: var(--th-edge);
+  --color-edge-h: var(--th-edge-h);
+
+  --color-control: var(--th-control-bg);
+  --color-control-h: var(--th-control-bg-h);
+  --color-control-border: var(--th-control-border);
+  --color-control-border-h: var(--th-control-border-h);
+
+  --color-primary: var(--th-primary);
+  --color-primary-fg: var(--th-primary-fg);
+  --color-primary-hover: var(--th-primary-h);
+
+  --color-selected: var(--th-selected-bg);
+  --color-selected-h: var(--th-selected-bg-h);
+
+  --color-ok: var(--th-ok);
+  --color-warn: var(--th-warn);
+  --color-err: var(--th-err);
+  --color-info: var(--th-info);
+  --color-running: var(--th-running);
+  --color-idle: var(--th-idle);
+
+  /* Semantic surface ladder — prefer over panel/panel-alt going forward. */
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-elev: var(--surface-elev);
+
+  /* Hairline edge tokens — prefer over edge/edge-h. */
+  --color-edge-subtle: var(--edge-subtle);
+  --color-edge-default: var(--edge-default);
+  --color-edge-strong: var(--edge-strong);
+
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-fg: var(--brand-accent-fg);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
+
+/* ── Global ── */
+body {
+  background: var(--color-surface);
+  background-image:
+    radial-gradient(circle at top right, rgba(148, 163, 184, 0.08), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(96, 165, 250, 0.06), transparent 24%);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button:not(:disabled) { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+::selection { background: rgba(129, 140, 248, 0.25); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--th-fg-6); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--th-edge-h); }
+
+/* ── Animations ── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.97); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes thinking-dot {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-soft {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-in { animation: fade-in 0.5s cubic-bezier(0.21, 0.47, 0.32, 0.98) both; }
+.animate-in-up { animation: fade-in-up 0.45s cubic-bezier(0.21, 0.47, 0.32, 0.98) both; }
+.animate-in-fade { animation: fade-in-soft 0.28s ease-out both; }
+.animate-scale { animation: scale-in 0.25s ease-out both; }
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+.thinking-dots span {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: thinking-dot 1.4s ease-in-out infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.16s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.32s; }
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--th-shimmer-a) 25%, var(--th-shimmer-b) 50%, var(--th-shimmer-a) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Glass ── */
+.glass {
+  background: var(--th-panel);
+  backdrop-filter: blur(6px) saturate(1.02);
+  border: 1px solid var(--th-edge);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+.glass-strong {
+  background: var(--th-modal-bg);
+  backdrop-filter: blur(24px) saturate(1.08);
+  border: 1px solid var(--th-edge-h);
+}
+
+/* ── Text gradient ── */
+.text-gradient {
+  background: linear-gradient(135deg, var(--th-grad-start) 0%, var(--th-grad-mid) 50%, var(--th-grad-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Dot grid ── */
+.grid-bg {
+  background-image: radial-gradient(var(--th-grid-dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Card glow ── */
+.card-glow { position: relative; }
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--th-glow-a), var(--th-glow-b), transparent 60%);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card-glow:hover::before { opacity: 1; }
+
+/* ── Ambient streaming glow ──
+   Wraps any surface that's currently running an AI stream. Subtle cyan-violet
+   gradient ring + slow breathing pulse. Lovable / Vercel-style — calm when
+   idle (opacity 0), saturated and pulsing only while live. */
+@keyframes ambient-breath {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes ambient-rotate {
+  to { --ambient-angle: 360deg; }
+}
+@property --ambient-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.ambient-glow {
+  position: relative;
+  isolation: isolate;
+}
+.ambient-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--ambient-angle),
+    var(--brand-glow-idle) 0deg,
+    var(--brand-glow-a) 80deg,
+    var(--brand-glow-b) 160deg,
+    var(--brand-glow-idle) 240deg,
+    var(--brand-glow-idle) 360deg
+  );
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+.ambient-glow[data-streaming="true"]::before {
+  opacity: 1;
+  animation: ambient-rotate 6s linear infinite, ambient-breath 2.4s ease-in-out infinite;
+}
+
+/* Tiny verb-phrase status pulse — used inside StatusPill when state="running". */
+@keyframes status-pulse-running {
+  0%, 100% { box-shadow: 0 0 0 0 var(--th-running-glow); }
+  50% { box-shadow: 0 0 0 4px transparent; }
+}
+.status-pulse-running {
+  animation: status-pulse-running 1.6s ease-out infinite;
+}
+
+/* ── Noise overlay ── */
+.noise-overlay::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: var(--th-noise);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+/* ── Layout containment: each panel is an independent compositing layer
+   so re-renders in one panel don't cause reflow/repaint in siblings ── */
+.panel-isolated {
+  contain: layout style paint;
+  will-change: transform;  /* promote to own GPU layer */
+}
+
+.panel-scroll-safe {
+  contain: layout style;
+}
+
+@supports (content-visibility: auto) {
+  /* Off-screen turns skip layout/paint for scroll perf in long sessions. `auto` in
+     contain-intrinsic-size makes the browser REMEMBER each turn's real rendered height and
+     reuse it while skipped — without it the fixed 320px placeholder diverges wildly from a
+     long reply, so the viewport-relevance heuristic mis-skips an on-screen turn and collapses
+     it to a blank box (text "swallowed" until a relayout re-checks it). */
+  .session-turn {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 320px;
+  }
+  /* The most-recent turn streams/grows and the transient pending & live-question bubbles sit at
+     the bottom edge — never skip these, or their actively-changing content blanks mid-render. */
+  .session-turn--live {
+    content-visibility: visible;
+    contain-intrinsic-size: auto;
+  }
+}
+
+/* ── Turn separation: whitespace boundary between conversation rounds ── */
+.session-turn + .session-turn {
+  margin-top: 2rem;
+}
