@@ -109,3 +109,4 @@ export interface StreamOpts {
   codexDeveloperInstructions?: string;
   codexExtraArgs?: string[];
   codexPrevCumulative?: CodexCumulativeUsage;
+  claudeModel?: string;
