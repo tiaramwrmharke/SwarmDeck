@@ -25,3 +25,5 @@ async function loadKeyring(): Promise<KeyringModule | null> {
 }
 
 export function _resetKeychainCache(): void {
+  keyringModule = undefined;
+}
