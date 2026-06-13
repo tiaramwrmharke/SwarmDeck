@@ -7,3 +7,4 @@ const NPM_AGENTS: ReadonlyArray<readonly [string, string]> = [
   ['codex', '@openai/codex'],
   ['gemini', '@google/gemini-cli'],
 ];
+
