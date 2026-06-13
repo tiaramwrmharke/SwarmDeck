@@ -126,3 +126,7 @@ process.stdin.on('data', (c) => {
     } else {
       ONRECOVERY(msg);
     }
+  }
+});
+function ONRECOVERY(msg) {
+${onRecovery}
