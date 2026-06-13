@@ -31,3 +31,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe('WeComChannel frame parsing and send', () => {
+  it('handles heartbeat ack, routes callbacks, dedups, enforces allowlists, and uses correct send commands', async () => {
+    {

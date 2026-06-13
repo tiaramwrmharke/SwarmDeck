@@ -13,3 +13,6 @@ const ACCOUNT_AGENTS = new Set(['claude']);
 export function HeaderUsage({ t }: { t: (key: string) => string }) {
   const agentStatus = useStore(s => s.agentStatus);
   const refreshAgentStatus = useStore(s => s.refreshAgentStatus);
+  const agents = agentStatus?.agents ?? [];
+
+  const nodes = agents.flatMap(agent => {
