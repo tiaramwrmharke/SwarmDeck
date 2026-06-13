@@ -38,3 +38,4 @@ export class SessionRunner {
     this.seq += 1;
     this.onUpdate(this.snapshot, this.seq);
   }
+

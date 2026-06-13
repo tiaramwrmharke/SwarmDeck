@@ -49,3 +49,4 @@ export type DiscordErrorHandler = (err: Error) => void;
 
 const DISCORD_MAX = DISCORD_LIMITS.maxMessageLength;
 
+function describeError(err: unknown): string {
