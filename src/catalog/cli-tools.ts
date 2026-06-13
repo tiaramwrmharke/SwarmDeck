@@ -75,3 +75,5 @@ export const CLI_TOOLS: RecommendedCli[] = [
       win:    [{ label: 'npm', cmd: 'npm i -g vercel' }],
     },
     auth: {
+      type: 'oauth-web',
+      statusArgv: ['vercel', 'whoami'],
