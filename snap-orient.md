@@ -215,3 +215,7 @@
                     - img
                   - button "重跑":
                     - img
+                  - button "编辑":
+                    - img
+              - generic [ref=e310]:
+                - generic [ref=e312]: "Oscillation capture: print 1 to 25, one per line \"N — <word>\". No preamble."

@@ -353,3 +353,6 @@ export function FeishuModal({ open, onClose }: { open: boolean; onClose: () => v
 }
 
 export function WeixinModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const state = useStore(s => s.state);
+  const toast = useStore(s => s.toast);
+  const reloadUntil = useStore(s => s.reloadUntil);

@@ -106,3 +106,5 @@ function applySessionUpdate(state: StreamState, update: any): boolean {
       if (typeof update.used === 'number') state.contextUsedTokens = update.used;
       return true;
     }
+    default:
+      return false;
