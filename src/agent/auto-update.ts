@@ -104,3 +104,6 @@ function updaterLockPath(): string {
   return path.join(os.homedir(), STATE_DIR_NAME, 'agent-auto-update.lock');
 }
 
+function normalizeBooleanEnv(value: string | undefined): boolean | null {
+  const text = String(value || '').trim();
+  if (!text) return null;
