@@ -31,3 +31,34 @@ const STATE_TO_BG: Record<StatusState, string> = {
   idle: 'bg-transparent border-[var(--edge-subtle)]',
 };
 
+export interface StatusPillProps extends HTMLAttributes<HTMLSpanElement> {
+  state: StatusState;
+  label: ReactNode;
+  detail?: ReactNode;
+  shape?: 'pill' | 'rect';
+}
+
+export const StatusPill = forwardRef<HTMLSpanElement, StatusPillProps>(function StatusPill(
+  { state, label, detail, shape = 'pill', className, ...rest },
+  ref,
+) {
+  return (
+    <span
+      ref={ref}
+      className={cn(
+        'inline-flex h-6 items-center gap-1.5 border px-2 text-[11px] font-medium tracking-[0.01em]',
+        shape === 'pill' ? 'rounded-full' : 'rounded-md',
+        STATE_TO_BG[state],
+        STATE_TO_TEXT[state],
+        className,
+      )}
+      {...rest}
+    >
+      <Dot tone={STATE_TO_DOT[state]} pulse={state === 'running'} />
+      <span className="truncate">{label}</span>
+      {detail && (
+        <span className="font-mono text-[10px] text-fg-5 ml-0.5">{detail}</span>
+      )}
+    </span>
+  );
+});
