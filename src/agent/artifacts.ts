@@ -55,3 +55,121 @@ export function stageDeliveredArtifact(
   const dir = deliveredDir(agent, sessionId);
   fs.mkdirSync(dir, { recursive: true });
   const stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const dest = path.join(dir, `${stamp}-${fileName}`);
+  try {
+    fs.linkSync(srcPath, dest);
+  } catch {
+    fs.copyFileSync(srcPath, dest);
+  }
+  return { path: dest, fileName, fileSize: stat.size, fileMime: mimeForArtifact(fileName) };
+}
+
+export function recordDeliveredArtifact(agent: Agent, sessionId: string, entry: DeliveredArtifact): void {
+  try {
+    const file = manifestPath(agent, sessionId);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.appendFileSync(file, JSON.stringify(entry) + '\n');
+  } catch (e: any) {
+    agentWarn(`[artifacts] record failed: ${e?.message || e}`);
+  }
+}
+
+export function deliverArtifact(
+  agent: Agent,
+  sessionId: string,
+  srcPath: string,
+  opts: { kind: ArtifactKind; caption?: string; taskId?: string },
+): DeliveredArtifact | null {
+  try {
+    const staged = stageDeliveredArtifact(agent, sessionId, srcPath);
+    const record: DeliveredArtifact = {
+      ts: Date.now(),
+      ...(opts.taskId ? { taskId: opts.taskId } : {}),
+      path: staged.path,
+      fileName: staged.fileName,
+      fileMime: staged.fileMime,
+      fileSize: staged.fileSize,
+      kind: opts.kind,
+      ...(opts.caption ? { caption: opts.caption } : {}),
+    };
+    recordDeliveredArtifact(agent, sessionId, record);
+    return record;
+  } catch (e: any) {
+    agentWarn(`[artifacts] deliver failed for ${srcPath}: ${e?.message || e}`);
+    return null;
+  }
+}
+
+export function readDeliveredArtifacts(agent: Agent, sessionId: string): DeliveredArtifact[] {
+  const file = manifestPath(agent, sessionId);
+  let raw: string;
+  try { raw = fs.readFileSync(file, 'utf-8'); } catch { return []; }
+  const out: DeliveredArtifact[] = [];
+  for (const line of raw.split('\n')) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      const rec = JSON.parse(t) as DeliveredArtifact;
+      if (rec && typeof rec.path === 'string' && rec.fileName) out.push(rec);
+    } catch {  }
+  }
+  return out;
+}
+
+export function latestDeliveredTaskId(agent: Agent, sessionId: string): string | undefined {
+  let latest: DeliveredArtifact | undefined;
+  for (const a of readDeliveredArtifacts(agent, sessionId)) {
+    if (a.taskId && (!latest || a.ts >= latest.ts)) latest = a;
+  }
+  return latest?.taskId;
+}
+
+export function tailDeliveredBlocks(
+  agent: Agent,
+  sessionId: string,
+  lastRunTaskId: string | null | undefined,
+): MessageBlock[] {
+  // Surface only the files the LAST-RUN turn delivered, scoped to that turn's task id (the live
+  // stream snapshot's taskId, which persists after the turn ends). Keying on the last *run* task
+  // — not the last *delivering* task — is what stops the bleed: once any newer turn runs, even one
+  // that delivered nothing, the filter matches nothing and a prior turn's image stops re-appending
+  // onto the reply. With no known task (cold start / snapshot lost) show nothing rather than guess
+  // by an elapsed-time threshold, which is what previously let stale deliveries leak for an hour.
+  if (!lastRunTaskId) return [];
+  const filter = (a: DeliveredArtifact) => a.taskId === lastRunTaskId;
+  return readDeliveredArtifacts(agent, sessionId).some(filter)
+    ? deliveredArtifactBlocks(agent, sessionId, filter)
+    : [];
+}
+
+export function deliveredArtifactBlocks(
+  agent: Agent,
+  sessionId: string,
+  filter?: (a: DeliveredArtifact) => boolean,
+): MessageBlock[] {
+  const blocks: MessageBlock[] = [];
+  for (const a of readDeliveredArtifacts(agent, sessionId)) {
+    if (filter && !filter(a)) continue;
+    if (!fs.existsSync(a.path)) continue;
+    if (a.kind === 'photo' && PHOTO_EXTS.has(path.extname(a.fileName).toLowerCase())) {
+      blocks.push({
+        type: 'image',
+        content: `file://${a.path}`,
+        imagePath: a.path,
+        imageMime: a.fileMime,
+        ...(a.caption ? { imageCaption: a.caption } : {}),
+      });
+    } else {
+      blocks.push({
+        type: 'file',
+        content: `file://${a.path}`,
+        filePath: a.path,
+        fileMime: a.fileMime,
+        fileName: a.fileName,
+        fileSize: a.fileSize,
+        ...(a.caption ? { fileCaption: a.caption } : {}),
+      });
+    }
+  }
+  return blocks;
+}
