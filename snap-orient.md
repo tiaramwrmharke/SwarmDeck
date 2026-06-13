@@ -219,3 +219,7 @@
                     - img
               - generic [ref=e310]:
                 - generic [ref=e312]: "Oscillation capture: print 1 to 25, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
+                    - img
+                  - button "重跑":
