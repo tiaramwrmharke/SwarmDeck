@@ -130,3 +130,5 @@ const useAnimationLoop = (
   const velocityRef = useRef(0);
 
   useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;

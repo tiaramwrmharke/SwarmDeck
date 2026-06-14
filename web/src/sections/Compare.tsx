@@ -14,3 +14,4 @@ const ROWS: { feature: string; cells: [string, string, string, string] }[] = [
 
 export default function Compare() {
   return (
+    <section id="compare" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
