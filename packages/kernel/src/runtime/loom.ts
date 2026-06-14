@@ -46,3 +46,4 @@ export interface LoomConfig {
   log?: (msg: string) => void;
 }
 
+export interface Loom {
