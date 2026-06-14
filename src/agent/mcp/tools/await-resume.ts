@@ -16,3 +16,7 @@ const tools: McpToolModule['tools'] = [
       'The marker is cleared automatically the next time this session runs, so you never need to clear it yourself.',
     ].join('\n'),
     inputSchema: {
+      type: 'object' as const,
+      properties: {
+        reason: {
+          type: 'string',
