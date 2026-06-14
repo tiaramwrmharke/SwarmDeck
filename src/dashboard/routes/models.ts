@@ -41,3 +41,6 @@ router.get('/api/models/catalog', async c => {
       ok: true,
       providers: providers.map(p => ({
         id: p.id,
+        name: p.name,
+        api: p.api,
+        doc: p.doc,
