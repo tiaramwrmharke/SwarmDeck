@@ -67,3 +67,7 @@ function snapshotCredsForChannel(channel: ChannelName, config: Partial<UserConfi
         appToken: String(config.slackAppToken || '').trim(),
       });
     case 'discord':
+      return JSON.stringify({
+        botToken: String(config.discordBotToken || '').trim(),
+      });
+    case 'dingtalk':

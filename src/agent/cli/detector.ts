@@ -36,3 +36,4 @@ function runArgv(argv: string[], timeoutMs: number): Promise<{ ok: boolean; stdo
         stderr: stderr?.toString() || '',
         code: typeof exitCode === 'number' ? exitCode : null,
       });
+    });
