@@ -13,3 +13,4 @@ export class CliSurface implements Surface {
   constructor(private readonly opts: { agent?: string; input?: NodeJS.ReadableStream; output?: NodeJS.WritableStream } = {}) {}
 
   async start(io: LoomIO): Promise<void> {
+    const out = this.opts.output || process.stdout;
