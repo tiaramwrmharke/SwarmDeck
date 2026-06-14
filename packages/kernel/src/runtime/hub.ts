@@ -174,3 +174,7 @@ export class Hub implements LoomIO {
     // → the kept turn's recorded anchor → the parent's CURRENT tail (tail cuts only). A mid cut
     // that can't be anchored falls back to a seed fork — a tail-anchored native fork there would
     // silently absorb the dropped turns, which is worse than the seed's lower fidelity.
+    const cutTurn = kept[kept.length - 1] ?? null;
+    const cutTaskId = cutTurn?.taskId ?? null;
+    const overrideAnchor = droppedTaskIds.length ? null : input.anchor ?? null;
+    const mappedAnchor = cutTaskId ? input.anchors?.[cutTaskId] ?? null : null;
