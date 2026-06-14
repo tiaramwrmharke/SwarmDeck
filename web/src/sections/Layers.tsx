@@ -14,3 +14,6 @@ export default function Layers() {
           so any terminal can talk to any agent, on any model, through any tool.
         </p>
       </div>
+
+      <div className="mt-14 grid gap-5 sm:grid-cols-2">
+        {LAYERS.map((layer) => (
