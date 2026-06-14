@@ -54,3 +54,5 @@ function PageWrapper({ title, description, children }: { title: string; descript
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-[1120px] px-5 py-3">
+        <div className="mb-3 border-b border-edge pb-2">
+          <div className="min-w-0">
