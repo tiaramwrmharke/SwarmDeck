@@ -134,3 +134,6 @@ export function decodeCommandAction(data: string): CommandAction | null {
     if (!sessionId) return null;
     return { kind: 'session.switch', sessionId };
   }
+  if (data.startsWith('agacc:')) {
+    const rest = data.slice(6);
+    const sep = rest.indexOf(':');
