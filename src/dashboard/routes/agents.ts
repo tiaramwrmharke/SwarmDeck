@@ -113,3 +113,7 @@ async function installAgentViaNpm(agent: Agent, log: (msg: string) => void): Pro
   });
   if (!result.ok && /ENOTEMPTY/.test(result.stderr)) {
     const removed = cleanupNpmStagingFromError(result.stderr);
+    if (removed.length > 0) {
+      log(`Cleaned npm staging dirs after ENOTEMPTY: ${removed.join(', ')}; retrying...`);
+      result = await runCommand('npm', ['install', '-g', `${pkg}@latest`], {
+        timeoutMs: AGENT_INSTALL_TIMEOUT_MS,
