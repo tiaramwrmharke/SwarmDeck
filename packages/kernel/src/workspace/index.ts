@@ -3,3 +3,4 @@
 // (Native-session discovery lives with the drivers — drivers/native.ts — because knowing each
 // agent CLI's on-disk transcript format is driver-axis knowledge.)
 
+export { resolveLoomPaths, normalizeStateDirName, type LoomPaths, type LoomScope } from './paths.js';
