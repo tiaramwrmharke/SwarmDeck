@@ -18,3 +18,5 @@ export const SUBHEAD =
 export const AGENTS = ['Claude Code', 'Codex', 'Gemini', 'Hermes'];
 export const MODELS = [
   'Claude',
+  'GPT',
+  'Gemini',
