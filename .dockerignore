@@ -17,3 +17,4 @@ dashboard/node_modules
 **/Thumbs.db
 
 # Git internals (the image doesn't need history).
+.git
