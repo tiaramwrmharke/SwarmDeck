@@ -151,3 +151,4 @@ export function resolveOpenPathLocator(rawPath: string, basePath?: string | null
     : path.resolve(resolveOpenBasePath(basePath), expanded);
   return splitExistingLineSuffix(absolute);
 }
+
