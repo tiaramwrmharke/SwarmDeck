@@ -142,3 +142,6 @@
                   - img [ref=e202]
                 - button "扩展插件" [ref=e203]:
                   - img [ref=e204]
+                - button [ref=e206]:
+                  - img [ref=e207]
+                - button [ref=e210]:

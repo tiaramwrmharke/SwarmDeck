@@ -126,3 +126,5 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
     },
     {
       channel: 'dingtalk',
+      configured: dingtalkConfigured,
+      ready: false,
