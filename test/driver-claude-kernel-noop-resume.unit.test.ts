@@ -38,3 +38,4 @@ describe('isClaudeSlashCommand', () => {
     expect(isClaudeSlashCommand('/model claude-opus-4-8')).toBe(true);
     expect(isClaudeSlashCommand('/my-command')).toBe(true);
     expect(isClaudeSlashCommand('/plugin:skill')).toBe(true);
+    expect(isClaudeSlashCommand('  /compact')).toBe(true); // leading whitespace tolerated
