@@ -327,3 +327,4 @@ export interface ClaudeScreenInfo {
  */
 export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
   if (typeof screen !== 'string' || !screen) return { state: 'unknown', affirmativeKey: null, sample: '' };
+  const stripped = stripAnsiEscapes(screen);
