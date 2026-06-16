@@ -39,3 +39,4 @@ export class SessionRunner {
     this.onUpdate(this.snapshot, this.seq);
   }
 
+  async run(driver: AgentDriver, input: AgentTurnInput, prompt: string, model: string | null, effort: string | null): Promise<DriverResult> {
