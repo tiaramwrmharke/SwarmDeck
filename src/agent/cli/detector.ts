@@ -37,3 +37,7 @@ function runArgv(argv: string[], timeoutMs: number): Promise<{ ok: boolean; stdo
         code: typeof exitCode === 'number' ? exitCode : null,
       });
     });
+  });
+}
+
+function which(binary: string): string | null {
