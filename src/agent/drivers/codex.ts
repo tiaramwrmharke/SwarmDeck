@@ -358,3 +358,7 @@ function summarizeCodexToolCall(item: any): CodexActiveToolCall | null {
   const rawName = codexToolName(item);
   const kind = codexToolKind(rawName);
   const args = parseCodexArguments(codexToolArgs(item));
+  switch (kind) {
+    case 'apply_patch': return { kind, summary: 'Edit files' };
+    case 'exec_command': {
+      const command = args && typeof args === 'object' && !Array.isArray(args) ? (args as any).cmd : null;
