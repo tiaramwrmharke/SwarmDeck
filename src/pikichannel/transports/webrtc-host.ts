@@ -11,3 +11,7 @@ export class WebRTCTransport implements ChannelTransport {
   readonly kind = 'webrtc';
   private wss = new WebSocketServer({ noServer: true });
   private onConn: ((conn: ChannelConnection) => void) | null = null;
+
+  start(onConnection: (conn: ChannelConnection) => void): void {
+    this.onConn = onConnection;
+    this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => this.runSignaling(ws, req));
