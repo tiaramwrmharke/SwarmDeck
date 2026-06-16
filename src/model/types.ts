@@ -19,3 +19,6 @@ export interface ProviderConfig {
   name: string;
   baseURL: string;
   credential: CredentialRef;
+  extraHeaders?: Record<string, string>;
+  validation?: ProviderValidationStatus | null;
+  createdAt: string;
