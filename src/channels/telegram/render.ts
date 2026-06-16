@@ -96,3 +96,5 @@ function formatCommandButtonLabel(button: CommandActionButton, maxChars = 24): s
     ? `${selectionStateSymbol(button.state)} `
     : '';
   return truncateMiddle(`${prefix}${button.label}`.trim(), maxChars);
+}
+
