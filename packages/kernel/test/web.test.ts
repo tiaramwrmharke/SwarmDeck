@@ -29,3 +29,7 @@ describe('WebSurface (UniversalSnapshot wire protocol over ws)', () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-web-'));
     web = new WebSurface({ port: 0 });
     loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', sessionStore: new FsSessionStore(tmp), surfaces: [web] });
+    await loom.start();
+  });
+  afterEach(async () => { await loom.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
+
