@@ -178,3 +178,4 @@ export class Hub implements LoomIO {
     const cutTaskId = cutTurn?.taskId ?? null;
     const overrideAnchor = droppedTaskIds.length ? null : input.anchor ?? null;
     const mappedAnchor = cutTaskId ? input.anchors?.[cutTaskId] ?? null : null;
+    let anchor = overrideAnchor ?? mappedAnchor ?? cutTurn?.anchor ?? null;
