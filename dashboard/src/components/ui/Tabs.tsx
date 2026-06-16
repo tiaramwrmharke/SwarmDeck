@@ -8,3 +8,6 @@ export function TabsList({ children, className }: { children: ReactNode; classNa
     </div>
   );
 }
+
+export function TabsTrigger({
+  active,
