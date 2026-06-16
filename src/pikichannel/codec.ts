@@ -11,3 +11,5 @@ export function encodeServer(msg: ServerMessage, _fmt: WireFormat = DEFAULT_WIRE
 export function encodeClient(msg: ClientMessage, _fmt: WireFormat = DEFAULT_WIRE_FORMAT): string {
   return JSON.stringify(msg);
 }
+
+function frameToText(raw: string | Buffer | ArrayBuffer): string {
