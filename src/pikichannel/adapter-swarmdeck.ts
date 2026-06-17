@@ -41,3 +41,4 @@ function projectInteractions(snap: StreamSnapshot): UniversalInteraction[] | und
     currentIndex: it.currentIndex,
     questions: (it.questions || []).map((q: any) => ({
       id: String(q.id),
+      header: q.header ?? undefined,
