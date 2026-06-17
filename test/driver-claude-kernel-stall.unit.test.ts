@@ -49,3 +49,6 @@ describe('claudeModelStallMs', () => {
     delete process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
     expect(claudeModelStallMs()).toBe(300_000);
     expect(claudeModelStallMs('low')).toBe(300_000);
+    expect(claudeModelStallMs('medium')).toBe(300_000);
+    for (const effort of ['high', 'xhigh', 'max', 'ultra']) expect(claudeModelStallMs(effort)).toBe(600_000);
+  });
