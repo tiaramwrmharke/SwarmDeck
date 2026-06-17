@@ -23,3 +23,5 @@ export interface StdioRpcOptions {
 const STDERR_TAIL_LINES = 20;
 
 export class StdioRpcClient {
+  private proc: ChildProcess | null = null;
+  private nextId = 1;
