@@ -28,3 +28,6 @@ export function _resetKeychainCache(): void {
   keyringModule = undefined;
 }
 
+export async function isKeychainAvailable(): Promise<boolean> {
+  return (await loadKeyring()) !== null;
+}
