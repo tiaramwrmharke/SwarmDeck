@@ -16,3 +16,4 @@ function Co({ logo, name }: { logo: ReactNode; name: string }) {
       {name}
     </span>
   );
+}
