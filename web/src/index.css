@@ -40,3 +40,5 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Thin custom scrollbar to match the dark canvas. */
+::-webkit-scrollbar {
