@@ -33,3 +33,6 @@ const NONE = [agent('claude', false), agent('codex', false)];
 describe('isSetupReady — dashboard is a first-class terminal', () => {
   it('is ready with an installed agent and NO channel configured', () => {
     const state = collectSetupState({ agents: CLAUDE_ONLY, channel: 'telegram', tokenProvided: false });
+    expect(isSetupReady(state)).toBe(true);
+  });
+
