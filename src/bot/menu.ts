@@ -21,3 +21,6 @@ export function buildSkillCommandName(skillName: string): string | null {
   const normalized = skillName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
   if (!normalized) return null;
   const cmdName = `${SKILL_CMD_PREFIX}${normalized}`;
+  if (cmdName.length > 32) return null;
+  return cmdName;
+}
