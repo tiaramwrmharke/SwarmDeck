@@ -11,3 +11,5 @@ export function UsageRing({ percent, tone, trackTone, alert = false, size = 14 }
   tone: UsageTone;
   trackTone?: UsageTone;
   alert?: boolean;
+  size?: number;
+}) {
