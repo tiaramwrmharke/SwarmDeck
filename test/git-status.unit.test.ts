@@ -29,3 +29,7 @@ describe('parseGitStatusV2', () => {
       '1 MM N... 100644 100644 100644 aaa bbb both.txt',
       'u UU N... 100644 100644 100644 100644 aaa bbb ccc conflict.txt',
       '? untracked.txt',
+    ].join('\n');
+    const g = parseGitStatusV2(out);
+    expect(g.ahead).toBe(2);
+    expect(g.behind).toBe(1);
