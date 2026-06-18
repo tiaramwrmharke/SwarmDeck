@@ -34,3 +34,4 @@ export default function Stats() {
       .then((counts) => {
         const total = counts.reduce((sum, n) => sum + n, 0);
         setDownloads(total > 0 ? total : FALLBACK_DOWNLOADS);
+      })
