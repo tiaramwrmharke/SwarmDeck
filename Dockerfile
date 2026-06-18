@@ -42,3 +42,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Install with full deps so tsc + vite are available.
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
