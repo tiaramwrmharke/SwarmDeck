@@ -24,3 +24,5 @@ export interface AgentInstallSpec {
   command: string;
   docsUrl?: string;
   note?: string;
+}
+
