@@ -26,3 +26,5 @@ export function CollapsibleCard({
   dot?: { color: string; pulse?: boolean };
   label: string;
   preview?: ReactNode;
+  badge?: ReactNode;
+  collapsedContent?: ReactNode;
