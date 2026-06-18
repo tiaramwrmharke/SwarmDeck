@@ -31,3 +31,6 @@ describe('humanizeCodexError — ChatGPT-account rejects third-party models', ()
   it('passes unrelated errors through untouched', () => {
     expect(humanizeCodexError('turn/start failed')).toBe('turn/start failed');
   });
+
+  it('returns null for empty input (so the `||` error chain keeps falling through)', () => {
+    expect(humanizeCodexError(null)).toBeNull();
