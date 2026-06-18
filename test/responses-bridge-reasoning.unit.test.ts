@@ -24,3 +24,7 @@ async function runBridge(sseLines: string[]): Promise<Array<{ type: string; data
     res.end();
   });
   await new Promise<void>(r => upstream!.listen(0, '127.0.0.1', () => r()));
+  const upstreamBase = `http://127.0.0.1:${(upstream!.address() as any).port}/v1`;
+
+  const port = await ensureResponsesBridge();
+  const url = `http://127.0.0.1:${port}/u/${upstreamToken(upstreamBase)}/responses`;
