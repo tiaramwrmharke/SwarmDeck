@@ -25,3 +25,6 @@ describe('dashboard file link parsing', () => {
   it('rejects web URLs, domains, and version-like tokens', () => {
     expect(isFileLocator('https://example.com/file.ts')).toBe(false);
     expect(isFileLocator('github.com/openai')).toBe(false);
+    expect(isFileLocator('v0.4.15')).toBe(false);
+  });
+});
