@@ -14,3 +14,6 @@ npm --prefix web run dev        # local preview at http://localhost:4321
 
 ## Recommended: Cloudflare Pages (free, git auto-deploy, global CDN, free SSL)
 
+Chosen because: zero cost, automatic deploy on every push, free wildcard SSL,
+**no ICP filing required**, and the most reliable reachability from mainland China
+among the international free hosts (better than Vercel / github.io).
