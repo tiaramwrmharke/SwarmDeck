@@ -19,3 +19,6 @@ export function Tooltip({ content, side = 'bottom', delayMs = 120, onShow, child
   const timerRef = useRef<number | null>(null);
   const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
 
+  useEffect(() => () => {
+    if (timerRef.current != null) window.clearTimeout(timerRef.current);
+  }, []);
