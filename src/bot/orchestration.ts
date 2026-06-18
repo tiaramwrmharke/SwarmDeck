@@ -29,3 +29,6 @@ export function buildKnownChatEnv(
   envName: string,
 ): Record<string, string> {
   const ids = new Set<string>();
+  for (const id of allowedChatIds) ids.add(String(id));
+  for (const id of knownChatIds) ids.add(String(id));
+  return ids.size ? { [envName]: [...ids].join(',') } : {};
