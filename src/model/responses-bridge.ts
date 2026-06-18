@@ -109,3 +109,4 @@ async function handleResponses(
   let seq = 0;
   const emit = (type: string, extra: Record<string, unknown>) => {
     res.write(`event: ${type}\n`);
+    res.write(`data: ${JSON.stringify({ type, sequence_number: seq++, ...extra })}\n\n`);
