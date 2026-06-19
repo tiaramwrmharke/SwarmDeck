@@ -44,3 +44,4 @@ describe('goal state CRUD and accountTurn budget enforcement', () => {
     clearGoal(workdir, AGENT, sid);
     expect(readGoal(workdir, AGENT, sid)).toBeNull();
 
+    setGoal(workdir, AGENT, sid, { objective: 'x' });
