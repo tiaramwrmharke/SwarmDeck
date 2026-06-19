@@ -15,3 +15,6 @@ const STATE_TO_DOT: Record<StatusState, DotTone> = {
 
 const STATE_TO_TEXT: Record<StatusState, string> = {
   running: 'text-[var(--th-badge-running-text)]',
+  ok: 'text-[var(--th-badge-ok-text)]',
+  warn: 'text-[var(--th-badge-warn-text)]',
+  err: 'text-[var(--th-badge-err-text)]',

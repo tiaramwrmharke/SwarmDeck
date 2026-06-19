@@ -42,3 +42,7 @@ function projectInteractions(snap: StreamSnapshot): UniversalInteraction[] | und
     questions: (it.questions || []).map((q: any) => ({
       id: String(q.id),
       header: q.header ?? undefined,
+      text: String(q.prompt ?? q.text ?? q.label ?? ''),
+      type: q.type,
+      choices: Array.isArray(q.options ?? q.choices)
+        ? (q.options ?? q.choices).map((c: any) => ({ label: String(c.label ?? c), description: c.description ?? undefined, value: c.value ?? c.label }))
