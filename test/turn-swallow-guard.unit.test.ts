@@ -135,3 +135,6 @@ process.stdin.on('end', () => process.exit(0));
 process.stdin.on('close', () => process.exit(0));
 `);
   chmodSync(bin, 0o755);
+  return bin;
+}
+
