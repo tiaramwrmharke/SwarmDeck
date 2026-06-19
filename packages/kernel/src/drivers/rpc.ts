@@ -26,3 +26,6 @@ export class StdioRpcClient {
   private proc: ChildProcess | null = null;
   private nextId = 1;
   private readonly pending = new Map<number, (m: RpcMsg) => void>();
+  private notifyCb?: (method: string, params: any) => void;
+  private requestCb?: (method: string, params: any, id: number | string) => any | Promise<any>;
+  private closeCb?: () => void;
