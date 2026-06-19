@@ -8,3 +8,5 @@ describe('dashboard upload filenames', () => {
 
     expect(reserveUploadFileName('image.png', 'image/png', 0, used)).toBe('image.png');
     expect(reserveUploadFileName('image.png', 'image/png', 1, used)).toBe('image-2.png');
+    expect(reserveUploadFileName('image.png', 'image/png', 2, used)).toBe('image-3.png');
+  });
