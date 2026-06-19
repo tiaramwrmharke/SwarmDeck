@@ -14,3 +14,7 @@ import Layers from '@/sections/Layers';
 import Compare from '@/sections/Compare';
 import BuiltWithItself from '@/sections/BuiltWithItself';
 import Footer from '@/sections/Footer';
+
+export default function App() {
+  const isDesktop = useIsDesktop();
+
