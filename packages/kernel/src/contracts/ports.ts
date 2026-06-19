@@ -29,3 +29,5 @@ export interface CoreSessionRecord {
   // process (owner pid alive) during boot reconciliation — see SessionStore.reconcileRunning.
   runPid?: number | null;
   runStartedAt?: number | null;
+  // Fork lineage: set once at Hub.forkSession and never cleared — consumers use it to label
+  // the branch. `taskId` is the last KEPT parent turn (null = forked at the parent's tail).
