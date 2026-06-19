@@ -47,3 +47,6 @@ We never rewrite the brain. When an agent ships a new capability — a workflow 
 
 ```
             ┌─────────────────────────────────────────────┐
+ Terminals  │  Telegram · Feishu · WeChat · Slack · Discord │  ← drive from anywhere
+            │  DingTalk · WeCom · Web Dashboard · CLI       │
+            ├─────────────────────────────────────────────┤
