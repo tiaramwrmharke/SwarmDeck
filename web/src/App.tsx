@@ -10,3 +10,7 @@ import Orchestrator from '@/sections/Orchestrator';
 import Swarm from '@/sections/Swarm';
 import InAction from '@/sections/InAction';
 import Channels from '@/sections/Channels';
+import Layers from '@/sections/Layers';
+import Compare from '@/sections/Compare';
+import BuiltWithItself from '@/sections/BuiltWithItself';
+import Footer from '@/sections/Footer';

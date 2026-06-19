@@ -77,3 +77,5 @@ export class PikichannelHost {
   private lastFull = new Map<string, UniversalSnapshot>();
   private lastSeq = new Map<string, number>();
 
+  constructor(
+    private readonly source: SessionSource,
