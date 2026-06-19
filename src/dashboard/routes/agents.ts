@@ -117,3 +117,6 @@ async function installAgentViaNpm(agent: Agent, log: (msg: string) => void): Pro
       log(`Cleaned npm staging dirs after ENOTEMPTY: ${removed.join(', ')}; retrying...`);
       result = await runCommand('npm', ['install', '-g', `${pkg}@latest`], {
         timeoutMs: AGENT_INSTALL_TIMEOUT_MS,
+      });
+    }
+  }

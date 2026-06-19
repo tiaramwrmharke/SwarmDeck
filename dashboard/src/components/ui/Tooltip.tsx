@@ -22,3 +22,7 @@ export function Tooltip({ content, side = 'bottom', delayMs = 120, onShow, child
   useEffect(() => () => {
     if (timerRef.current != null) window.clearTimeout(timerRef.current);
   }, []);
+
+  const hide = () => {
+    if (timerRef.current != null) { window.clearTimeout(timerRef.current); timerRef.current = null; }
+    setPos(null);
