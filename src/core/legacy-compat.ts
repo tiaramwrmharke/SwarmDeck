@@ -14,3 +14,4 @@ export function hydrateLegacyEnv(): void {
       if (value === undefined) continue;
       if (!key.startsWith(legacy)) continue;
       const mapped = ENV_PREFIX + key.slice(legacy.length);
+      if (process.env[mapped] === undefined) process.env[mapped] = value;
