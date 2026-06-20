@@ -27,3 +27,4 @@ function writeTranscript(lines: string[]): void {
   fs.writeFileSync(file, lines.join('\n') + '\n');
 }
 
+beforeEach(() => {

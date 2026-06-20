@@ -23,3 +23,6 @@ process.stdin.on('data', (d) => {
     if (!line.trim()) continue; let m; try { m = JSON.parse(line); } catch { continue; }
     const text = m?.message?.content?.[0]?.text || '';
     count++;
+    out({ type:'stream_event', event:{ type:'content_block_delta', delta:{ type:'text_delta', text:'['+text+']' } } });
+    if (count >= 2) out({ type:'result', session_id:'cl-steer-1', is_error:false, stop_reason:'end_turn', usage:{ input_tokens:5, output_tokens:2 } });
+  }
