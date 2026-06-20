@@ -10,3 +10,4 @@ export function makeStreamResult(
     thinking: null,
     plan: null,
     sessionId: 'sess-1',
+    workspacePath: null,
