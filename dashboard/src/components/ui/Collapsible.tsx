@@ -28,3 +28,6 @@ export function CollapsibleCard({
   preview?: ReactNode;
   badge?: ReactNode;
   collapsedContent?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+}) {
