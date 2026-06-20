@@ -47,3 +47,4 @@ describe('browser-supervisor', () => {
     expect(b.cdpEndpoint).toBe('http://127.0.0.1:39222');
     expect(c.cdpEndpoint).toBe('http://127.0.0.1:39222');
 
+    await supervisor.ensureManagedBrowser();
