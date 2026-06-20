@@ -14,3 +14,6 @@ describe('kernel-bridge final usage projection', () => {
       contextUsedTokens: 72_150,
       contextPercent: 7.5,
       turnOutputTokens: 350,
+    });
+    expect(fields).toEqual({
+      inputTokens: 60_000,
