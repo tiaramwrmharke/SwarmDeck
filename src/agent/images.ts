@@ -87,3 +87,6 @@ export interface AttachAgentImageOpts {
 export function attachAgentImage(opts: AttachAgentImageOpts): MessageBlock | null {
   const abs = path.resolve(opts.imagePath);
   let stat: fs.Stats;
+  try { stat = fs.statSync(abs); } catch (err: any) {
+    agentLog(`[images] attachAgentImage: stat failed for ${abs}: ${err?.message || err}`);
+    return null;
