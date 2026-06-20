@@ -6,3 +6,7 @@
 //   node packages/kernel/examples/server.mjs            # real claude on :3941
 //   CONSOLE_REAL=0 PORT=3942 node .../server.mjs         # hermetic echo driver
 import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createLoom, ClaudeDriver, EchoDriver, WebSurface } from '../dist/index.js';
