@@ -22,3 +22,7 @@ export class GeminiDriver implements AgentDriver {
     args.push('-p', input.prompt);
 
     const s = { text: '', sessionId: input.sessionId ?? null, input: null as number | null, output: null as number | null, cached: null as number | null, stopReason: null as string | null, error: null as string | null };
+    const tools = new Map<string, { name: string; summary: string }>();
+
+    return new Promise<DriverResult>((resolve) => {
+      let child: ChildProcess;
