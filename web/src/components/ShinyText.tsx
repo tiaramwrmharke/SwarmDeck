@@ -36,3 +36,7 @@ const ShinyText: React.FC<ShinyTextProps> = ({
 
   const animationDuration = speed * 1000;
   const delayDuration = delay * 1000;
+
+  useAnimationFrame(time => {
+    if (disabled || isPaused) {
+      lastTimeRef.current = null;

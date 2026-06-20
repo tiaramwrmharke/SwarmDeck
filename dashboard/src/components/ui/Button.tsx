@@ -21,3 +21,7 @@ const button = tv({
       secondary: [
         'border border-[var(--edge-default)] bg-transparent text-fg-2',
         'hover:border-[var(--edge-strong)] hover:bg-[var(--surface-3)] hover:text-fg',
+      ].join(' '),
+      ghost: [
+        'border border-transparent bg-transparent text-fg-4',
+        'hover:bg-[var(--surface-2)] hover:text-fg-2',
