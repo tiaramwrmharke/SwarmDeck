@@ -22,3 +22,4 @@ export default function App() {
     <ClickSpark sparkColor="#7cff67" sparkSize={11} sparkRadius={24} sparkCount={9} duration={520}>
       <div id="top" className="relative min-h-screen bg-[#05060a] text-neutral-200">
         {isDesktop && (
+          <SafeWebGL>
