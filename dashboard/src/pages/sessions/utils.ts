@@ -69,3 +69,7 @@ export function latestOwnPlan(planBlocks: MessageBlock[]): StreamPlan | null {
 export function streamPromptMatchesTurnText(
   turnText: string | null | undefined,
   streamPrompt: string | null | undefined,
+): boolean {
+  if (sameUserText(turnText, streamPrompt)) return true;
+  const turn = normalizeUserText(turnText);
+  const prompt = normalizeUserText(streamPrompt);

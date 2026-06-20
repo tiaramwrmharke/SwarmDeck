@@ -45,3 +45,5 @@ describe('browser-supervisor', () => {
     expect(prepareMock).toHaveBeenCalledTimes(1);
     expect(a.cdpEndpoint).toBe('http://127.0.0.1:39222');
     expect(b.cdpEndpoint).toBe('http://127.0.0.1:39222');
+    expect(c.cdpEndpoint).toBe('http://127.0.0.1:39222');
+
