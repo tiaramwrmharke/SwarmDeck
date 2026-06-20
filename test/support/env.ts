@@ -17,3 +17,6 @@ export function restoreEnv(snapshot: EnvSnapshot): void {
     if (value == null) delete process.env[key];
     else process.env[key] = value;
   }
+}
+
+export async function withEnv<T>(
