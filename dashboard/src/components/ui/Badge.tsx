@@ -28,3 +28,7 @@ const TONE_VARS: Record<BadgeTone, CSSProperties> = {
     borderColor: 'var(--th-badge-running-border)',
     backgroundColor: 'var(--th-badge-running-bg)',
     color: 'var(--th-badge-running-text)',
+  },
+  accent: {
+    borderColor: 'var(--th-badge-accent-border)',
+    backgroundColor: 'var(--th-badge-accent-bg)',
