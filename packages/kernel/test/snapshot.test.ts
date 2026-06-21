@@ -20,3 +20,4 @@ describe('snapshot diff/apply', () => {
     const patch = diffSnapshot(a, b);
     // must survive JSON round-trip (undefined would be dropped by JSON.stringify)
     const wire = JSON.parse(JSON.stringify(patch));
+    expect(wire.set).toHaveProperty('activity', null);

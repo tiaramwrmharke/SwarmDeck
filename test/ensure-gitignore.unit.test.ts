@@ -17,3 +17,5 @@ describe('ensureGitignore', () => {
   });
 
   it('does nothing when there is no .gitignore', () => {
+    ensureGitignore(dir);
+    expect(fs.existsSync(gi)).toBe(false);
