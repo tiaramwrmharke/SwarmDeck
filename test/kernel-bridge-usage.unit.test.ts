@@ -17,3 +17,5 @@ describe('kernel-bridge final usage projection', () => {
     });
     expect(fields).toEqual({
       inputTokens: 60_000,
+      outputTokens: 150,
+      cachedInputTokens: 12_000,

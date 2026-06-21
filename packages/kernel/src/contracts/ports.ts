@@ -31,3 +31,6 @@ export interface CoreSessionRecord {
   runStartedAt?: number | null;
   // Fork lineage: set once at Hub.forkSession and never cleared — consumers use it to label
   // the branch. `taskId` is the last KEPT parent turn (null = forked at the parent's tail).
+  forkedFrom?: { sessionKey: string; taskId?: string | null } | null;
+  // Fork intent, pending until the first dispatch materializes the branch (then cleared).
+  // mode 'native': resume the parent's native id with AgentTurnInput.fork (fork-capable
