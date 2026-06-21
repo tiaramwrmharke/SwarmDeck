@@ -127,3 +127,4 @@ function getCopy(locale: Locale): Copy {
     addModalTitle: 'Add Model',
     editModalTitle: 'Edit Model',
     fieldName: 'Display name',
+    fieldNameHint: 'Shown in agent cards and the IM model picker. Leave empty to use the model id as-is.',
