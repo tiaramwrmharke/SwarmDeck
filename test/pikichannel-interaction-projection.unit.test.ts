@@ -12,3 +12,7 @@ function snapWithInteraction(): any {
       title: 'Pick one',
       hint: 'a hint',
       currentIndex: 0,
+      questions: [{
+        id: 'ask-user',
+        header: 'Scope',
+        prompt: 'Which option?',
