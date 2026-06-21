@@ -20,3 +20,7 @@ const tools: McpToolModule['tools'] = [
       properties: {
         reason: {
           type: 'string',
+          description:
+            'Short, human-readable note on what is still running and what you will report back (e.g. "rebuilding + restarting swarmdeck, will confirm after it comes back up").',
+        },
+      },
