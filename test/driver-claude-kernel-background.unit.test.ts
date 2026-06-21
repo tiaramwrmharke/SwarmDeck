@@ -57,3 +57,6 @@ describe('background task tracking (trackClaudeBackgroundTask + pendingClaudeBac
 
   it('keeps pending on a NON-terminal task_updated (progress only)', () => {
     const s = freshState();
+    feed(s,
+      { type: 'system', subtype: 'task_started', task_id: 't1' },
+      { type: 'system', subtype: 'task_updated', task_id: 't1', patch: { status: 'running' } });
