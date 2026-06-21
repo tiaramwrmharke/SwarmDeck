@@ -18,3 +18,4 @@ const STATE_TO_TEXT: Record<StatusState, string> = {
   ok: 'text-[var(--th-badge-ok-text)]',
   warn: 'text-[var(--th-badge-warn-text)]',
   err: 'text-[var(--th-badge-err-text)]',
+  info: 'text-[var(--th-badge-info-text)]',
