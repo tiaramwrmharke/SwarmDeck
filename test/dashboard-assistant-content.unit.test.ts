@@ -9,3 +9,5 @@ describe('AssistantContent block categorization', () => {
       content: 'Tracing the Codex stream pipeline first.',
       phase: 'commentary',
     };
+    const toolUse: MessageBlock = {
+      type: 'tool_use',
