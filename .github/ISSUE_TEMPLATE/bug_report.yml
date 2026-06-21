@@ -21,3 +21,7 @@ body:
       label: pikiclaw version
       description: "Run `npx pikiclaw@latest --version` or check dashboard footer"
       placeholder: "e.g. 0.3.16"
+    validations:
+      required: true
+
+  - type: dropdown
