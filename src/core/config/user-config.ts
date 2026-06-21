@@ -115,3 +115,7 @@ interface SyncUserConfigOptions {
   log?: (message: string) => void;
 }
 
+type UserConfigChangeListener = (config: Partial<UserConfig>, changedKeys: string[]) => void;
+
+const MANAGED_ENV_KEYS = [
+  'PIKILOOM_CHANNEL',

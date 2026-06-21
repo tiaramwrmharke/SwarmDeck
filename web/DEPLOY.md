@@ -17,3 +17,7 @@ npm --prefix web run dev        # local preview at http://localhost:4321
 Chosen because: zero cost, automatic deploy on every push, free wildcard SSL,
 **no ICP filing required**, and the most reliable reachability from mainland China
 among the international free hosts (better than Vercel / github.io).
+
+### 1. Connect the repo (one-time)
+Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** →
+pick `xiaotonng/swarmdeck`.
