@@ -11,3 +11,4 @@ on:
     - cron: "23 6 * * 1" # weekly · Monday 06:23 UTC
   workflow_dispatch:
 
+permissions:
