@@ -12,3 +12,7 @@
 # We deliberately do NOT:
 #   - Auto-write setting.json: the dashboard does that, and overwriting blindly
 #     would clobber any mounted volume.
+#   - Re-install agent CLIs: the image bakes them. Users who want a different
+#     version should rebuild with --build-arg or `docker exec` to `npm i -g`.
+#
+# Signal handling is provided by tini in the Dockerfile ENTRYPOINT, not here.
