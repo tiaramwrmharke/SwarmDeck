@@ -44,3 +44,7 @@ vi.mock('discord.js', () => {
     channels = {
       cache: new Map<string, FakeChannel>(),
       fetch: vi.fn(async (id: string) => {
+        const ch = new FakeChannel(id);
+        this.channels.cache.set(id, ch);
+        return ch;
+      }),
