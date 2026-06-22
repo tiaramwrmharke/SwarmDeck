@@ -298,3 +298,7 @@ const zhCN: Record<string, string> = {
   'hub.outcome': '类型',
   'hub.statusInbox': '收件箱',
   'hub.statusActive': '进行中',
+  'hub.statusReview': '待审查',
+  'hub.statusDone': '已完成',
+  'hub.statusParked': '暂存',
+  'hub.outcomeAnswer': '回答',
