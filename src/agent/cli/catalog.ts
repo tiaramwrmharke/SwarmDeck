@@ -17,3 +17,4 @@ export interface CliCatalogItem {
   state: CliState;
   version?: string;
   authDetail?: string;
+  platform: 'darwin' | 'linux' | 'win';
