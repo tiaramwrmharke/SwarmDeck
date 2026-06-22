@@ -50,3 +50,5 @@ describe('attachAgentImage', () => {
   });
 });
 
+describe('attachInlineImage', () => {
+  it('persists when requested, inlines as data URL otherwise, and rejects non-image MIME types', () => {
