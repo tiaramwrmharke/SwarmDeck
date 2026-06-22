@@ -34,3 +34,6 @@ afterEach(() => {
 describe('WeComChannel frame parsing and send', () => {
   it('handles heartbeat ack, routes callbacks, dedups, enforces allowlists, and uses correct send commands', async () => {
     {
+      const ch = new WeComChannel({ botId: 'bot-1', botSecret: 'sec-1' });
+      (ch as any).missedPong = 2;
+      (ch as any).handleFrame({ headers: { req_id: 'ping_5' } });

@@ -60,3 +60,5 @@ describe('buildClaudeOAuthUsage (2026 limits[] schema)', () => {
     expect(extra.detail).toBe('$101.61 / $500.00');
     expect(extra.status).toBe('allowed');
   });
+
+  it('maps upstream severity onto window status ahead of percent thresholds', () => {
