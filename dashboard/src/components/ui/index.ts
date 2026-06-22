@@ -8,3 +8,4 @@ export { Input, Label, type InputProps } from './Input';
 export { Select, IconPicker } from './Select';
 export { ModelSelect } from './ModelSelect';
 export { Modal, ModalHeader, type ModalSize } from './Modal';
+export { TabsList, TabsTrigger } from './Tabs';
