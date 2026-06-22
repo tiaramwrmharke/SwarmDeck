@@ -24,3 +24,7 @@ export interface ProviderConfig {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ModelProfileConfig {
+  id: string;
+  name: string;
