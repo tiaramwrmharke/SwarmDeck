@@ -35,3 +35,6 @@ function CopyCommand() {
 
 export default function Hero() {
   return (
+    <section className="relative isolate overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <SafeWebGL

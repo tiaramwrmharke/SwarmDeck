@@ -45,3 +45,7 @@ const tools: McpToolModule['tools'] = [
 ];
 
 function summarizeSendFileArgs(filePath: string, caption: string, kind?: string): string {
+  const text = [
+    `path=${JSON.stringify(filePath || '')}`,
+    `kind=${JSON.stringify(kind || 'auto')}`,
+    `caption=${JSON.stringify(caption || '')}`,
