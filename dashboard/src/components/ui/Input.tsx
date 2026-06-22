@@ -31,3 +31,4 @@ const input = tv({
       ].join(' '),
     },
   },
+  defaults: { size: 'md', tone: 'default' },
