@@ -24,3 +24,6 @@
     "cli"
   ],
   "author": "Elias Thornbury",
+  "license": "MIT",
+  "packageManager": "npm@11.6.2",
+  "repository": {

@@ -74,3 +74,6 @@ function snapshotCredsForChannel(channel: ChannelName, config: Partial<UserConfi
       return JSON.stringify({
         clientId: String(config.dingtalkClientId || '').trim(),
         clientSecret: String(config.dingtalkClientSecret || '').trim(),
+      });
+    case 'wecom':
+      return JSON.stringify({
