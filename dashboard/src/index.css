@@ -121,3 +121,7 @@
   --th-badge-info-border: rgba(125,211,252,0.30);
   --th-badge-running-text: #dbeafe;
   --th-badge-running-bg: rgba(96,165,250,0.16);
+  --th-badge-running-border: rgba(96,165,250,0.32);
+  --th-badge-muted-text: rgba(226,232,240,0.74);
+  --th-badge-muted-bg: rgba(15,23,42,0.34);
+  --th-badge-muted-border: rgba(148,163,184,0.2);

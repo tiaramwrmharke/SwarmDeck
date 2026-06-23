@@ -23,3 +23,6 @@ describe('agent update gate', () => {
     expect(Date.now() - start).toBeLessThan(50);
   });
 
+  it('makes a spawn wait until the in-flight reinstall finishes', async () => {
+    let finishInstall!: () => void;
+    const install = new Promise<void>(resolve => { finishInstall = resolve; });
