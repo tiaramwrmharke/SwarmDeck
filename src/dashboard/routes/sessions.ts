@@ -234,3 +234,7 @@ async function parseSessionSendRequest(c: any): Promise<{
   model: string;
   profileId: string | null | undefined;
   effort: string;
+  workflow: boolean;
+  attachments: string[];
+  previousAgent: string;
+  previousSessionId: string;

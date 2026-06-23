@@ -10,3 +10,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createLoom, ClaudeDriver, EchoDriver, WebSurface } from '../dist/index.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const html = fs.readFileSync(path.join(__dirname, 'console.html'), 'utf8');

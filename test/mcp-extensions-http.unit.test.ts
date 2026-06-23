@@ -48,3 +48,5 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
               enabled: true,
             },
           },
+        },
+      });

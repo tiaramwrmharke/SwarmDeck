@@ -31,3 +31,5 @@ export interface McpSearchResult {
   homepage?: string | null;
 }
 
+export interface McpRegistryOptions {
+  /** Replace/extend the built-in recommended catalog. */
