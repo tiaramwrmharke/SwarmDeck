@@ -44,3 +44,7 @@ function deliveredDir(agent: Agent, sessionId: string): string {
 function sanitizeName(name: string): string {
   return (name || 'file').replace(/[/\\\0]+/g, '_').replace(/^\.+/, '').slice(0, 200) || 'file';
 }
+
+export function stageDeliveredArtifact(
+  agent: Agent,
+  sessionId: string,
