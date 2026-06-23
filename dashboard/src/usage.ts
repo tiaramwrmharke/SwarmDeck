@@ -35,3 +35,6 @@ export function displayableUsageWindows(usage: UsageResult | null): UsageWindowI
 
 export function worstUsageWindow(usage: UsageResult | null): UsageWindowInfo | null {
   let worst: UsageWindowInfo | null = null;
+  for (const window of displayableUsageWindows(usage)) {
+    if (!worst || (window.usedPercent ?? 0) > (worst.usedPercent ?? 0)) worst = window;
+  }
