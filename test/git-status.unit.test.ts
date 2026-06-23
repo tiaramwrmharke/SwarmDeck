@@ -37,3 +37,6 @@ describe('parseGitStatusV2', () => {
     expect(g.unstaged).toBe(3);
     expect(g.untracked).toBe(1);
     expect(g.changed).toBe(6);
+  });
+
+  it('handles a detached HEAD', () => {
