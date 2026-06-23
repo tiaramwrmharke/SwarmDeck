@@ -139,3 +139,7 @@ export function decodeCommandAction(data: string): CommandAction | null {
     const sep = rest.indexOf(':');
     if (sep < 0) return null;
     try {
+      return { kind: 'agent.account.set', agent: normalizeAgent(rest.slice(0, sep)), accountId: rest.slice(sep + 1) || null };
+    } catch {
+      return null;
+    }
