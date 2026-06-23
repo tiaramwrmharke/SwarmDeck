@@ -52,3 +52,6 @@ export class LivePreview {
   private readonly keyboard: any;
   private readonly model: string | null;
   private readonly effort: string | null;
+  private readonly log: (message: string) => void;
+
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
