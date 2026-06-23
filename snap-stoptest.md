@@ -90,3 +90,7 @@
                   - generic [ref=e129]:
                     - img [ref=e130]
                     - generic [ref=e131]: Claude
+                    - generic [ref=e132]: opus-4-8
+                    - generic [ref=e133]:
+                      - generic [ref=e134]:
+                        - img [ref=e135]
