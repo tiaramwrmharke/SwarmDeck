@@ -328,3 +328,7 @@ export interface ClaudeScreenInfo {
 export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
   if (typeof screen !== 'string' || !screen) return { state: 'unknown', affirmativeKey: null, sample: '' };
   const stripped = stripAnsiEscapes(screen);
+  const sample = stripped.replace(/\s+/g, ' ').trim().slice(-400);
+  const ds = stripped.replace(/\s+/g, '').toLowerCase();
+
+  if (ds.includes('bypasspermissionsmode') && ds.includes('yes,iaccept') && ds.includes('no,exit')) {
