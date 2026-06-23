@@ -55,3 +55,6 @@ describe('delivered-artifact manifest', () => {
     fs.rmSync(src);
     expect(fs.existsSync(rec!.path)).toBe(true);
   });
+
+  it('appends each delivery to the manifest and reads them back in order', () => {
+    const a = path.join(workdir, 'a.txt');
