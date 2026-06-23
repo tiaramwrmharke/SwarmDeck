@@ -113,3 +113,5 @@ async function handleResponses(
   };
   const respId = genId('resp');
   const model = chatReq.model;
+  const ZERO = { input_tokens: 0, output_tokens: 0, total_tokens: 0 };
+  const baseResp = (status: string, output: any[], usageOut: any) => ({
