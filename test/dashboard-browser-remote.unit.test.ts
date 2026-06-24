@@ -13,3 +13,4 @@ const headlessNoChrome = {
   launchCommand: [] as string[],
 };
 
+describe('dashboard browser status — remote CDP mode (issue #16)', () => {

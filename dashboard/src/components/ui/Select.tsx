@@ -59,3 +59,7 @@ export function Select({
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown, true);
     };
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
