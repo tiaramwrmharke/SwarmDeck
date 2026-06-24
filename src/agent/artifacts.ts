@@ -48,3 +48,7 @@ function sanitizeName(name: string): string {
 export function stageDeliveredArtifact(
   agent: Agent,
   sessionId: string,
+  srcPath: string,
+): { path: string; fileName: string; fileSize: number; fileMime: string } {
+  const fileName = sanitizeName(path.basename(srcPath));
+  const stat = fs.statSync(srcPath);
