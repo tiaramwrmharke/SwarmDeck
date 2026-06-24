@@ -52,3 +52,5 @@ describe('claudeUserMessage (kernel)', () => {
 
   it('is text-only when there are no attachments (unchanged behaviour)', () => {
     const content = JSON.parse(claudeUserMessage('plain')).message.content;
+    expect(content).toEqual([{ type: 'text', text: 'plain' }]);
+  });
