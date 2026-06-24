@@ -236,3 +236,6 @@ app.post('/api/extensions/mcp/health', async (c) => {
   } catch (e: any) {
     return c.json({ ok: false, error: e?.message || 'internal error' }, 500);
   }
+});
+
+app.get('/api/extensions/mcp/search', async (c) => {
