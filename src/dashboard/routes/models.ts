@@ -44,3 +44,4 @@ router.get('/api/models/catalog', async c => {
         name: p.name,
         api: p.api,
         doc: p.doc,
+        env: p.env || [],
