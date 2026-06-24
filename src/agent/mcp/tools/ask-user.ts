@@ -44,3 +44,6 @@ const tools: McpToolModule['tools'] = [
 
 async function handleAskUser(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   const question = typeof args?.question === 'string' ? args.question.trim() : '';
+  const header = typeof args?.header === 'string' ? args.header.trim() : '';
+  const hint = typeof args?.hint === 'string' ? args.hint.trim() : '';
+  const allowFreeform = args?.allow_freeform == null ? true : !!args.allow_freeform;
