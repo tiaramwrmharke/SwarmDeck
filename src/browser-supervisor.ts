@@ -50,3 +50,6 @@ async function snapshotRemote(remoteUrl: string, now: number): Promise<ManagedBr
   cached = { cdpEndpoint: remoteUrl, connectionMode: 'attach', validatedAt: now };
   log(`using remote CDP endpoint ${remoteUrl} (from ${PIKILOOM_BROWSER_CDP_URL_ENV})`);
   return snapshotFromCache(cached);
+}
+
+function snapshotFromCache(state: CachedState): ManagedBrowserSnapshot {

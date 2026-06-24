@@ -22,3 +22,7 @@ function adaptLine(line: string): string {
   if (next.startsWith('**') && !next.endsWith('**')) next = `${next}**`;
   next = next.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 <$2>');
   next = next.replace(/`([^`\n]+)`/g, '$1');
+  return next;
+}
+
+function normalizeFeishuMarkdown(lines: string[]): string {
