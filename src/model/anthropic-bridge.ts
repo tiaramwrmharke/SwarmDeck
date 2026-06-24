@@ -81,3 +81,5 @@ function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): voi
       return;
     }
     handleMessages(req, res, upstreamBase, body).catch(err => {
+      warn(`handler error: ${err?.message || err}`);
+      sendError(res, `bridge error: ${err?.message || err}`);
