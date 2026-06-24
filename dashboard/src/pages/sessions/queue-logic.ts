@@ -16,3 +16,5 @@ export function sendWillQueue(input: SendClassificationInput): boolean {
 
 export interface OptimisticSendQueuedInput {
   pendingTaskId: string | null | undefined;
+  streamTaskId: string | null | undefined;
+  queuedTaskIds: readonly string[] | null | undefined;
