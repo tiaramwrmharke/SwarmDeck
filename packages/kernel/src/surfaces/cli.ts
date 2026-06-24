@@ -18,3 +18,7 @@ export class CliSurface implements Surface {
     let pendingPromptId: string | null = null;   // a HITL question awaiting an answer from this terminal
     let lastQueued = 0;
 
+    this.unsub = io.subscribe((key, snap) => {
+      if (sessionKey && key !== sessionKey) return;          // single-conversation terminal
+      const interaction = (snap.interactions || [])[0];
+      if (interaction && interaction.promptId !== pendingPromptId && snap.phase !== 'done') {
