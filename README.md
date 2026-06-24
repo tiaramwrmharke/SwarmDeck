@@ -67,3 +67,6 @@ A typical day of development inside swarmdeck:
 - A Codex session in pane 2 writes the matching unit tests against the same workspace.
 - A Gemini session in pane 3 reviews the diffs and drafts the changelog.
 - Meanwhile, a background skill (`/sk_promote`) sweeps GitHub for relevant issues and automatically drafts replies in a fourth thread.
+- All four streams run entirely in parallel; a single human steers them all from a phone in a coffee shop.
+
+The orchestrator is the product. It also happens to be the ultimate IDE in which the orchestrator itself is built.
