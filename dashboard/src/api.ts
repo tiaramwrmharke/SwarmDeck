@@ -143,3 +143,6 @@ export const api = {
   setActiveAgentAccount: (agent: string, accountId: string | null) =>
     post<{ ok: boolean; activeAccountId?: string | null; error?: string }>(
       `/api/agents/${encodeURIComponent(agent)}/active-account`, { accountId }),
+  getModelProviders: () => json<{ ok: boolean; providers?: Array<{ id: string; name: string; kind: string; baseURL: string }> }>('/api/models/providers'),
+  getModelProfiles: () => json<{ ok: boolean; profiles?: Array<{ id: string; name: string; providerId: string; modelId: string; effort?: string | null }> }>('/api/models/profiles'),
+  getModelAgentBindings: () => json<{ ok: boolean; bindings?: Array<{ agent: string; activeProfileId: string | null }> }>('/api/models/agents'),
