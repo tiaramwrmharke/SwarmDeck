@@ -17,3 +17,4 @@ function hermesRun(updates: any[]): DriverEvent[] {
 describe('GeminiDriver stream-json parser', () => {
   it('maps init/message/tool/result events to DriverEvents', () => {
     const events = geminiRun([
+      { type: 'init', session_id: 'gem-1', model: 'gemini-3.1-pro' },

@@ -39,3 +39,5 @@ export function buildDefaultMenuCommands(agentCount: number, skills: SkillInfo[]
   const commands: MenuCommand[] = [
     { command: 'sessions', description: 'Switch sessions' },
     { command: 'digest', description: 'Recent session digest' },
+  ];
+
