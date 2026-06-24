@@ -96,3 +96,7 @@ async function resolveBrowserCdpEndpoint(endpoint: string): Promise<string | nul
   if (!normalizedEndpoint) return null;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 1_500);
+  try {
+    const response = await fetch(`${normalizedEndpoint}/json/version`, { signal: controller.signal });
+    if (!response.ok) return null;
+    const payload = await response.json().catch(() => null) as { webSocketDebuggerUrl?: unknown } | null;
