@@ -17,3 +17,5 @@ export interface McpToolDef {
   };
 }
 
+export interface McpToolModule {
+  tools: McpToolDef[];
