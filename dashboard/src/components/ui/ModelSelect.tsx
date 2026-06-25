@@ -90,3 +90,4 @@ export function ModelSelect({
     if (!open) return undefined;
     const updatePosition = () => {
       const trigger = rootRef.current;
+      if (!trigger) return;
