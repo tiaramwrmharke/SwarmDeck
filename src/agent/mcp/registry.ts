@@ -36,3 +36,7 @@ export interface RecommendedMcpServer {
   category: McpCategory;
   recommendedScope: RecommendedScope;
   transport: McpTransportSpec;
+  auth: McpAuthSpec;
+  iconSlug?: string;
+  iconUrl?: string;
+  homepage?: string;

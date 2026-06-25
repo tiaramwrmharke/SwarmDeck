@@ -11,3 +11,4 @@ describe('AssistantContent block categorization', () => {
     };
     const toolUse: MessageBlock = {
       type: 'tool_use',
+      content: '{"cmd":"rg -n \\"stream\\" src"}',
