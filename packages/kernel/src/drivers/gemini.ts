@@ -26,3 +26,7 @@ export class GeminiDriver implements AgentDriver {
 
     return new Promise<DriverResult>((resolve) => {
       let child: ChildProcess;
+      try { child = spawn(this.bin, args, { cwd: input.workdir, env: input.env ? { ...process.env, ...input.env } : process.env, stdio: ['ignore', 'pipe', 'pipe'] }); }
+      catch (err: any) { resolve({ ok: false, text: '', error: `spawn failed: ${err?.message || err}`, stopReason: 'error' }); return; }
+
+      wireAbort(ctx.signal, () => sigterm(child));

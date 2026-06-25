@@ -26,3 +26,5 @@ function adaptLine(line: string): string {
 }
 
 function normalizeFeishuMarkdown(lines: string[]): string {
+  const out: string[] = [];
+  let pendingBlankLine = false;
