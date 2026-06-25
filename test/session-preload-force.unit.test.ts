@@ -13,3 +13,7 @@ vi.mock('../dashboard/src/api', () => ({
       return new Promise((resolve) => { h.resolvers.push(resolve); });
     },
   },
+}));
+
+import { loadSessionMessages } from '../dashboard/src/session-preload.ts';
+
