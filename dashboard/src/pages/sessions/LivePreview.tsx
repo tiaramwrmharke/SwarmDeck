@@ -94,3 +94,4 @@ export function LivePreview({
   t,
   workdir,
 }: {
+  stream: LiveStreamView;

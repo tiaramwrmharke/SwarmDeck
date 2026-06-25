@@ -51,3 +51,4 @@ const PERMISSIONS: PermissionMeta[] = [
   {
     key: 'fullDiskAccess',
     labelKey: 'perm.fullDiskAccess',
+    reasonZh: '访问桌面、下载等受保护目录',
