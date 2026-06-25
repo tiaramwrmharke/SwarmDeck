@@ -14,3 +14,5 @@ describe('formatFooterParts — BYOK profile name + provider', () => {
     expect(parts.runtime).toContain('high');
     expect(parts.runtime).toContain('via 豆包 (Volcengine Ark)');
   });
+
+  it('takes profileName + providerName from live meta during streaming', () => {
