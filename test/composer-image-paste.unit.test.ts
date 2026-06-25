@@ -14,3 +14,4 @@ describe('isLikelyImageFile', () => {
     expect(isLikelyImageFile(new File([], 'a.png', { type: 'image/png' }))).toBe(true);
     expect(isLikelyImageFile(new File([], 'a', { type: 'image/webp' }))).toBe(true);
   });
+
