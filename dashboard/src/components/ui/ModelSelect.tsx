@@ -91,3 +91,5 @@ export function ModelSelect({
     const updatePosition = () => {
       const trigger = rootRef.current;
       if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
