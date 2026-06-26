@@ -285,3 +285,6 @@ export function useLocalBackends(): LocalBackendsSnapshot {
       setCurrentOs(res.currentOs ?? null);
       return { addedProviderIds: res.addedProviderIds ?? [] };
     } catch (e: any) {
+      setError(e?.message || String(e));
+      return { addedProviderIds: [] };
+    } finally {
