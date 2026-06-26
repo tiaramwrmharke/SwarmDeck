@@ -27,3 +27,7 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
       dotVariant: 'ok',
       dotPulse: true,
     };
+  }
+
+  if (state.ready && state.bot) {
+    return {
