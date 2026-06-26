@@ -21,3 +21,6 @@ import qwenLogo from '../assets/brands/qwen.png';
 import doubaoLogo from '../assets/brands/doubao.png';
 import glmLogo from '../assets/brands/glm.png';
 import minimaxLogo from '../assets/brands/minimax.ico';
+import openaiLogo from '../assets/brands/openai.svg';
+import ollamaLogo from '../assets/brands/ollama.png';
+import mlxLogo from '../assets/brands/mlx.png';

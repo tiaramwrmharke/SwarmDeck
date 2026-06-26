@@ -30,3 +30,7 @@ export class GeminiDriver implements AgentDriver {
       catch (err: any) { resolve({ ok: false, text: '', error: `spawn failed: ${err?.message || err}`, stopReason: 'error' }); return; }
 
       wireAbort(ctx.signal, () => sigterm(child));
+
+      const nextLines = createLineBuffer();
+      let stderr = '';
+      child.stdout!.on('data', (chunk: Buffer) => {
