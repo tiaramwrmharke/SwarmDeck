@@ -25,3 +25,7 @@ export default function App() {
           <SafeWebGL>
             <SplashCursor DYE_RESOLUTION={1024} SPLAT_RADIUS={0.22} />
           </SafeWebGL>
+        )}
+        <Nav />
+        <main>
+          <Hero />
