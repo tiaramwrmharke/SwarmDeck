@@ -13,3 +13,6 @@ export interface ServerCode {
   mode: 'direct' | 'remote' | 'none';
   code: string;
   detail: string;
+}
+
+export function buildServerCode(opts: {
