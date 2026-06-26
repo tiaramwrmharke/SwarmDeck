@@ -86,3 +86,4 @@ export const MCP_SERVERS: RecommendedMcpServer[] = [
   },
   {
     id: 'atlassian',
+    name: 'Atlassian',
