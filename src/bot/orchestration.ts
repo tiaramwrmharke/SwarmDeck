@@ -32,3 +32,6 @@ export function buildKnownChatEnv(
   for (const id of allowedChatIds) ids.add(String(id));
   for (const id of knownChatIds) ids.add(String(id));
   return ids.size ? { [envName]: [...ids].join(',') } : {};
+}
+
+export type SessionMessageRef = Pick<
