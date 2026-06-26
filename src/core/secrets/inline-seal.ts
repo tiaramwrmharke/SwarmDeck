@@ -12,3 +12,6 @@ function readOrCreateSalt(): Buffer {
     const raw = fs.readFileSync(SALT_FILE);
     if (raw.length >= 32) return raw.subarray(0, 32);
   } catch {}
+  const salt = crypto.randomBytes(32);
+  try {
+    fs.mkdirSync(path.dirname(SALT_FILE), { recursive: true });
