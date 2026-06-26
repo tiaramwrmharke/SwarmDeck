@@ -148,3 +148,6 @@ export const api = {
   getModelAgentBindings: () => json<{ ok: boolean; bindings?: Array<{ agent: string; activeProfileId: string | null }> }>('/api/models/agents'),
   getSessions: () => json<Record<string, { sessions: unknown[] }>>('/api/sessions'),
   getSessionsPage: (agent: string, page = 0, limit = 6, opts: ApiRequestOptions = {}) =>
+    json<SessionsPageResult>(
+      `/api/sessions/${agent}?page=${page}&limit=${limit}`,
+      opts,
