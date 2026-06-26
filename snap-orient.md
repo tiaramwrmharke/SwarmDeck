@@ -226,3 +226,7 @@
                     - img
                   - button "编辑":
                     - img
+              - generic [ref=e314]:
+                - generic [ref=e316]: "Snap source test: print 1 to 20, one per line \"N — <word>\". No preamble."
+                - generic:
+                  - button "复制":
