@@ -150,3 +150,7 @@ describe('Claude TUI driver — terminal limit notices', () => {
     expect(notice).toContain("You've hit your session limit");
     expect(detectClaudeTuiTerminalLimitNotice(
       "You're now using usage credits · Your session limit resets 3pm(Asia/Shanghai)",
+    )).toContain('usage credits');
+    expect(detectClaudeTuiTerminalLimitNotice('Usage limit reached. Please try again later.')).toContain('Usage limit reached');
+    expect(detectClaudeTuiTerminalLimitNotice('Please explain how rate limit handling works in this codebase.')).toBeNull();
+  });
