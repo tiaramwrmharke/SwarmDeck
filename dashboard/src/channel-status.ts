@@ -6,3 +6,4 @@ export function isChannelValidationPending(channel: ChannelSetupState | null | u
   return !!channel?.configured && (!channel.validated || channel.status === 'checking');
 }
 
+export function hasPendingChannelValidation(channels: ChannelSetupState[] | null | undefined): boolean {

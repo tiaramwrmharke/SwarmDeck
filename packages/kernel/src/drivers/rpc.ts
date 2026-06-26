@@ -33,3 +33,5 @@ export class StdioRpcClient {
   private readonly label: string;
 
   constructor(private readonly opts: StdioRpcOptions) {
+    this.label = opts.label || opts.command;
+  }
