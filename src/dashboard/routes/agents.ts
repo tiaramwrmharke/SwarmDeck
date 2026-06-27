@@ -120,3 +120,6 @@ async function installAgentViaNpm(agent: Agent, log: (msg: string) => void): Pro
       });
     }
   }
+  if (!result.ok) throw new Error(result.error || `Failed to install ${pkg}`);
+  log(`${getAgentLabel(agent)} installation complete.`);
+}
