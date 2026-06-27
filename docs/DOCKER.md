@@ -104,3 +104,7 @@ layout), each environment keeps its own independent session history.
 > - If you only need OAuth credentials (and don't need to share session
 >   history), mount **just** the auth file read-only — this avoids the db
 >   entirely:
+>
+>   ```yaml
+>   volumes:
+>     - ${HOME}/.codex/auth.json:/home/piki/.codex/auth.json:ro
