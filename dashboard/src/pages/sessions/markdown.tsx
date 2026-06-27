@@ -52,3 +52,7 @@ export function isFileLocator(value: string): boolean {
   if (hasUrlScheme(text) && !text.startsWith('file://')) return false;
 
   const pathPart = stripLineSuffix(text);
+  if (!pathPart) return false;
+  if (pathPart.startsWith('file://')) return pathPart.length > 'file://'.length;
+  if (/^[A-Za-z]:[\\/]/.test(pathPart)) return true;
+  if (/^(\/|~\/|\.{1,2}\/)/.test(pathPart)) return pathPart.length > 1;
