@@ -15,3 +15,6 @@ describe('catalog / discovery', () => {
     const loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo' });
     expect(await loom.io.listModels('echo')).toEqual([]);
     expect(await loom.io.listEffort('echo')).toEqual([]);
+    expect(await loom.io.listTools('echo')).toEqual([]);
+    expect(await loom.io.listSkills('echo')).toEqual([]);
+  });
