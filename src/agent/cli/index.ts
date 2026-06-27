@@ -3,3 +3,5 @@ export {
   type RecommendedCli, type CliCategory, type CliAuthType,
   type CliInstallSpec, type CliInstallCommand, type CliAuthSpec,
 } from './registry.js';
+
+export {

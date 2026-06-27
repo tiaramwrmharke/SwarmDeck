@@ -26,3 +26,5 @@ export function StatusOverview({
   const runtimeStatus = resolveAppStatusBadge(state, t);
   const channels = state?.setupState?.channels || [];
   const readyChannels = channels.filter(channel => channel.ready).length;
+  const configuredChannels = channels.filter(channel => channel.configured).length;
+  const totalPermissions = Object.keys(state?.permissions || {}).length;
