@@ -22,3 +22,7 @@ class FakeFeishuTransport implements FeishuTransport {
 const waitFor = async (pred: () => boolean, ms = 5000) => {
   const t0 = Date.now();
   while (!pred()) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 5)); }
+};
+
+describe('FeishuSurface (IM as a Surface over LoomIO, hermetic)', () => {
+  let tmp: string;

@@ -36,3 +36,7 @@ export class RendezvousBroker {
     ws.on('message', (raw) => {
       let m: any; try { m = JSON.parse(String(raw)); } catch { return; }
       switch (m?.t) {
+        case 'register': {
+          const nodeId = String(m.nodeId || '').trim();
+          if (!nodeId) { this.send(ws, { t: 'error', message: 'nodeId required' }); return; }
+          this.hosts.set(nodeId, ws);
