@@ -27,3 +27,7 @@ export interface DeliveredTurn {
   model: string | null;
 }
 
+// Match the raw prompt swarmdeck ran against the user text reconstructed from the jsonl. Both
+// sides normalize identically: collapse whitespace, trim, cap length. Case is preserved (matching
+// is mostly CJK / mixed-script prose).
+export function normalizeSnapshotPrompt(s: string): string {
