@@ -37,3 +37,4 @@ describe('effortOptionsFor — picker labels stay identical to the token', () =>
 
   it('gemini has no UI-exposed effort levels', () => {
     expect(effortOptionsFor('gemini')).toEqual([]);
+  });
