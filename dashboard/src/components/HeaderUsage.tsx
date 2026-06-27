@@ -22,3 +22,4 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
       return [<HeaderAccountMenu key={agent.agent} agent={agent.agent} nativeGauge={gauge} nativeUsage={agent.usage} t={t} />];
     }
     // other agents: the original read-only usage ring + tooltip.
+    if (!gauge) return [];
