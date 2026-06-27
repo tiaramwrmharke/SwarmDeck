@@ -120,3 +120,6 @@
                   - generic [ref=e171]:
                     - img [ref=e172]
                     - generic [ref=e173]: Claude
+                    - generic [ref=e174]: opus-4-8
+                    - generic [ref=e175]:
+                      - generic [ref=e176]:
