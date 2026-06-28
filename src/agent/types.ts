@@ -110,3 +110,6 @@ export interface StreamOpts {
   codexExtraArgs?: string[];
   codexPrevCumulative?: CodexCumulativeUsage;
   claudeModel?: string;
+  claudePermissionMode?: string;
+  claudeAppendSystemPrompt?: string;
+  claudeExtraArgs?: string[];
