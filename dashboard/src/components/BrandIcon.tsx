@@ -24,3 +24,6 @@ import minimaxLogo from '../assets/brands/minimax.ico';
 import openaiLogo from '../assets/brands/openai.svg';
 import ollamaLogo from '../assets/brands/ollama.png';
 import mlxLogo from '../assets/brands/mlx.png';
+import { cn } from '../utils';
+
+const brandIcons: Record<string, string> = {
