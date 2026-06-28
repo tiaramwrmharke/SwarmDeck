@@ -6,3 +6,4 @@
 export { resolveLoomPaths, normalizeStateDirName, type LoomPaths, type LoomScope } from './paths.js';
 export {
   SessionsManager,
+  type ManagedSessionInfo, type SessionSource, type ListSessionsOptions,
