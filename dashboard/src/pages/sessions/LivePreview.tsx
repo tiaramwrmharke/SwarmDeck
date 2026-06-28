@@ -95,3 +95,5 @@ export function LivePreview({
   workdir,
 }: {
   stream: LiveStreamView;
+  t: (k: string) => string;
+  workdir?: string | null;
