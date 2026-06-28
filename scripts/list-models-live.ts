@@ -12,3 +12,4 @@ function hasCmd(cmd: string): boolean {
     return false;
   }
 }
+
