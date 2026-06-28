@@ -33,3 +33,6 @@ export default function InAction() {
           video={asset('media/promo-switch.mp4')}
           alt="Switch agent mid-session — Claude builds, Gemini reviews, Hermes recaps, all in one session"
           ratioW={1280}
+          ratioH={800}
+          badge="Switch the brain · same session"
+        />
