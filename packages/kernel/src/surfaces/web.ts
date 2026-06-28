@@ -44,3 +44,7 @@ export class WebSurface implements Surface {
     return a && typeof a === 'object' ? a.port : null;
   }
 
+  async start(io: LoomIO, host?: TuiHost): Promise<void> {
+    this.io = io;
+    this.host = host;
+    this.wss = this.opts.server

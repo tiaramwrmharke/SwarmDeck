@@ -81,3 +81,7 @@ const COLLAPSED_PREVIEW_LINES = 8;
 function previewFromText(text: string): string {
   const lines = text.split('\n');
   if (lines.length <= COLLAPSED_PREVIEW_LINES) return text;
+  return lines.slice(0, COLLAPSED_PREVIEW_LINES).join('\n');
+}
+
+export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
