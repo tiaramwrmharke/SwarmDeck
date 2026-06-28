@@ -20,3 +20,7 @@ export const MODELS = [
   'Claude',
   'GPT',
   'Gemini',
+  'DeepSeek',
+  'Doubao',
+  'MiMo',
+  'MiniMax',
