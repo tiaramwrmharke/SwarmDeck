@@ -49,3 +49,6 @@ export function imageDimensions(buf: Buffer): { width: number; height: number } 
   }
   if (buf.length >= 4 && buf[0] === 0xff && buf[1] === 0xd8) {
     // JPEG: walk segments to the first SOF (skips arbitrarily large EXIF/APPn blocks).
+    let i = 2;
+    while (i + 9 < buf.length) {
+      if (buf[i] !== 0xff) { i++; continue; }
