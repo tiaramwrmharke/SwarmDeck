@@ -29,3 +29,5 @@ export function DirBrowser({
   const [currentPath, setCurrentPath] = useState('');
   const [inputPath, setInputPath] = useState('');
   const [dirs, setDirs] = useState<DirEntry[]>([]);
+  const [parentDir, setParentDir] = useState('');
+  const [isGit, setIsGit] = useState(false);
