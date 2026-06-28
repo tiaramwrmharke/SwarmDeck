@@ -23,3 +23,6 @@ export class RtcConnection extends BaseConnection {
     this.id = `rtc-${++connCounter}`;
     this.remote = remote || 'webrtc-peer';
     channel.onmessage = (ev: any) => this.emitMessage(coerceFrame(ev?.data));
+    channel.onclose = () => this.close();
+    pc.connectionStateChange.subscribe((state) => {
+      if (state === 'failed' || state === 'closed' || state === 'disconnected') this.close();
