@@ -45,3 +45,6 @@ RUN apt-get update \
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
+# Copy only what `npm run build` (tsc + vite) needs. .dockerignore
+# already keeps node_modules, dist/, .swarmdeck/, .scratch/, etc. out.
+COPY .nvmrc Dockerfile ./

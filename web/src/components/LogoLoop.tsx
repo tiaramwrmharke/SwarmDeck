@@ -133,3 +133,4 @@ const useAnimationLoop = (
     const track = trackRef.current;
     if (!track) return;
 
+    const prefersReduced =

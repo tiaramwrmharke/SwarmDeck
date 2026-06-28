@@ -148,3 +148,5 @@ export class WeComChannel extends Channel {
   disconnect(): void {
     this.running = false;
     this.stopHeartbeat();
+    if (this.ws) {
+      try { this.ws.close(); } catch {}
