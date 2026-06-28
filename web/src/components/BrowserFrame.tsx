@@ -20,3 +20,7 @@ export default function BrowserFrame({
   cropTop?: number;
   label?: string;
   badge?: string;
+  className?: string;
+}) {
+  const visibleRatio = ratioW / (ratioH * (1 - cropTop));
+  return (
