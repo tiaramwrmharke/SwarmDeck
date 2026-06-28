@@ -97,3 +97,5 @@ describe('turnLanded (the boundary rule)', () => {
     expect(turnLanded({ error: 'crashed', toolCalls: [{ id: 'c1', name: 'Bash', status: 'done' }] })).toBe(true);
   });
 });
+
+describe('Hub.forkSession', () => {

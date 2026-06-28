@@ -247,3 +247,7 @@ function getCopy(locale: Locale): Copy {
     validating: 'Validating',
     edit: 'Edit',
     remove: 'Remove',
+    removeConfirm: 'Remove this provider? Bound agents will fall back to native auth.',
+    unbound: 'Not used by any agent yet',
+    boundOne: 'Bound to',
+    boundN: n => `${n} agents in use`,

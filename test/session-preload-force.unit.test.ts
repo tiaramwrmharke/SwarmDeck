@@ -20,3 +20,5 @@ import { loadSessionMessages } from '../dashboard/src/session-preload.ts';
 function query(sessionId: string) {
   return { workdir: '/w', agent: 'claude', sessionId, rich: true, turnOffset: 0, turnLimit: 12 };
 }
+const userOnly = { ok: true, richMessages: [{ role: 'user', text: 'u', blocks: [] }], messages: [], totalTurns: 1 };
+const withAssistant = {
