@@ -16,3 +16,6 @@ function replaceVars(template: string, vars: Record<string, string>): string {
 }
 
 function StepIcon({ status }: { status: StreamPlan['steps'][number]['status'] }) {
+  if (status === 'completed') {
+    return (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ok">
