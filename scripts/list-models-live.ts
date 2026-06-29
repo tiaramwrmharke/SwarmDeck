@@ -13,3 +13,5 @@ function hasCmd(cmd: string): boolean {
   }
 }
 
+function getVersion(cmd: string): string | null {
+  try {
