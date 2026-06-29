@@ -36,3 +36,4 @@ app.post('/api/extensions/cli/auth/start', async (c) => {
     const { id } = await c.req.json() as { id: string };
     if (!id?.trim()) return c.json({ ok: false, error: 'id is required' }, 400);
     const result = await startCliAuthSession(id.trim());
+    if (!result.ok) return c.json(result, 400);
