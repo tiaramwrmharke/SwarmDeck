@@ -42,3 +42,5 @@ const tools: McpToolModule['tools'] = [
   },
 ];
 
+async function handleAskUser(args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
+  const question = typeof args?.question === 'string' ? args.question.trim() : '';
