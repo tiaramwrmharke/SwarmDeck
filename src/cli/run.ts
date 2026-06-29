@@ -69,3 +69,5 @@ Examples:
   npm run command -- codex-run -m o3 "Explain this repo"
   npm run command -- claude-run -m sonnet --timeout 60 -p "What is 1+1?"
   npm run command -- claude-tail
+  npm run command -- claude-tail -n 10 -s <session-id>
+`;
