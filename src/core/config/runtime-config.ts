@@ -45,3 +45,6 @@ export function agentModelEnv(agent: Agent, env: Record<string, string | undefin
   return '';
 }
 
+export function agentEffortEnv(agent: Agent, env: Record<string, string | undefined> = process.env): string {
+  switch (agent) {
+    case 'claude': return trimmed(env.CLAUDE_REASONING_EFFORT).toLowerCase();

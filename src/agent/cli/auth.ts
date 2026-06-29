@@ -76,3 +76,7 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
     exitCode: null,
     backlog: [],
   };
+  SESSIONS.set(sessionId, session);
+
+  const [cmd, ...args] = argv;
+  const child = spawn(cmd, args, {
