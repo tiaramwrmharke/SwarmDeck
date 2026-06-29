@@ -39,3 +39,7 @@ export {
   type MaterializedImage,
   type TransportContext,
 } from './images.js';
+
+export {
+  deliverArtifact,
+  readDeliveredArtifacts,
