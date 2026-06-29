@@ -15,3 +15,4 @@ export function TabsTrigger({
   className,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean; children: ReactNode }) {
+  return (
