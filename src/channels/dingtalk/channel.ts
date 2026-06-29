@@ -69,3 +69,7 @@ export class DingtalkChannel extends Channel {
   private readonly clientSecret: string;
   private readonly allowedChatIds?: Set<string>;
 
+  private dwClient: DWClient | null = null;
+  private running = false;
+  private listenResolve: (() => void) | null = null;
+

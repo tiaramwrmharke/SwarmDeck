@@ -28,3 +28,5 @@ describe('session history / transcript (hermetic)', () => {
 
   beforeEach(async () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-hist-'));
+    loom = createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', sessionStore: new FsSessionStore(tmp) });
+    await loom.start();
