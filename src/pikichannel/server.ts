@@ -49,3 +49,4 @@ function readWebAsset(name: string): string {
 }
 
 export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
+  const log = (msg: string) => writeScopedLog('pikichannel', msg, { level: 'info' });

@@ -5,3 +5,4 @@ export class HeadlessBot extends Bot {
 
   public run(): Promise<void> {
     this.connected = true;
+    this.log('dashboard terminal ready (no IM channel configured)');
