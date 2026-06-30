@@ -51,3 +51,5 @@ const vertex =  `
   varying vec3 vColor;
 
   void main() {
+    vRandom = random;
+    vColor = color;
