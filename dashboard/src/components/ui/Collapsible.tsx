@@ -31,3 +31,6 @@ export function CollapsibleCard({
   children?: ReactNode;
   className?: string;
 }) {
+  return (
+    <div className={cn(
+      'rounded-md border border-edge bg-panel overflow-hidden',
