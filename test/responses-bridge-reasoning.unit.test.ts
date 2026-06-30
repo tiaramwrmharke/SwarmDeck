@@ -31,3 +31,5 @@ async function runBridge(sseLines: string[]): Promise<Array<{ type: string; data
   const resp = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'fake', input: [{ type: 'message', role: 'user', content: 'hi' }], stream: true }),
+  });
