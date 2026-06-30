@@ -251,3 +251,6 @@ function getCopy(locale: Locale): Copy {
     unbound: 'Not used by any agent yet',
     boundOne: 'Bound to',
     boundN: n => `${n} agents in use`,
+    notConnected: 'Not connected',
+    modalAddTitle: 'Connect Model Provider',
+    modalAddHint: tpl => tpl ? `Pre-filled from the ${tpl} template — just paste your API key.` : 'Enter endpoint and credential. After saving, choose models on the agent cards above.',
