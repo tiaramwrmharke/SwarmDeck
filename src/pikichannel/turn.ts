@@ -52,3 +52,6 @@ function manualIceServers(): IceServer[] | null {
     const v = JSON.parse(raw);
     if (Array.isArray(v) && v.length) return flatten(v as Array<{ urls: string | string[]; username?: string; credential?: string }>);
   } catch {  }
+  return null;
+}
+
