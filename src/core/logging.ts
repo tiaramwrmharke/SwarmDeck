@@ -25,3 +25,6 @@ const DEFAULT_LOG_TRIM_EVERY_WRITES = 200;
 
 function positiveIntEnv(name: string, fallback: number): number {
   const raw = String(process.env[name] || '').trim();
+  if (!raw) return fallback;
+  const value = Number.parseInt(raw, 10);
+  return Number.isFinite(value) && value > 0 ? value : fallback;

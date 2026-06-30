@@ -34,3 +34,5 @@ If a test or validation step needs to launch `swarmdeck` itself, use `npm run de
 
 ## Environment Setup
 
+For tests that hit live IM transports or live agent CLIs, load `.env` first:
+
