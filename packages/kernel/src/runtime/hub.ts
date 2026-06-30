@@ -183,3 +183,7 @@ export class Hub implements LoomIO {
     // at `--resume-session-at`, so the branch would die on its first dispatch with nothing to
     // retry. Drop it: a tail cut re-pins the parent's current tip below, a mid cut seeds instead.
     if (anchor && !(await this.anchorStillResolvable(driver, parentNativeId, workdir, anchor))) {
+      this.deps.log?.(`[hub] fork anchor ${anchor} no longer resolvable in ${input.fromSessionKey} — dropping it`);
+      anchor = null;
+    }
+    if (!anchor && cutIsTail && driver.resolveNativeAnchor) {
