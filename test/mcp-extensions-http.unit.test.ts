@@ -54,3 +54,7 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
       const [server] = getGlobalExtensionsAsServers();
       expect(server).toMatchObject({ name: 'generic', type: 'http', url: 'https://example.com/mcp' });
       expect(server.headers).toBeUndefined();
+    });
+
+    await withTempHome(async () => {
+      saveUserConfig({
