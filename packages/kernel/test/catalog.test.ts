@@ -18,3 +18,4 @@ describe('catalog / discovery', () => {
     expect(await loom.io.listTools('echo')).toEqual([]);
     expect(await loom.io.listSkills('echo')).toEqual([]);
   });
+
