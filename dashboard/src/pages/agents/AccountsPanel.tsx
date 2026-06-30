@@ -72,3 +72,4 @@ export function AccountsPanel({ agentId }: { agentId: string }) {
       toast(String(e?.message || e), false);
       setForm(f => (f ? { ...f, saving: false } : f));
     }
+  }, [agentId, form, refresh, toast]);

@@ -32,3 +32,5 @@ function maximalSnapshot(): any {
       toolCalls: [{ id: 'c1', name: 'Read', summary: 'Read x', input: '{}', result: 'ok', status: 'done' }],
       subAgents: [{ id: 's1', kind: 'worker', description: 'sub', model: 'm', tools: [{ id: 'tt', name: 'Grep', summary: 'g' }], status: 'running' }],
     },
+  };
+}
