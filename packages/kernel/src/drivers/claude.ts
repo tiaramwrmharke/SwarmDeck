@@ -283,3 +283,5 @@ export class ClaudeDriver implements AgentDriver {
       };
       // Arm the watchdog ONLY if it is not already counting — for the INITIAL model wait (right after
       // the prompt is delivered) and for API-error events. Unlike `armModelStall` it never resets a
+      // running countdown, so a model that stays unreachable across many retry artifacts still trips
+      // the stall on its original deadline instead of being deferred forever.
