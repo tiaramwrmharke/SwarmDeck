@@ -58,3 +58,6 @@ export interface UniversalQueuedTask {
   taskId: string;
   prompt: string;
 }
+
+export interface UniversalArtifact {
+  url?: string;

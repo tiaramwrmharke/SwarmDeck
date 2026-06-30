@@ -26,3 +26,4 @@ describe('resolveClaudeAccessMode', () => {
     expect(DEFAULT_CLAUDE_ACCESS_MODE).toBe('api');
   });
 
+  it('honours the persisted config field over everything', () => {
