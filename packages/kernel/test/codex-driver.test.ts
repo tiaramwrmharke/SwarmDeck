@@ -153,3 +153,5 @@ describe('CodexDriver completed-item fallback (no deltas)', () => {
     // Streamed live (not just present in the terminal result) so the snapshot fills mid-turn.
     expect(events.filter(e => e.type === 'text').map(e => (e as any).delta).join('')).toBe('FINAL-VIA-COMPLETED');
     expect(events.filter(e => e.type === 'reasoning').map(e => (e as any).delta).join('')).toBe('REASONED-VIA-RAW');
+  }, 20_000);
+});
