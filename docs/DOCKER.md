@@ -108,3 +108,4 @@ layout), each environment keeps its own independent session history.
 >   ```yaml
 >   volumes:
 >     - ${HOME}/.codex/auth.json:/home/piki/.codex/auth.json:ro
+>   ```
