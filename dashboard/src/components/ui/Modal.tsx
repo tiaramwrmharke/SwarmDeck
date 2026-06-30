@@ -37,3 +37,5 @@ export function Modal({ open, onClose, size, wide, panelStyle, children }: Modal
   return createPortal(
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div
+        className="absolute inset-0 backdrop-blur-[8px] backdrop-saturate-125"
+        style={{ background: 'color-mix(in oklab, var(--th-overlay) 78%, transparent)' }}
