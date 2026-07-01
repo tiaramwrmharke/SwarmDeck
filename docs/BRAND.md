@@ -24,3 +24,5 @@ Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
 
 - **Dashboard header** (`dashboard/src/components/Sidebar.tsx`) → wordmark, swapped by
   theme: cyan PNG on dark, deep-cyan `logo-wordmark-light.png` on light.
+- **Web landing nav** (`web/src/sections/Nav.tsx`) → cyan wordmark PNG (page is always dark).
+- **Browser tab / favicon** (`dashboard/public/logo.png`, `web/public/logo.png`) → the knot

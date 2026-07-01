@@ -45,3 +45,5 @@ app.get('/api/agents/:agent/accounts', async (c) => {
   const snap = await getAccountsUsageSnapshot(agent, { fresh, force });
   return c.json({
     ok: true, agent, supported: true,
+    accounts: snap.accounts,
+    activeAccountId: snap.activeAccountId,
