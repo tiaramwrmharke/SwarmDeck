@@ -34,3 +34,4 @@ function isFiniteNumber(value: number | undefined): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+function touchCacheEntry<T>(cache: Map<string, CacheEntry<T>>, key: string, entry: CacheEntry<T>, maxEntries: number) {

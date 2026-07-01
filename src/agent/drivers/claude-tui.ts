@@ -340,3 +340,6 @@ export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
   const asksProceed = ds.includes('doyouwanttoproceed') || ds.includes('wouldyouliketoproceed');
   const hasCursorSelect = ds.includes('❯') && ds.includes('1.');
 
+  if ((asksProceed || ds.includes('readytoexecute'))
+      && (ds.includes('manuallyapproveedits') || ds.includes('yes,andbypasspermissions'))) {
+    return { state: 'plan-approval', affirmativeKey: null, sample };
