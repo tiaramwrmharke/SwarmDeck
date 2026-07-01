@@ -68,3 +68,6 @@ function getLinuxBatteryData(): HostBatteryData | null {
       const capacity = fs.readFileSync(capacityPath, 'utf-8').trim();
       if (!capacity) continue;
 
+      const statusPath = path.join(batteryDir, 'status');
+      const state = fs.existsSync(statusPath) ? fs.readFileSync(statusPath, 'utf-8').trim() : 'unknown';
+      return {

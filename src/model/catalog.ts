@@ -26,3 +26,6 @@ function readDiskCache(): CacheEnvelope | null {
       return parsed as CacheEnvelope;
     }
   } catch {}
+  return null;
+}
+
