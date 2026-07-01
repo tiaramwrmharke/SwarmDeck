@@ -9,3 +9,6 @@ import {
   type CommandSelectionView,
 } from '../src/bot/command-ui.ts';
 
+function viewWith(rows: CommandActionButton[][]): CommandSelectionView {
+  return { kind: 'models', title: 'Models', metaLines: [], items: [], rows };
+}
