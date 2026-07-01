@@ -7,3 +7,4 @@ export { resolveLoomPaths, normalizeStateDirName, type LoomPaths, type LoomScope
 export {
   SessionsManager,
   type ManagedSessionInfo, type SessionSource, type ListSessionsOptions,
+  type SearchSessionsOptions, type SessionsManagerDeps,
