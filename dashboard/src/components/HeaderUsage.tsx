@@ -24,3 +24,5 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
     // other agents: the original read-only usage ring + tooltip.
     if (!gauge) return [];
     return [(
+      <Tooltip
+        key={agent.agent}

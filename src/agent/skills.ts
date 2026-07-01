@@ -65,3 +65,6 @@ function parseSkillMeta(content: string): { label: string | null; description: s
   }
   if (!label) {
     const hm = content.match(/^#\s+(.+)$/m);
+    if (hm) label = hm[1].trim();
+  }
+  return { label, description, mcpRequires };
