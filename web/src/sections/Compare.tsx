@@ -18,3 +18,4 @@ export default function Compare() {
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">How is this different?</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          You never leave your environment. You keep the brain.
