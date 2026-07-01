@@ -73,3 +73,5 @@ export class DingtalkChannel extends Channel {
   private running = false;
   private listenResolve: (() => void) | null = null;
 
+  private readonly chatMeta = new Map<string, ChatMeta>();
+  private readonly messageHandlers = new Set<DingtalkMessageHandler>();

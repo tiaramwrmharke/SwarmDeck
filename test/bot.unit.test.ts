@@ -111,3 +111,5 @@ describe('Bot.runStream', () => {
       agent: 'claude',
       sessionId: 'session-1',
       workspacePath,
+      codexCumulative: undefined,
+      modelId: null,
