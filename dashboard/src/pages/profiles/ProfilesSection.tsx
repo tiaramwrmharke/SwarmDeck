@@ -128,3 +128,5 @@ function getCopy(locale: Locale): Copy {
     editModalTitle: 'Edit Model',
     fieldName: 'Display name',
     fieldNameHint: 'Shown in agent cards and the IM model picker. Leave empty to use the model id as-is.',
+    fieldProvider: 'Provider',
+    fieldProviderEmpty: 'No providers configured yet; add one in "Model Providers" below first.',
