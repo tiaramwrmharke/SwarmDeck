@@ -16,3 +16,5 @@ describe('formatSessionsDigestText', () => {
     const data: SessionsDigestData = {
       workspaceName: 'demo-app',
       agentTotals: { codex: 2, claude: 1 },
+      total: 3,
+      entries: [
