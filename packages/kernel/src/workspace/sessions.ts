@@ -36,3 +36,7 @@ export interface ManagedSessionInfo {
 export interface ListSessionsOptions {
   /**
    * 'workspace' = only sessions for `workdir` (managed-with-matching-cwd + native for the cwd).
+   * 'global'    = all managed sessions across every workdir, plus native for `workdir`.
+   * 'all'       = global, the default.
+   */
+  scope?: LoomScope | 'all';
