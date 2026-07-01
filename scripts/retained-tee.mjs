@@ -21,3 +21,7 @@ const maxAgeMs = positiveIntEnv('PIKILOOM_LOG_MAX_AGE_MS', 24 * 60 * 60 * 1000);
 const trimEveryWrites = positiveIntEnv('PIKILOOM_LOG_TRIM_EVERY_WRITES', 200);
 
 const trimRetainedLogFile = () => {
+  try {
+    const stat = fs.statSync(filePath);
+    if (Date.now() - stat.mtimeMs > maxAgeMs) {
+      fs.writeFileSync(filePath, '');
