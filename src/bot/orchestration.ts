@@ -35,3 +35,6 @@ export function buildKnownChatEnv(
 }
 
 export type SessionMessageRef = Pick<
+  SessionRuntime,
+  'key' | 'workdir' | 'agent' | 'sessionId' | 'workspacePath' | 'threadId' | 'codexCumulative' | 'modelId'
+>;

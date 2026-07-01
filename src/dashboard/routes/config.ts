@@ -152,3 +152,5 @@ export function resolveOpenPathLocator(rawPath: string, basePath?: string | null
   return splitExistingLineSuffix(absolute);
 }
 
+function editorGotoArg(filePath: string, location?: Pick<ResolvedOpenPath, 'line' | 'column'> | null): string | null {
+  if (!location?.line) return null;
