@@ -45,3 +45,6 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(expectedNodeTypes ?? '')) {
 expectEqual('@types/node major', expectedNodeTypes.split('.')[0], expectedNode.split('.')[0]);
 
 const lockedTypeScriptPackages = [];
+for (const [location, metadata] of Object.entries(lock.packages ?? {})) {
+  const lockedSpec = metadata.devDependencies?.typescript;
+  if ((location === '' || !location.includes('node_modules/')) && lockedSpec !== undefined) {
