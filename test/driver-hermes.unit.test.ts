@@ -80,3 +80,7 @@ while True:
         # driver's activity-accumulator code path gets exercised.
         for ev in SCRIPT.get("toolEvents", []):
             write({"jsonrpc":"2.0","method":"session/update","params":{
+                "sessionId": session_id,
+                "update": ev,
+            }})
+            time.sleep(0.01)
