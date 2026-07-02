@@ -164,3 +164,4 @@ function readClaudeMeta(filePath: string, stat: fs.Stats): { title: string | nul
     } catch { return { title: null, model: null, preview: null, turns: 0 }; }
 
     for (const line of head.split('\n')) {
+      if (!line || line[0] !== '{') continue;
