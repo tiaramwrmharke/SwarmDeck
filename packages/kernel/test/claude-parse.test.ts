@@ -101,3 +101,7 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
   });
 
   it('chronological: a TaskUpdate with an unknown id lands positionally on the latest TodoWrite list', () => {
+    const events = run([
+      { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tw1', name: 'TodoWrite', input: { todos: [
+        { content: 'first', status: 'completed' },
+        { content: 'second', status: 'in_progress' },
