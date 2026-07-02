@@ -19,3 +19,7 @@ describe('catalog / discovery', () => {
     expect(await loom.io.listSkills('echo')).toEqual([]);
   });
 
+  it('an app-supplied Catalog drives discovery as opaque descriptors', async () => {
+    const catalog: Catalog = {
+      async listModels({ agent }) { return [{ id: `${agent}-m1`, label: 'M1', providerName: 'acme', contextWindow: 200000 }]; },
+      async listEffort({ agent, model }) { return [{ id: 'low' }, { id: 'high', label: `${agent}/${model ?? 'default'}` }]; },

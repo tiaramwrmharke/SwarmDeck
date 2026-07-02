@@ -22,3 +22,6 @@ export function getEndpoint(): Endpoint | null {
 }
 
 function resolve(): Endpoint | null {
+  try {
+    const u = new URL(window.location.href);
+    const code = u.searchParams.get('code');
