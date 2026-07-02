@@ -77,3 +77,4 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
     return { driver: new kernel.AcpDriver({ id: opts.agent, command: acp.command, args: acp.args }), input: { ...common, model: opts.model ?? null } };
   }
   switch (opts.agent) {
+    case 'codex': {
