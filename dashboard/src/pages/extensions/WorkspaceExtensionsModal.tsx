@@ -12,3 +12,4 @@ export function WorkspaceExtensionsModal({
   workdir,
 }: {
   open: boolean;
+  onClose: () => void;
