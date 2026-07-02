@@ -50,3 +50,7 @@ function projectInteractions(snap: StreamSnapshot): UniversalInteraction[] | und
       allowFreeform: q.allowFreeform,
       allowEmpty: q.allowEmpty,
     })),
+  }));
+}
+
+function compact<T extends Record<string, any>>(obj: T): T {

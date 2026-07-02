@@ -275,3 +275,4 @@ export function buildGuiSetupHints(gui: GuiIntegrationConfig = resolveGuiIntegra
 function buildClaudeMcpConfig(servers: RegisteredMcpServer[]) {
   return {
     mcpServers: Object.fromEntries(servers.map(server => [
+      server.name,

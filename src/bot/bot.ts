@@ -657,3 +657,7 @@ export class Bot {
       type: 'text', text, thinking, activity, plan: plan ?? null, previewMeta: meta ?? null,
     });
   }
+
+  protected emitStreamDone(taskId: string, fallbackKey: string, opts: { sessionId: string | null; incomplete: boolean; error?: string }) {
+    const key = this.liveSessionKey(taskId, fallbackKey);
+    this.debug(`[stream-lifecycle] done task=${taskId} key=${key} sessionId=${opts.sessionId || '(none)'} incomplete=${opts.incomplete}`);
