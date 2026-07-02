@@ -19,3 +19,7 @@ export default function Layers() {
         {LAYERS.map((layer) => (
           <SpotlightCard
             key={layer.name}
+            spotlightColor={layer.spotlight}
+            className="!bg-white/[0.02] !border-white/10"
+          >
+            <div className="flex items-start justify-between gap-4">
