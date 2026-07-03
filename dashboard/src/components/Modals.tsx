@@ -358,3 +358,4 @@ export function WeixinModal({ open, onClose }: { open: boolean; onClose: () => v
   const reloadUntil = useStore(s => s.reloadUntil);
   const locale = useStore(s => s.locale);
   const t = useMemo(() => createT(locale), [locale]);
+  const [baseUrl, setBaseUrl] = useState(DEFAULT_WEIXIN_BASE_URL);
