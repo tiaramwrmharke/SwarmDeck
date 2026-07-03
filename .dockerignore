@@ -26,3 +26,5 @@ dashboard/node_modules
 .vscode
 .cursor
 .vs
+*.swp
+*.tmp
