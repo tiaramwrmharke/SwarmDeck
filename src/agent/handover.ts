@@ -33,3 +33,7 @@ export interface CompactForHandoverOpts {
   toModel?: string | null;
 }
 
+export interface HandoverResult {
+  ok: boolean;
+  seed: string;
+  mode: HandoverMode;
