@@ -150,3 +150,5 @@ function ensureBalancedCodeFences(text: string): string {
     if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
       inCode = !inCode;
     }
+  }
+  return inCode ? text + '\n```' : text;
