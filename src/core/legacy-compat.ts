@@ -17,3 +17,4 @@ export function hydrateLegacyEnv(): void {
       if (process.env[mapped] === undefined) process.env[mapped] = value;
     }
   }
+}
