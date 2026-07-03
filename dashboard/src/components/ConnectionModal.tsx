@@ -41,3 +41,6 @@ export function ClientConnectionPanel({ active = true }: { active?: boolean }) {
     } else {
       const d = decodeCode(code.trim());
       if (!d) { toast(t('conn.badCode'), false); return; }
+      setEndpoint(d);
+    }
+    window.location.reload();
