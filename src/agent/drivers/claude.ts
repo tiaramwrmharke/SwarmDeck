@@ -533,3 +533,7 @@ export function claudeParse(ev: any, s: any) {
           } else if (rawStatus) {
             const existing = s.claudeTaskList.get(taskId);
             if (existing) existing.status = rawStatus;
+          }
+          rebuildClaudePlanFromTasks(s);
+        } else if (taskId) {
+          const updated = applyClaudeTaskUpdateToPlan(s.claudeTodoPlan, taskId, rawStatus);
