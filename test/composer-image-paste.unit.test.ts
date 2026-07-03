@@ -15,3 +15,6 @@ describe('isLikelyImageFile', () => {
     expect(isLikelyImageFile(new File([], 'a', { type: 'image/webp' }))).toBe(true);
   });
 
+  it('accepts empty-MIME files that have an image extension (Case B: source omits the type)', () => {
+    expect(isLikelyImageFile(new File([], 'screenshot.png', { type: '' }))).toBe(true);
+    expect(isLikelyImageFile(new File([], 'photo.JPEG', { type: '' }))).toBe(true);

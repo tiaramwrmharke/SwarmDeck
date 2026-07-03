@@ -31,3 +31,4 @@ describe('kernel runtime (EchoDriver, hermetic)', () => {
   let tmp: string;
   let loom: Loom;
 
+  beforeEach(async () => {
