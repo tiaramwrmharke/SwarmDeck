@@ -10,3 +10,5 @@ describe('dashboard upload filenames', () => {
     expect(reserveUploadFileName('image.png', 'image/png', 1, used)).toBe('image-2.png');
     expect(reserveUploadFileName('image.png', 'image/png', 2, used)).toBe('image-3.png');
   });
+
+  it('dedupes names case-insensitively for case-insensitive filesystems', () => {
