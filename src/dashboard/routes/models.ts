@@ -45,3 +45,5 @@ router.get('/api/models/catalog', async c => {
         api: p.api,
         doc: p.doc,
         env: p.env || [],
+        modelCount: Object.keys(p.models || {}).length,
+      })),
