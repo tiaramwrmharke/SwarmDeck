@@ -27,3 +27,5 @@ describe('resolveClaudeAccessMode', () => {
   });
 
   it('honours the persisted config field over everything', () => {
+    expect(resolveClaudeAccessMode({ claudeAccessMode: 'api' })).toBe('api');
+    expect(resolveClaudeAccessMode({ claudeAccessMode: 'subscription' })).toBe('subscription');
