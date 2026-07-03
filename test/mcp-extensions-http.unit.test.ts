@@ -62,3 +62,7 @@ describe('getGlobalExtensionsAsServers — HTTP transport', () => {
           mcp: {
             'off-http': {
               type: 'http',
+              url: 'https://example.com/mcp',
+              enabled: false,
+            },
+            'off-stdio': {
