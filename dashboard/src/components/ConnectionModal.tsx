@@ -44,3 +44,7 @@ export function ClientConnectionPanel({ active = true }: { active?: boolean }) {
       setEndpoint(d);
     }
     window.location.reload();
+  };
+
+  const MODES: Array<{ key: ConnMode; label: string; hint: string }> = [
+    { key: 'local', label: t('conn.local'), hint: t('conn.localHint') },
