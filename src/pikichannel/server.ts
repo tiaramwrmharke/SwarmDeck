@@ -56,3 +56,4 @@ export async function mountPikichannel(app: Hono): Promise<PikichannelHandle> {
   let token = envToken || String(cfg.pikichannelToken || '').trim();
   if (!token) {
     token = crypto.randomBytes(24).toString('base64url');
+    try { updateUserConfig({ pikichannelToken: token }); log('provisioned a new pikichannel access token'); }
