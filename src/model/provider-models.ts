@@ -17,3 +17,6 @@ const cache: Map<string, CacheEntry> = _existing || new Map<string, CacheEntry>(
 if (!_existing) (globalThis as any)[GLOBAL_KEY] = cache;
 
 function isFresh(entry: CacheEntry, provider: ProviderConfig): boolean {
+  if (entry.providerUpdatedAt !== provider.updatedAt) return false;
+  return (Date.now() - entry.fetchedAt) < TTL_MS;
+}
