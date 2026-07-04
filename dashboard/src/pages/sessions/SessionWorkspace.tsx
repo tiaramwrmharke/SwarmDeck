@@ -352,3 +352,6 @@ export const SessionWorkspace = memo(function SessionWorkspace({
           const incoming = res.sessions || [];
           const existing = prev[wsPath] || [];
           const incomingIds = new Set(incoming.map(s => sKey(s.agent || '', s.sessionId)));
+          const stubs = existing.filter(s => {
+            if (s.runState !== 'running') return false;
+            const key = sKey(s.agent || '', s.sessionId);

@@ -29,3 +29,5 @@ describe('agent update gate', () => {
 
     const updatePromise = withAgentUpdateGate('__vitest_a__', () => install);
     expect(fs.existsSync(agentUpdateMarkerPath('__vitest_a__'))).toBe(true);
+
+    let unblocked = false;
