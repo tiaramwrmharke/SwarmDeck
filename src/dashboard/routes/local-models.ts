@@ -133,3 +133,6 @@ async function probeOllama(spec: BackendSpec): Promise<{ detected: boolean; vers
   if (!ver) return { detected: false, models: [] };
   const tags = await fetchJson<TagsRes>(`${spec.baseURL}/api/tags`, 3000);
   const models: DetectedModel[] = (tags?.models || []).map(m => ({
+    id: m.name,
+    sizeBytes: typeof m.size === 'number' ? m.size : undefined,
+  }));
