@@ -75,3 +75,5 @@ export class DingtalkChannel extends Channel {
 
   private readonly chatMeta = new Map<string, ChatMeta>();
   private readonly messageHandlers = new Set<DingtalkMessageHandler>();
+  private readonly errorHandlers = new Set<DingtalkErrorHandler>();
+
