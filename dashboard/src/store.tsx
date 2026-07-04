@@ -70,3 +70,4 @@ interface StoreState {
   modelLayer: ModelLayer | null;
   toasts: Toast[];
   allSessions: Record<string, { sessions: SessionInfo[] }>;
+  theme: Theme;
