@@ -48,3 +48,4 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
         canvas.height = height;
       }
     };
+
