@@ -135,3 +135,7 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
         : dingtalkReady
           ? 'Validating DingTalk credentials…'
           : 'Both Client ID and Client Secret are required.',
+    },
+    {
+      channel: 'wecom',
+      configured: wecomConfigured,
