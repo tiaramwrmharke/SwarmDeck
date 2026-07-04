@@ -27,3 +27,6 @@ class FakeTuiDriver implements AgentDriver {
 }
 
 const waitForData = async (get: () => string, needle: string, ms = 5000) => {
+  const t0 = Date.now();
+  while (!get().includes(needle)) { if (Date.now() - t0 > ms) throw new Error(`timeout waiting for "${needle}" — got: ${get().slice(0, 200)}`); await new Promise(r => setTimeout(r, 10)); }
+};
