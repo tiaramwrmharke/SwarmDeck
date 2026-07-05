@@ -13,3 +13,5 @@ export {
   listProfiles, getProfile, addProfile, updateProfile, removeProfile,
   getActiveProfileId, getActiveProfile, setActiveProfile,
   type AddProviderInput, type UpdateProviderInput,
+  type AddProfileInput, type UpdateProfileInput,
+} from './store.js';
