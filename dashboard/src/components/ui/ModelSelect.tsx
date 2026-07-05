@@ -97,3 +97,6 @@ export function ModelSelect({
       const spaceAbove = rect.top - 12;
       const openUpward = spaceBelow < 280 && spaceAbove > spaceBelow;
       const maxHeight = Math.max(220, Math.min(360, openUpward ? spaceAbove : spaceBelow));
+      setMenuStyle({
+        left: rect.left,
+        top: openUpward ? Math.max(12, rect.top - maxHeight - 8) : rect.bottom + 8,

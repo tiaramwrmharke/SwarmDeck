@@ -225,3 +225,7 @@ describe('TelegramBot', () => {
       try {
         (defaultBot as any).performRestart();
         expect(shutdownSpy).toHaveBeenCalledTimes(1);
+        expect(spawnMock).toHaveBeenCalledWith(
+          'npx',
+          ['--yes', 'swarmdeck@latest', '-c', 'telegram'],
+          expect.objectContaining({
