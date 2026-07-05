@@ -93,3 +93,7 @@ export function ModelSelect({
       if (!trigger) return;
       const rect = trigger.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom - 12;
+      const spaceAbove = rect.top - 12;
+      const openUpward = spaceBelow < 280 && spaceAbove > spaceBelow;
+      const maxHeight = Math.max(220, Math.min(360, openUpward ? spaceAbove : spaceBelow));
