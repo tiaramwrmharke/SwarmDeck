@@ -71,3 +71,4 @@ interface RowComposition {
   Field: typeof RowField;
   Status: typeof RowStatus;
   Action: typeof RowAction;
+  Description: typeof RowDescription;
