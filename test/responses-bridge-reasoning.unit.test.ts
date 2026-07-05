@@ -33,3 +33,7 @@ async function runBridge(sseLines: string[]): Promise<Array<{ type: string; data
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ model: 'fake', input: [{ type: 'message', role: 'user', content: 'hi' }], stream: true }),
   });
+  const text = await resp.text();
+  const events: Array<{ type: string; data: any }> = [];
+  for (const block of text.split('\n\n')) {
+    const typeLine = block.split('\n').find(l => l.startsWith('event: '));

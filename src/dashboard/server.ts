@@ -61,3 +61,7 @@ export async function startDashboard(opts: DashboardOptions = {}): Promise<Dashb
 
   const dashboardRoot = path.resolve(import.meta.dirname, '..', '..', 'dashboard', 'dist');
 
+  app.use('/assets/*', serveStatic({
+    root: dashboardRoot,
+    onFound: (_path, c) => {
+      c.header('Cache-Control', 'public, max-age=31536000, immutable');
