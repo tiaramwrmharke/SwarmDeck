@@ -130,3 +130,7 @@
                   - generic [ref=e184]: You're at the computer now — that's much easier. Let me bring up a fresh QR code; you can scan it directly off the sc...
                 - button "更多操作" [ref=e185] [cursor=pointer]:
                   - img [ref=e186]
+              - button "+ 还有 150 个" [ref=e190] [cursor=pointer]:
+                - generic [ref=e191]: + 还有 150 个
+                - img [ref=e192]
+          - generic [ref=e194]:
