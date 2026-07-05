@@ -77,3 +77,6 @@ export class DingtalkChannel extends Channel {
   private readonly messageHandlers = new Set<DingtalkMessageHandler>();
   private readonly errorHandlers = new Set<DingtalkErrorHandler>();
 
+  private readonly seenMsgIds = new Set<string>();
+  private readonly seenMsgIdQueue: string[] = [];
+  private static readonly SEEN_CAP = 256;
