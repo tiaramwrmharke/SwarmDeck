@@ -72,3 +72,7 @@ function getLinuxBatteryData(): HostBatteryData | null {
       const state = fs.existsSync(statusPath) ? fs.readFileSync(statusPath, 'utf-8').trim() : 'unknown';
       return {
         percent: capacity.endsWith('%') ? capacity : `${capacity}%`,
+        state: normalizeBatteryState(state),
+      };
+    }
+  } catch {}
