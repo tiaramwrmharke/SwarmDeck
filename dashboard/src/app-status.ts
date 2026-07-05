@@ -33,3 +33,4 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
     return {
       badgeVariant: 'warn',
       badgeContent: t('status.connecting'),
+      dotVariant: 'warn',
