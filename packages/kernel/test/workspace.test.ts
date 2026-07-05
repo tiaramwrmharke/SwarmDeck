@@ -78,3 +78,6 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     fs.mkdirSync(projDir, { recursive: true });
     const transcript = (prompt: string, ts: string) => [
       JSON.stringify({ type: 'user', isMeta: false, message: { content: prompt }, timestamp: ts }),
+      JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'ok' }] }, timestamp: ts }),
+      // the backfilled index record — carries no timestamp of its own
+      JSON.stringify({ type: 'last-prompt', lastPrompt: prompt, sessionId: 'x' }),
