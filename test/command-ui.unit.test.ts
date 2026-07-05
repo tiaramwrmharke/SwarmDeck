@@ -24,3 +24,5 @@ describe('CommandAction codec', () => {
     { kind: 'models.select.effort', effort: 'medium' },
     { kind: 'models.confirm' },
     { kind: 'skill.run', command: 'sk_review' },
+    { kind: 'mode.switch', mode: 'plan' },
+    { kind: 'mode.switch', mode: 'bypassPermissions' },
