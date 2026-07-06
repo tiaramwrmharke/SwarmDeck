@@ -24,3 +24,7 @@ export async function withEnv<T>(
   run: () => Promise<T> | T,
 ): Promise<T> {
   const snapshot = captureEnv(Object.keys(patch));
+  restoreEnv(patch);
+  try {
+    return await run();
+  } finally {

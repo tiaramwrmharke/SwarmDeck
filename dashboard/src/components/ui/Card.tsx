@@ -30,3 +30,6 @@ const card = tv({
   },
   defaults: { elevation: 'flat', tone: 'default', padding: 'none' },
 });
+
+export type CardElevation = NonNullable<VariantProps<typeof card>['elevation']>;
+export type CardTone = NonNullable<VariantProps<typeof card>['tone']>;
