@@ -314,3 +314,5 @@ export default function SplashCursor({
         this.programs = {};
         this.activeProgram = null;
         this.uniforms = {};
+      }
+

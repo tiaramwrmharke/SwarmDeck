@@ -162,3 +162,7 @@ function tryOpenCommand(command: string, args: string[]): boolean {
   try {
     runOpenCommand(command, args);
     return true;
+  } catch {
+    return false;
+  }
+}
