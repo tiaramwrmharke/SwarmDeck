@@ -38,3 +38,5 @@ export type SessionMessageRef = Pick<
   SessionRuntime,
   'key' | 'workdir' | 'agent' | 'sessionId' | 'workspacePath' | 'threadId' | 'codexCumulative' | 'modelId'
 >;
+
+export class SessionMessageRegistry<ChatKey extends ChatId, MessageId extends ChatId> {

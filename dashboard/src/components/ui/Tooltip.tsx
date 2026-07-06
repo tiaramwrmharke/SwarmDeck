@@ -28,3 +28,4 @@ export function Tooltip({ content, side = 'bottom', delayMs = 120, onShow, child
     setPos(null);
   };
 
+  const scheduleShow = () => {
