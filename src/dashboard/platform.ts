@@ -59,3 +59,6 @@ function requestScreenRecordingPermission(): boolean {
 function openPermissionSettings(permission: DashboardPermissionKey): boolean {
   const pane = permissionPaneUrls[permission];
   if (!pane) return false;
+  try {
+    execFileSync('open', [pane], { stdio: 'ignore', timeout: DASHBOARD_PERMISSION_TIMEOUTS.openSystemPreferences });
+    return true;

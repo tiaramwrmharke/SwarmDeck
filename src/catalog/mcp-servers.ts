@@ -94,3 +94,4 @@ export const MCP_SERVERS: RecommendedMcpServer[] = [
     transport: { type: 'http', url: 'https://mcp.atlassian.com/v1/sse' },
     auth: { type: 'mcp-oauth' },
     iconSlug: 'atlassian',
+    homepage: 'https://www.atlassian.com/platform/remote-mcp-server',
