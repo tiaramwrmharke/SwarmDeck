@@ -40,3 +40,6 @@ describe('isClaudeSlashCommand', () => {
     expect(isClaudeSlashCommand('/plugin:skill')).toBe(true);
     expect(isClaudeSlashCommand('  /compact')).toBe(true); // leading whitespace tolerated
     expect(isClaudeSlashCommand('/compact\nmore')).toBe(true); // first line only
+  });
+  it('does not match ordinary prompts or filesystem-style paths', () => {
+    expect(isClaudeSlashCommand('fix the bug in the parser')).toBe(false);
