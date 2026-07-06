@@ -84,3 +84,6 @@ export default function Orb({
       vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
       vec3 e = step(vec3(0.0), d0 - d0.yzx);
       vec3 i1 = e * (1.0 - e.zxy);
+      vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+      vec3 d1 = d0 - (i1 - K2);
+      vec3 d2 = d0 - (i2 - K1);

@@ -34,3 +34,7 @@ describe('projectSessionForList', () => {
   });
 
   it('leaves short fields and null fields untouched', () => {
+    const short = 'a short preview line';
+    const out = projectSessionForList(makeSession({
+      lastQuestion: short, lastAnswer: null, lastMessageText: undefined as any,
+    }) as any);
