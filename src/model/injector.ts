@@ -107,3 +107,5 @@ type AgentInjector = (
 ) => InjectedSpawnConfig | Promise<InjectedSpawnConfig>;
 
 const claudeInjector: AgentInjector = async (provider, profile, apiKey) => {
+  if (provider.kind !== 'anthropic' && provider.kind !== 'openai-compatible') {
+    return {
