@@ -48,3 +48,7 @@ export function agentModelEnv(agent: Agent, env: Record<string, string | undefin
 export function agentEffortEnv(agent: Agent, env: Record<string, string | undefined> = process.env): string {
   switch (agent) {
     case 'claude': return trimmed(env.CLAUDE_REASONING_EFFORT).toLowerCase();
+    case 'codex': return trimmed(env.CODEX_REASONING_EFFORT).toLowerCase();
+    case 'gemini': return trimmed(env.GEMINI_REASONING_EFFORT).toLowerCase();
+    case 'hermes': return trimmed(env.HERMES_REASONING_EFFORT).toLowerCase();
+  }

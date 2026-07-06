@@ -22,3 +22,5 @@ describe('applyTurnWindow', () => {
       'assistant 3',
     ]);
     expect(windowed.richMessages?.map(message => message.text)).toEqual([
+      'user 2',
+      'assistant 2',
