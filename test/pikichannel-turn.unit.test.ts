@@ -52,3 +52,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const k of TURN_ENV) { if (savedEnv[k] === undefined) delete process.env[k]; else process.env[k] = savedEnv[k]; }
+  vi.restoreAllMocks();
+});
