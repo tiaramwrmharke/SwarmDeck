@@ -114,3 +114,7 @@ describe('Gemini session tail', () => {
 
   afterEach(() => {
     if (originalHome == null) delete process.env.HOME;
+    else process.env.HOME = originalHome;
+  });
+
+  it('reads prior Gemini conversation turns from native session files', async () => {
