@@ -23,3 +23,7 @@ describe('kernel-bridge final usage projection', () => {
       contextWindow: null,
       contextUsedTokens: 72_150,
       contextPercent: 7.5,
+    });
+  });
+
+  it('degrades to all-null fields when the kernel reported no usage', () => {
