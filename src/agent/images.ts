@@ -102,3 +102,5 @@ export function attachAgentImage(opts: AttachAgentImageOpts): MessageBlock | nul
 
   const threshold = opts.inlineThresholdBytes ?? INLINE_THRESHOLD_BYTES;
   let content: string;
+  if (stat.size <= threshold) {
+    let bytes: Buffer;
