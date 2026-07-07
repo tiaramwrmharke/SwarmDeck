@@ -43,3 +43,6 @@ beforeEach(() => {
 afterEach(() => {
   process.env = { ...ORIGINAL_ENV };
 });
+
+describe('process-control restart flow', () => {
+  it('restarts without consulting task counts and hands off to the supervisor in daemon mode', async () => {
