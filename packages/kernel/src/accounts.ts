@@ -11,3 +11,5 @@
 //
 // Dependency-free (no imports) so any @swarmdeck/kernel consumer inherits account switching.
 
+const ACCOUNT_TOKEN_ENV: Record<string, string> = {
+  claude: 'CLAUDE_CODE_OAUTH_TOKEN',
