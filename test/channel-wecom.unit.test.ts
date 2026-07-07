@@ -37,3 +37,5 @@ describe('WeComChannel frame parsing and send', () => {
       const ch = new WeComChannel({ botId: 'bot-1', botSecret: 'sec-1' });
       (ch as any).missedPong = 2;
       (ch as any).handleFrame({ headers: { req_id: 'ping_5' } });
+      expect((ch as any).missedPong).toBe(0);
+    }
