@@ -150,3 +150,7 @@ export class WeComChannel extends Channel {
     this.stopHeartbeat();
     if (this.ws) {
       try { this.ws.close(); } catch {}
+      this.ws = null;
+    }
+    this.listenResolve?.();
+    this.listenResolve = null;
