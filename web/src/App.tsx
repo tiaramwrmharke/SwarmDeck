@@ -34,3 +34,7 @@ export default function App() {
           <Orchestrator />
           <Swarm />
           <InAction />
+          <Channels />
+          <Layers />
+          <Compare />
+          <BuiltWithItself />
