@@ -29,3 +29,4 @@ export function readGitStatus(dir: string): GitStatus | null {
   } catch {
     return null;
   }
+}
