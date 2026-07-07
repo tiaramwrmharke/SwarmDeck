@@ -274,3 +274,7 @@ export class ClaudeDriver implements AgentDriver {
       const armModelStall = () => {
         clearModelStall();
         modelStallTimer = setTimeout(() => {
+          if (settled) return;
+          // Background work legitimately produces no stream events; keep waiting (the bg hold owns it).
+          if (pendingClaudeBackgroundTasks(state) > 0) { armModelStall(); return; }
+          settleResult({ stopReason: 'stalled', kill: false, ok: false });
