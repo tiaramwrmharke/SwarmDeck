@@ -45,3 +45,4 @@ function which(binary: string): string | null {
   const exts = isWin ? (process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';') : [''];
   const sep = isWin ? ';' : ':';
   const pathDirs = (process.env.PATH || '').split(sep);
+  for (const dir of pathDirs) {
