@@ -71,3 +71,7 @@ Examples:
   npm run command -- claude-tail
   npm run command -- claude-tail -n 10 -s <session-id>
 `;
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const userConfig = loadUserConfig();
