@@ -31,3 +31,7 @@ export function _resetKeychainCache(): void {
 export async function isKeychainAvailable(): Promise<boolean> {
   return (await loadKeyring()) !== null;
 }
+
+export async function readKeychain(account: string): Promise<string | null> {
+  const mod = await loadKeyring();
+  if (!mod) throw new Error('OS keychain unavailable (install @napi-rs/keyring)');
