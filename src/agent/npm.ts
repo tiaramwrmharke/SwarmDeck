@@ -26,3 +26,7 @@ export interface AgentInstallSpec {
   note?: string;
 }
 
+const NPM_INSTALL_SPECS: Record<Agent, AgentInstallSpec> = Object.fromEntries(
+  Object.entries(AGENT_PACKAGES).map(([agent, pkg]) => [
+    agent,
+    { method: 'npm' as const, command: `npm install -g ${pkg}` },
