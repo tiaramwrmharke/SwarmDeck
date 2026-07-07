@@ -40,3 +40,5 @@ const ShinyText: React.FC<ShinyTextProps> = ({
   useAnimationFrame(time => {
     if (disabled || isPaused) {
       lastTimeRef.current = null;
+      return;
+    }
