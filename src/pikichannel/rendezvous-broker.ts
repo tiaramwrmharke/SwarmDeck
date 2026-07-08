@@ -41,3 +41,7 @@ export class RendezvousBroker {
           if (!nodeId) { this.send(ws, { t: 'error', message: 'nodeId required' }); return; }
           this.hosts.set(nodeId, ws);
           myNodeId = nodeId;
+          this.send(ws, { t: 'registered', nodeId });
+          rlog(`host registered nodeId=${nodeId} (hosts=${this.hosts.size})`);
+          return;
+        }
