@@ -33,3 +33,4 @@ class PathRegistry {
   }
 }
 
+const pathRegistry = new PathRegistry();
