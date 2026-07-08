@@ -11,3 +11,7 @@ export interface TvConfig<V extends VariantMap> {
 }
 
 export interface TvResult<V extends VariantMap> {
+  (selection?: Selection<V> & { className?: string }): string;
+  variants: V;
+}
+
