@@ -33,3 +33,4 @@ vi.mock('@slack/web-api', () => {
         hoist.calls.push({ method: 'chat.delete', payload });
         return hoist.results['chat.delete']!(payload);
       }),
+    };
