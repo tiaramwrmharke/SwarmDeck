@@ -66,3 +66,7 @@ function openPermissionSettings(permission: DashboardPermissionKey): boolean {
     return false;
   }
 }
+
+export function checkPermissions(): Record<string, PermissionStatus> {
+  const r: Record<string, PermissionStatus> = {};
+  if (process.platform !== 'darwin') {
