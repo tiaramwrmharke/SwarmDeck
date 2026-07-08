@@ -31,3 +31,7 @@ export class FsSessionStore implements SessionStore {
     const workspacePath = path.join(this.dir(agent, sessionId), 'workspace');
     fs.mkdirSync(workspacePath, { recursive: true });
     const existing = await this.get(agent, sessionId);
+    if (!existing) {
+      const now = new Date().toISOString();
+      await this.save({
+        agent, sessionId, workspacePath, workdir: path.resolve(opts.workdir),
