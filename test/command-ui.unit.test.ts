@@ -26,3 +26,6 @@ describe('CommandAction codec', () => {
     { kind: 'skill.run', command: 'sk_review' },
     { kind: 'mode.switch', mode: 'plan' },
     { kind: 'mode.switch', mode: 'bypassPermissions' },
+    { kind: 'workflow.toggle', enabled: true },
+    { kind: 'workflow.toggle', enabled: false },
+  ];
