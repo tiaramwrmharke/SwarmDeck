@@ -14,3 +14,6 @@ export function UsageRing({ percent, tone, trackTone, alert = false, size = 14 }
   size?: number;
 }) {
   const clamped = Math.max(0, Math.min(100, percent));
+  const radius = 6;
+  const circumference = 2 * Math.PI * radius;
+  const color = USAGE_TONE_COLOR[tone];
