@@ -89,3 +89,6 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
 
   const pushOutput = (chunk: string) => {
     session.backlog.push(chunk);
+    if (session.backlog.length > BACKLOG_LINES) {
+      session.backlog.splice(0, session.backlog.length - BACKLOG_LINES);
+    }
