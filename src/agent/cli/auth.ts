@@ -92,3 +92,5 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
     if (session.backlog.length > BACKLOG_LINES) {
       session.backlog.splice(0, session.backlog.length - BACKLOG_LINES);
     }
+    events.emit('event', { type: 'output', chunk } satisfies AuthSessionEvent);
+  };

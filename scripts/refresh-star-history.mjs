@@ -43,3 +43,4 @@ function niceCeil(n) {
   if (n <= 5) return 5;
   const pow = 10 ** Math.floor(Math.log10(n));
   for (const step of [1, 2, 2.5, 5, 10]) {
+    const v = step * pow;
