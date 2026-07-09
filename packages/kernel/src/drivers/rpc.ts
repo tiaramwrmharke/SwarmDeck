@@ -37,3 +37,7 @@ export class StdioRpcClient {
   }
 
   onNotification(cb: (method: string, params: any) => void): void { this.notifyCb = cb; }
+  /** Serve peer->client requests. Throw RpcError for a coded error; anything else answers -32603. */
+  onRequest(cb: (method: string, params: any, id: number | string) => any | Promise<any>): void { this.requestCb = cb; }
+  /**
+   * Fires once when the child process exits/closes. A driver awaiting a terminal *notification*
