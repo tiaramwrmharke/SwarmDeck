@@ -14,3 +14,6 @@ export default function Channels() {
           <p className="mt-4 text-neutral-400">
             Run one, several, or all of them at once. Each channel is strictly isolated at the code level — adding a
             new terminal (WhatsApp, a mobile app, voice) touches none of the others.
+          </p>
+        </div>
+

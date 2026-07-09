@@ -94,3 +94,7 @@ export async function queueDashboardSessionTask(request: QueueSessionTaskRequest
 
   const goalCmd = parseGoalSlash(request.prompt || '');
   if (goalCmd && request.sessionId && !isPendingSessionId(request.sessionId)) {
+    return runDashboardGoalSlash(bot, resolvedAgent, request, goalCmd, modelId, thinkingEffort);
+  }
+
+  let prompt = request.prompt;
