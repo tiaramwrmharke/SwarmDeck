@@ -105,3 +105,7 @@ export function ModelSelect({
       });
     };
     updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
