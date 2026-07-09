@@ -35,3 +35,7 @@ function sessionRootFromCtx(ctx: ToolContext): string {
   return path.basename(workspace) === 'workspace' ? path.dirname(workspace) : workspace;
 }
 
+function handleAwaitBackground(args: Record<string, unknown>, ctx: ToolContext): ToolResult {
+  const reason = typeof args?.reason === 'string' ? args.reason.trim().slice(0, MAX_REASON_CHARS) : '';
+  toolLog('await_background', `reason=${reason.slice(0, 80) || '(empty)'}`);
+  if (!reason) {
