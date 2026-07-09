@@ -36,3 +36,6 @@ class PathRegistry {
 const pathRegistry = new PathRegistry();
 const DIR_PAGE_SIZE = 8;
 
+function buildDirKeyboard(browsePath: string, page: number): TelegramInlineKeyboard {
+  const dirs = listSubdirs(browsePath);
+  const totalPages = Math.max(1, Math.ceil(dirs.length / DIR_PAGE_SIZE));
