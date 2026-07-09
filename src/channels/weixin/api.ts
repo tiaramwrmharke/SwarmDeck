@@ -151,3 +151,6 @@ function combineAbortSignals(
     signal: controller.signal,
     dispose: () => {
       timeout.signal.removeEventListener('abort', onAbort);
+      external.removeEventListener('abort', onAbort);
+      timeout.dispose();
+    },
