@@ -102,3 +102,4 @@ export function removeGlobalMcpExtension(name: string): boolean {
 export function updateGlobalMcpExtension(name: string, patch: Partial<McpServerConfig>): boolean {
   const userConfig = loadUserConfig();
   const mcp = { ...(userConfig.extensions?.mcp ?? {}) };
+  if (!(name in mcp)) return false;

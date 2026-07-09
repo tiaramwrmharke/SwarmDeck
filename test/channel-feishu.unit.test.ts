@@ -36,3 +36,7 @@ describe('FeishuChannel.editCard', () => {
     }
 
     {
+      const { ch, patchMock } = createTestChannel();
+      patchMock.mockResolvedValue({ code: 99991401, msg: 'content not modified' });
+      await expect(
+        ch.editCard('chat1', 'msg1', { markdown: 'same' }),
