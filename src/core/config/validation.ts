@@ -147,3 +147,6 @@ function invalidChannelState(channel: ChannelSetupState['channel'], detail: stri
     status: 'invalid',
     detail,
   };
+}
+
+function errorChannelState(channel: ChannelSetupState['channel'], detail: string): ChannelSetupState {
