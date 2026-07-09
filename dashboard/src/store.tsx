@@ -71,3 +71,4 @@ interface StoreState {
   toasts: Toast[];
   allSessions: Record<string, { sessions: SessionInfo[] }>;
   theme: Theme;
+  locale: Locale;
