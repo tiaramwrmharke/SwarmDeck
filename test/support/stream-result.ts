@@ -24,3 +24,5 @@ export function makeStreamResult(
     codexCumulative: null,
     error: null,
     stopReason: null,
+    incomplete: false,
+    activity: null,

@@ -29,3 +29,5 @@ describe('CommandAction codec', () => {
     { kind: 'workflow.toggle', enabled: true },
     { kind: 'workflow.toggle', enabled: false },
   ];
+
+  it('round-trips every CommandAction kind', () => {
