@@ -12,3 +12,6 @@ import {
 function viewWith(rows: CommandActionButton[][]): CommandSelectionView {
   return { kind: 'models', title: 'Models', metaLines: [], items: [], rows };
 }
+
+describe('Telegram callback_data registry', () => {
+  it('packs an over-length BYOK model action under Telegram’s 64-byte cap', () => {
