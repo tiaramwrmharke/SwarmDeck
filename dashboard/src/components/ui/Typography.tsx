@@ -22,3 +22,4 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
 });
 
 const TEXT_VARIANTS = {
+  body:    'text-[14px] leading-[22px] text-fg-2',
