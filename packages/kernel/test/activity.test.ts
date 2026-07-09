@@ -8,3 +8,4 @@ describe('projectActivity (kernel activity-line contract)', () => {
   it('renders one line per tool call with a status suffix', () => {
     const out = projectActivity(snap({ toolCalls: [
       { id: '1', name: 'Read', summary: 'Read foo.ts', status: 'running' },
+      { id: '2', name: 'Edit', summary: 'Edit bar.ts', status: 'done' },

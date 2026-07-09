@@ -40,3 +40,4 @@ export type SessionMessageRef = Pick<
 >;
 
 export class SessionMessageRegistry<ChatKey extends ChatId, MessageId extends ChatId> {
+  private readonly messages = new Map<ChatKey, Map<MessageId, SessionMessageRef>>();
