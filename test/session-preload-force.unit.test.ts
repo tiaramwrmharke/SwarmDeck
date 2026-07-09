@@ -22,3 +22,6 @@ function query(sessionId: string) {
 }
 const userOnly = { ok: true, richMessages: [{ role: 'user', text: 'u', blocks: [] }], messages: [], totalTurns: 1 };
 const withAssistant = {
+  ok: true,
+  richMessages: [
+    { role: 'user', text: 'u', blocks: [] },
