@@ -52,3 +52,4 @@ vi.mock('discord.js', () => {
     login = vi.fn(async () => {
       queueMicrotask(() => {
         const handlers = hoist.onceHandlers['ClientReady'] || [];
+        handlers.forEach(h => h(this));

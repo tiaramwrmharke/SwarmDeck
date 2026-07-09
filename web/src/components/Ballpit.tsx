@@ -168,3 +168,5 @@ class X {
     this.camera.aspect = this.size.width / this.size.height;
     if (this.camera.isPerspectiveCamera && this.cameraFov) {
       if (this.cameraMinAspect && this.camera.aspect < this.cameraMinAspect) {
+        this.#adjustFov(this.cameraMinAspect);
+      } else if (this.cameraMaxAspect && this.camera.aspect > this.cameraMaxAspect) {
