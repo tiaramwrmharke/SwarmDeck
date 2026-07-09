@@ -33,3 +33,4 @@ const card = tv({
 
 export type CardElevation = NonNullable<VariantProps<typeof card>['elevation']>;
 export type CardTone = NonNullable<VariantProps<typeof card>['tone']>;
+export type CardPadding = NonNullable<VariantProps<typeof card>['padding']>;
