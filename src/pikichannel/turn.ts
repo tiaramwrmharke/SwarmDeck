@@ -55,3 +55,7 @@ function manualIceServers(): IceServer[] | null {
   return null;
 }
 
+function flatten(servers: Array<{ urls: string | string[]; username?: string; credential?: string }>): IceServer[] {
+  const out: IceServer[] = [];
+  for (const s of servers) {
+    if (!s || !s.urls) continue;
