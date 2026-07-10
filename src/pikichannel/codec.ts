@@ -18,3 +18,4 @@ function frameToText(raw: string | Buffer | ArrayBuffer): string {
   return Buffer.from(new Uint8Array(raw)).toString('utf8');
 }
 
+export function decodeClient(raw: string | Buffer | ArrayBuffer, _fmt: WireFormat = DEFAULT_WIRE_FORMAT): ClientMessage | null {

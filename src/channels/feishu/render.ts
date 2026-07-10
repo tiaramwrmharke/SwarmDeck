@@ -154,3 +154,4 @@ function ensureBalancedCodeFences(text: string): string {
   return inCode ? text + '\n```' : text;
 }
 
+function escapeFeishuMarkdownText(text: string): string {
