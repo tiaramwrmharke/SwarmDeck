@@ -17,3 +17,4 @@ export function makeStreamResult(
     inputTokens: 0,
     outputTokens: 0,
     cachedInputTokens: null,
+    cacheCreationInputTokens: null,

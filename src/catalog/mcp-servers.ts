@@ -96,3 +96,6 @@ export const MCP_SERVERS: RecommendedMcpServer[] = [
     iconSlug: 'atlassian',
     homepage: 'https://www.atlassian.com/platform/remote-mcp-server',
   },
+  {
+    id: 'notion',
+    name: 'Notion',
