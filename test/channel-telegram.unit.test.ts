@@ -83,3 +83,4 @@ describe('TelegramChannel', () => {
       expect(onError).toHaveBeenCalledTimes(1);
       expect(onError.mock.calls[0]?.[0]?.message).toContain('Telegram polling conflict:');
 
+      const fetchFail = new TelegramChannel({ token: 'test-token', workdir: makeTmpDir('tg-test-') });

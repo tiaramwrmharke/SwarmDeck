@@ -254,3 +254,5 @@ function getCopy(locale: Locale): Copy {
     notConnected: 'Not connected',
     modalAddTitle: 'Connect Model Provider',
     modalAddHint: tpl => tpl ? `Pre-filled from the ${tpl} template — just paste your API key.` : 'Enter endpoint and credential. After saving, choose models on the agent cards above.',
+    modalEditTitle: 'Edit Provider',
+    modalEditHint: 'Update the endpoint, credential, or model. Changing the credential clears the validated state.',
