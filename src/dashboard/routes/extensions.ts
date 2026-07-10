@@ -247,3 +247,4 @@ app.get('/api/extensions/mcp/search', async (c) => {
     return c.json({ ok: true, results });
   } catch (e: any) {
     return c.json({ ok: false, error: e?.message, results: [] });
+  }
