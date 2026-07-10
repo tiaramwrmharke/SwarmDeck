@@ -37,3 +37,6 @@ export const PLAYWRIGHT_MCP_BROWSER_ARGS = ['--browser', 'chrome', '--viewport-s
 // the "unsupported command-line flag" infobar that the first flag would otherwise trigger.
 export const MANAGED_BROWSER_STEALTH_ARGS = ['--disable-blink-features=AutomationControlled', '--test-type'] as const;
 
+export const PIKILOOM_BROWSER_CDP_URL_ENV = 'PIKILOOM_BROWSER_CDP_URL';
+
+export const DASHBOARD_PAGINATION = {
