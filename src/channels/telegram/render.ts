@@ -103,3 +103,6 @@ export function renderCommandNoticeHtml(notice: CommandNotice): string {
   if (notice.value) {
     if (notice.valueMode === 'plain') lines.push(escapeHtml(notice.value));
     else lines.push(compactCode(notice.value, 40));
+  }
+  if (notice.detail) lines.push(`<i>${escapeHtml(notice.detail)}</i>`);
+  return lines.join('\n');
