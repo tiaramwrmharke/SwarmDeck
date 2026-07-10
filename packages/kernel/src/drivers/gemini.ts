@@ -35,3 +35,6 @@ export class GeminiDriver implements AgentDriver {
       let stderr = '';
       child.stdout!.on('data', (chunk: Buffer) => {
         for (const line of nextLines(chunk)) {
+          const ev = parseJsonLine(line);
+          if (ev !== undefined) parseGeminiEvent(ev, s, tools, ctx.emit);
+        }
