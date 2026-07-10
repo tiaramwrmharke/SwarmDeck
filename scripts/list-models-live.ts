@@ -19,3 +19,5 @@ function getVersion(cmd: string): string | null {
   } catch {
     return null;
   }
+}
+
