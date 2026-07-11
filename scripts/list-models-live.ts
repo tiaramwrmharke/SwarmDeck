@@ -21,3 +21,5 @@ function getVersion(cmd: string): string | null {
   }
 }
 
+const workdir = path.resolve(process.argv[2] || process.env.PIKILOOM_WORKDIR || process.cwd());
+const claudeCurrentModel = (process.env.CLAUDE_MODEL || DEFAULT_AGENT_MODELS.claude).trim();
