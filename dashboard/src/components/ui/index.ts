@@ -11,3 +11,4 @@ export { Modal, ModalHeader, type ModalSize } from './Modal';
 export { TabsList, TabsTrigger } from './Tabs';
 export { Tooltip, type TooltipProps } from './Tooltip';
 export { ChevronIcon, CollapsibleCard } from './Collapsible';
+export { SectionLabel, Skeleton, Spinner, Toasts } from './feedback';
