@@ -59,3 +59,4 @@ const ALL_TOOLS = TOOL_MODULES.flatMap(m => m.tools);
 const TOOL_HANDLERS = new Map<string, McpToolModule>();
 for (const mod of TOOL_MODULES) {
   for (const t of mod.tools) {
+    TOOL_HANDLERS.set(t.name, mod);
