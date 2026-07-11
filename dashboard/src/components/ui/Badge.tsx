@@ -37,3 +37,6 @@ const TONE_VARS: Record<BadgeTone, CSSProperties> = {
   muted: {
     borderColor: 'var(--th-badge-muted-border)',
     backgroundColor: 'var(--th-badge-muted-bg)',
+    color: 'var(--th-badge-muted-text)',
+  },
+};
