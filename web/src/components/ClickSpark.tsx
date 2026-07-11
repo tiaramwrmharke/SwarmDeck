@@ -53,3 +53,4 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(resizeCanvas, 100);
     };
+
