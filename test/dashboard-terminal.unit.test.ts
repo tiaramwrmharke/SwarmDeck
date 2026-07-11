@@ -40,3 +40,5 @@ describe('isSetupReady — dashboard is a first-class terminal', () => {
     const state = collectSetupState({ agents: CLAUDE_ONLY, channel: 'telegram', tokenProvided: true });
     expect(isSetupReady(state)).toBe(true);
   });
+
+  it('is NOT ready when no agent is installed (channel alone is insufficient)', () => {
