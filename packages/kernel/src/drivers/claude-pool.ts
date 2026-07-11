@@ -52,3 +52,5 @@ function destroyClaudeChild(child: ChildProcess): void {
 
 export class ClaudeWarmPool {
   private readonly parked = new Map<string, ParkedClaude>();
+
+  size(): number {

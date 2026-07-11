@@ -32,3 +32,7 @@ export interface ModelProfileConfig {
   modelId: string;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
   maxOutputTokens?: number | null;
+  extras?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
