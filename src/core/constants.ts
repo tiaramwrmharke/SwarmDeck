@@ -40,3 +40,4 @@ export const MANAGED_BROWSER_STEALTH_ARGS = ['--disable-blink-features=Automatio
 export const PIKILOOM_BROWSER_CDP_URL_ENV = 'PIKILOOM_BROWSER_CDP_URL';
 
 export const DASHBOARD_PAGINATION = {
+  defaultPageSize: 6,

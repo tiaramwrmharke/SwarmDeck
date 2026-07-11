@@ -664,3 +664,4 @@ export class Bot {
     this.emitStream(key, {
       type: 'done', taskId,
       sessionId: opts.sessionId,
+      incomplete: opts.incomplete,
