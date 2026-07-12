@@ -28,3 +28,4 @@ export class PtyBridge {
     proc.onData((d: string) => { for (const cb of this.dataCbs) { try { cb(d); } catch { /* isolate */ } } });
     proc.onExit((e: { exitCode: number; signal?: number }) => {
       for (const cb of this.exitCbs) { try { cb({ exitCode: e.exitCode, signal: e.signal }); } catch { /* isolate */ } }
+    });

@@ -41,3 +41,5 @@ function safePercent(value: number | null | undefined): number | null {
 
 function formatLoad(value: number | null | undefined): string | null {
   if (!Number.isFinite(value ?? NaN)) return null;
+  return Number(value).toFixed(2);
+}
