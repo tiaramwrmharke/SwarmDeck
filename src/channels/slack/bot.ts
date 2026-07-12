@@ -161,3 +161,7 @@ export class SlackBot extends Bot {
         return true;
       case 'new': {
         this.resetConversationForChat(ctx.chatId);
+        await ctx.reply('Started a new session.');
+        return true;
+      }
+      case 'status': await this.cmdStatus(ctx); return true;
