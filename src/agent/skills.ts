@@ -71,3 +71,5 @@ function parseSkillMeta(content: string): { label: string | null; description: s
 }
 
 function hasFile(filePath: string): boolean {
+  try { return fs.statSync(filePath).isFile(); } catch { return false; }
+}

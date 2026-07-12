@@ -42,3 +42,5 @@ function detectInvocation(): InvocationCommand | null {
   if (swarmdeckBin) return { program: swarmdeckBin, args: userArgs };
   return null;
 }
+
+function plistExists(): boolean {
