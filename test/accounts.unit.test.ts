@@ -50,3 +50,4 @@ describe('kernel account token capability', () => {
     expect(kernel.accountTokenEnv('claude', 'sk-ant-oat01-x')).toEqual({ CLAUDE_CODE_OAUTH_TOKEN: 'sk-ant-oat01-x' });
     expect(kernel.accountTokenEnv('codex', 'x')).toEqual({});
   });
+});
