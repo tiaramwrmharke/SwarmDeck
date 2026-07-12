@@ -85,3 +85,4 @@ describe('Codex session history', () => {
             output: 'Plan updated',
           },
         }),
+        JSON.stringify({
