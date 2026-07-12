@@ -94,3 +94,4 @@ function truncate(s: string, n: number): string { return s.length > n ? s.slice(
 // session/update -> normalized DriverEvents. Exported (and aliased as applyHermesUpdate)
 // so it can be unit-tested against the raw ACP wire without spawning a process.
 export function applyAcpUpdate(update: any, s: any, tools: Set<string>, emit: (e: DriverEvent) => void): void {
+  if (!update) return;
