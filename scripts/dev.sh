@@ -50,3 +50,7 @@ if (( _should_detach )); then
   # Python parent so it is reparented before the tool runner performs cleanup.
   if command -v python3 >/dev/null 2>&1; then
     _bg_pid=$(python3 - "$0" "${LOG_FILE}" "$(pwd)" "$@" <<'PY'
+import os
+import subprocess
+import sys
+
