@@ -45,3 +45,6 @@ describe('agent-type background tracking', () => {
     trackClaudeBackgroundTask({ type: 'system', subtype: 'task_started', task_id: 'bg1', tool_use_id: 'toolu_agent1' }, s);
     expect(claudeTurnHasAgentBackground(s)).toBe(true);
   });
+
+  it('a detached shell task is NOT agent-backed (keeps the short daemon cap)', () => {
+    const s: any = { subAgents: new Map() };
