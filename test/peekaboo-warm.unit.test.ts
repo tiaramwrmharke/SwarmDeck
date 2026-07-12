@@ -18,3 +18,6 @@ import {
 const pkgAfterFlag = (argv: readonly string[]) => argv[argv.indexOf('-p') + 1];
 
 describe('Peekaboo npx warm', () => {
+  it('warms the SAME package the MCP server launches, so the cache is reused', () => {
+    expect(pkgAfterFlag(PEEKABOO_MCP_ARGV)).toBe(PEEKABOO_NPX_PACKAGE);
+    expect(pkgAfterFlag(PEEKABOO_WARM_ARGV)).toBe(PEEKABOO_NPX_PACKAGE);
