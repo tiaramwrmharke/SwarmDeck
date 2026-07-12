@@ -20,3 +20,4 @@ function isFresh(entry: CacheEntry, provider: ProviderConfig): boolean {
   if (entry.providerUpdatedAt !== provider.updatedAt) return false;
   return (Date.now() - entry.fetchedAt) < TTL_MS;
 }
+
