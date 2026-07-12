@@ -27,3 +27,7 @@ describe('kernel-bridge final usage projection', () => {
   });
 
   it('degrades to all-null fields when the kernel reported no usage', () => {
+    expect(kernelUsageToResultFields({})).toEqual({
+      inputTokens: null,
+      outputTokens: null,
+      cachedInputTokens: null,

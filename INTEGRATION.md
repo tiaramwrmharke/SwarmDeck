@@ -52,3 +52,5 @@ Typical responsibilities:
 
 - `/start` formatting
 - `/status` formatting
+- host / runtime formatting
+- command selection cards or keyboards
