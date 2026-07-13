@@ -79,3 +79,7 @@ export function setGoal(
     updatedAt: now,
     startedAt: Date.now(),
   };
+  return writeGoal(workdir, agent, sessionId, goal);
+}
+
+export function pauseGoal(workdir: string, agent: Agent, sessionId: string): ThreadGoal | null {

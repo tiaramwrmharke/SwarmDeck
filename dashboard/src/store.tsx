@@ -66,3 +66,7 @@ function getInitialLocale(): Locale {
 interface StoreState {
   state: AppState | null;
   host: HostInfo | null;
+  agentStatus: AgentStatusResponse | null;
+  modelLayer: ModelLayer | null;
+  toasts: Toast[];
+  allSessions: Record<string, { sessions: SessionInfo[] }>;

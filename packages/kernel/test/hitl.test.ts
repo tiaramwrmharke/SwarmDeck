@@ -18,3 +18,6 @@ function watch(io: LoomIO) {
 }
 const waitFor = async (pred: () => boolean, ms = 5000) => {
   const t0 = Date.now();
+  while (!pred()) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 5)); }
+};
+function loomWith(tmp: string, handler?: InteractionHandler): Loom {
