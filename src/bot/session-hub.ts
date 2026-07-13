@@ -105,3 +105,7 @@ export async function querySessions(opts: SessionQueryOpts): Promise<SessionQuer
         ok: false, sessions: [], error: `Failed to fetch ${agent} sessions`,
       })),
     ),
+  );
+
+  let allSessions: WorkspaceSessionInfo[] = [];
+  const errors: string[] = [];
