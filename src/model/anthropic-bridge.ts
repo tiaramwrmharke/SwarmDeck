@@ -95,3 +95,6 @@ async function handleMessages(
   const chatReq = anthropicToChatRequest(body, wantStream);
   const key = readBearer(req);
   const upstreamUrl = chatCompletionsUrl(upstreamBase);
+  log(`-> ${upstreamUrl} model=${chatReq.model} msgs=${chatReq.messages.length} tools=${chatReq.tools?.length ?? 0} stream=${wantStream}`);
+
+  let upstreamResp: Response;
