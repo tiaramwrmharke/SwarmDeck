@@ -343,3 +343,7 @@ export function classifyClaudeScreen(screen: any): ClaudeScreenInfo {
   if ((asksProceed || ds.includes('readytoexecute'))
       && (ds.includes('manuallyapproveedits') || ds.includes('yes,andbypasspermissions'))) {
     return { state: 'plan-approval', affirmativeKey: null, sample };
+  }
+
+  if ((asksProceed || ds.includes('requiresconfirmation')) && hasCursorSelect) {
+    return { state: 'confirm-prompt', affirmativeKey: '1', sample };

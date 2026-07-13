@@ -12,3 +12,4 @@ describe('dashboard upload filenames', () => {
   });
 
   it('dedupes names case-insensitively for case-insensitive filesystems', () => {
+    const used = new Set<string>();
