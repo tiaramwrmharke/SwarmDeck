@@ -56,3 +56,7 @@ export function envInt(name: string, def: number): number {
 
 export function shellSplit(str: string): string[] {
   const args: string[] = [];
+  let cur = '', inS = false, inD = false;
+  for (const ch of str) {
+    if (ch === "'" && !inD) { inS = !inS; continue; }
+    if (ch === '"' && !inS) { inD = !inD; continue; }
