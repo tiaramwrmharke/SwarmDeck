@@ -278,3 +278,4 @@ export class ClaudeDriver implements AgentDriver {
           // Background work legitimately produces no stream events; keep waiting (the bg hold owns it).
           if (pendingClaudeBackgroundTasks(state) > 0) { armModelStall(); return; }
           settleResult({ stopReason: 'stalled', kill: false, ok: false });
+        }, claudeModelStallMs(input.effort));

@@ -14,3 +14,5 @@ let workdir: string;
 
 beforeEach(() => {
   workdir = makeTmpDir('swarmdeck-await-');
+});
+
