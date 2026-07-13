@@ -24,3 +24,5 @@ export class EchoDriver implements AgentDriver {
     const prompt = input.prompt;
     ctx.emit({ type: 'reasoning', delta: `Considering: ${prompt}` });
 
+    if (prompt.startsWith('ASK:')) {
+      const q = prompt.slice(4).trim() || 'Your input?';

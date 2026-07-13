@@ -242,3 +242,5 @@ async function parseSessionSendRequest(c: any): Promise<{
 }> {
   const contentType = String(c.req.header('content-type') || '').toLowerCase();
   if (contentType.includes('multipart/form-data')) {
+    const form = await c.req.formData();
+    const uploads = await materializeUploadedFiles(form.getAll('attachments'));
