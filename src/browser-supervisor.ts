@@ -57,3 +57,7 @@ function snapshotFromCache(state: CachedState): ManagedBrowserSnapshot {
 }
 
 async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });

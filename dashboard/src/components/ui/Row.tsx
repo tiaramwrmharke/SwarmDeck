@@ -76,3 +76,4 @@ interface RowComposition {
 }
 
 interface RowProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
