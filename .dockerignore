@@ -28,3 +28,7 @@ dashboard/node_modules
 .vs
 *.swp
 *.tmp
+*.log
+
+# Test artifacts.
+coverage
