@@ -54,3 +54,7 @@ describe('browser-supervisor', () => {
     supervisor.invalidateManagedBrowser();
     prepareMock.mockResolvedValue({ profileDir: '/tmp/profile', closedPids: [], cdpEndpoint: 'http://127.0.0.1:39222', connectionMode: 'attach' });
     vi.stubGlobal('fetch', makeHealthyFetch());
+    await supervisor.ensureManagedBrowser();
+    expect(prepareMock).toHaveBeenCalledTimes(2);
+
+    const probe = await supervisor.probeManagedBrowser();

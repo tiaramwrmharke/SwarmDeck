@@ -84,3 +84,4 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
       const configOverrides: string[] = [];
       for (let i = 0; i < ce.length; i++) if (ce[i] === '-c' && ce[i + 1]) configOverrides.push(ce[++i]);
       return { driver: new kernel.CodexDriver(), input: { ...common, model: opts.codexModel ?? opts.model ?? null, systemPrompt: opts.codexDeveloperInstructions, configOverrides, fullAccess: opts.codexFullAccess } };
+    }
