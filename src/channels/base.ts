@@ -21,3 +21,5 @@ export const DEFAULT_CHANNEL_CAPABILITIES: ChannelCapabilities = Object.freeze({
   sendImage: false,
 });
 
+export type ChannelCapability = keyof ChannelCapabilities;
+
