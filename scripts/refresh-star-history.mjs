@@ -49,3 +49,4 @@ function niceCeil(n) {
   return 10 * pow;
 }
 
+function fmtDate(ms) {
