@@ -57,3 +57,4 @@ export function StatusBadge({
     );
   }
   return <StatusPill state={TONE_TO_STATE[tone]} label={label} />;
+}
