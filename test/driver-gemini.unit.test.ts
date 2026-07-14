@@ -120,3 +120,6 @@ describe('Gemini session tail', () => {
   it('reads prior Gemini conversation turns from native session files', async () => {
     const workdir = '/tmp/swarmdeck';
     const geminiDir = path.join(process.env.HOME!, '.gemini');
+    fs.mkdirSync(geminiDir, { recursive: true });
+    fs.writeFileSync(path.join(geminiDir, 'projects.json'), JSON.stringify({
+      projects: { [workdir]: 'swarmdeck' },

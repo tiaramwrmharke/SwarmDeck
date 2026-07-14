@@ -18,3 +18,4 @@ export default function InView({
 
   useEffect(() => {
     const el = ref.current;
+    if (!el) return;
