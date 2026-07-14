@@ -70,3 +70,7 @@ export class AcpClient extends EventEmitter {
 
   constructor(private opts: AcpClientOptions) {
     super();
+  }
+
+  start(): void {
+    if (this.proc) return;
