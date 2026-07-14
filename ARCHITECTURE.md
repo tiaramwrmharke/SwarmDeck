@@ -37,3 +37,4 @@ Imports flow strictly downward. `core/` and `catalog/` import from nothing insid
 ```text
 Incoming IM message
   → channels/*/channel.ts normalizes text / files / context
+  → channels/*/bot.ts resolves command vs free text

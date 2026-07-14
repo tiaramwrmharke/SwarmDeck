@@ -19,3 +19,6 @@ describe('session tool capabilities (co-located tool + prompt)', () => {
 
   it('claude without HITL → artifact-delivery only', () => {
     expect(composeSessionToolPrompt({ agent: 'claude', onInteraction: false })).toBe(ARTIFACT_RETURN);
+  });
+
+  it('non-claude agents never get the claude-only ask-user block', () => {
