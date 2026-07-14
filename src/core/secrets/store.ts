@@ -40,3 +40,4 @@ export async function readKeychain(account: string): Promise<string | null> {
       const entry = new mod.Entry(service, account);
       const value = entry.getPassword();
       return typeof value === 'string' && value.length > 0 ? value : null;
+    } catch (e: any) {

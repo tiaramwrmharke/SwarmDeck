@@ -28,3 +28,6 @@ describe('snapshot diff/apply', () => {
 
   it('full patch replaces wholesale', () => {
     const full: UniversalSnapshot = { phase: 'done', text: 'final', updatedAt: 5 };
+    const applied = applySnapshotPatch(emptySnapshot(), { full });
+    expect(applied).toEqual(full);
+  });
