@@ -40,3 +40,4 @@ function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSes
 function mkSession(rec: ManagedSessionRecord) {
   return { sessionId: rec.sessionId, workspacePath: rec.workspacePath, record: rec };
 }
+
