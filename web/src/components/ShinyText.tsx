@@ -43,3 +43,5 @@ const ShinyText: React.FC<ShinyTextProps> = ({
       return;
     }
 
+    if (lastTimeRef.current === null) {
+      lastTimeRef.current = time;

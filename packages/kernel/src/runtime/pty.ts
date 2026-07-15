@@ -33,3 +33,6 @@ export class PtyBridge {
 
   static open(spec: TuiSpec, opts: PtyOpenOpts = {}): PtyBridge {
     const pty = loadPty();
+    if (!pty) throw new Error('node-pty is not available — install the optional dependency `node-pty` to use TUI passthrough.');
+    const proc = pty.spawn(spec.command, spec.args, {
+      name: 'xterm-256color',
