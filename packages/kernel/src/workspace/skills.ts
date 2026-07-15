@@ -56,3 +56,6 @@ export function parseSkillMeta(content: string): SkillMeta {
   if (fm) {
     // Both frontmatter dialects: swarmdeck's `label:` and the agent-native `name:`.
     const lm = fm[1].match(/^label:\s*(.+)/m) || fm[1].match(/^name:\s*(.+)/m);
+    if (lm) label = lm[1].trim();
+    const dm = fm[1].match(/^description:\s*(.+)/m);
+    if (dm) description = dm[1].trim();
