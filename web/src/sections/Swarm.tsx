@@ -31,3 +31,6 @@ function SwarmStage() {
   );
 
   return (
+    <div className="relative h-72 overflow-hidden rounded-3xl border border-white/10 bg-[#070810] sm:h-80">
+      {isDesktop ? (
+        <InView className="absolute inset-0" keepMounted={false} fallback={placeholder}>
