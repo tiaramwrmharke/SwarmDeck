@@ -97,3 +97,7 @@
                         - text: "7"
                       - generic [ref=e137]: 23m
                   - generic [ref=e140]: 插队这个问题还是有啊，你之前是怎么修改的问题很多
+                  - generic [ref=e142]: "Two new bugs reported, both pointing at the WS/transport path:"
+                - button "更多操作" [ref=e143] [cursor=pointer]:
+                  - img [ref=e144]
+              - generic [ref=e148]:
