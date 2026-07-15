@@ -198,3 +198,5 @@ class TelegramChannel extends Channel {
     ...DEFAULT_CHANNEL_CAPABILITIES,
     editMessages: true,
     typingIndicators: true,
+    commandMenu: true,
+    messageReactions: true,
