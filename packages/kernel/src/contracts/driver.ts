@@ -52,3 +52,5 @@ export type DriverEvent =
   | { type: 'reasoning'; delta: string }
   | { type: 'tool'; call: UniversalToolCall }
   | { type: 'plan'; plan: UniversalPlan }
+  | { type: 'subagent'; subagent: UniversalSubAgent }
+  | { type: 'usage'; usage: Partial<UniversalUsage> }
