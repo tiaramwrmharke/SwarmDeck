@@ -82,3 +82,5 @@ export class SlackChannel extends Channel {
     this.botToken = opts.botToken;
     this.appToken = opts.appToken;
     this.allowedChatIds = opts.allowedChatIds;
+    this.requireMention = opts.requireMentionInChannel ?? true;
+  }
