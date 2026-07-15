@@ -22,3 +22,5 @@ export default function Nav() {
             target="_blank"
             rel="noreferrer"
             className="rounded-full bg-white px-3.5 py-1.5 font-medium text-black transition hover:bg-neutral-200"
+          >
+            GitHub

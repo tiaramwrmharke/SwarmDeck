@@ -83,3 +83,6 @@ export function setGoal(
 }
 
 export function pauseGoal(workdir: string, agent: Agent, sessionId: string): ThreadGoal | null {
+  const goal = readGoal(workdir, agent, sessionId);
+  if (!goal) return null;
+  if (goal.status !== 'active') return goal;
