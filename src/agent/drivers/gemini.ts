@@ -165,3 +165,7 @@ function geminiToolResultSummary(tool: { name: string; summary: string } | undef
       normalizeErrorMessage(ev.error)
       || ev.output
       || ev.message
+      || '',
+    ),
+    120,
+  );
