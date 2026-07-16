@@ -102,3 +102,5 @@ export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
   const hasActions = !!(onResend || onEdit || onFork);
   const imageBlocks = blocks?.filter(b => b.type === 'image') || [];
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
