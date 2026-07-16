@@ -89,3 +89,4 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     fs.utimesSync(path.join(projDir, 'recent.jsonl'), migration, migration);
     fs.utimesSync(path.join(projDir, 'old.jsonl'), migration, new Date(migration.getTime() + 1000));
 
+    const out = discoverClaudeNativeSessions(workdir, { home: tmp });

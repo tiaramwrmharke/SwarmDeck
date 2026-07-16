@@ -54,3 +54,6 @@ export function imageDimensions(buf: Buffer): { width: number; height: number } 
       if (buf[i] !== 0xff) { i++; continue; }
       const marker = buf[i + 1];
       if (marker === 0xff) { i++; continue; } // fill byte
+      if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+        return { width: buf.readUInt16BE(i + 7), height: buf.readUInt16BE(i + 5) };
+      }
