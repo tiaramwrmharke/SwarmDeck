@@ -54,3 +54,6 @@ export type DriverEvent =
   | { type: 'plan'; plan: UniversalPlan }
   | { type: 'subagent'; subagent: UniversalSubAgent }
   | { type: 'usage'; usage: Partial<UniversalUsage> }
+  | { type: 'artifact'; artifact: UniversalArtifact }
+  | { type: 'activity'; line: string }
+  | { type: 'compaction'; trigger: 'auto' | 'manual'; atTokens?: number | null };
