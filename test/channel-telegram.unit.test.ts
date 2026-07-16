@@ -84,3 +84,7 @@ describe('TelegramChannel', () => {
       expect(onError.mock.calls[0]?.[0]?.message).toContain('Telegram polling conflict:');
 
       const fetchFail = new TelegramChannel({ token: 'test-token', workdir: makeTmpDir('tg-test-') });
+      const cause = Object.assign(new Error('getaddrinfo ENOTFOUND api.telegram.org'), {
+        code: 'ENOTFOUND',
+        errno: -3008,
+        syscall: 'getaddrinfo',
