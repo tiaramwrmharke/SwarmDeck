@@ -20,3 +20,4 @@ export function UsageRing({ percent, tone, trackTone, alert = false, size = 14 }
   const trackColor = USAGE_TONE_COLOR[trackTone ?? tone];
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" role="img" aria-label={`${Math.round(clamped)}%`}>
+      <circle cx="8" cy="8" r={radius} fill="none" stroke={trackColor} strokeOpacity={trackTone ? 0.5 : 0.25} strokeWidth="2.5" />
