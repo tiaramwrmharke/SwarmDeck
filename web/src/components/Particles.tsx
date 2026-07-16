@@ -46,3 +46,5 @@ const vertex =  `
   uniform float uSpread;
   uniform float uBaseSize;
   uniform float uSizeRandomness;
+
+  varying vec4 vRandom;
