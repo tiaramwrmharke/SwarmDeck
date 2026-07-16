@@ -25,3 +25,5 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
 
     const rect = divRef.current.getBoundingClientRect();
     setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+

@@ -37,3 +37,7 @@ function isFiniteNumber(value: number | undefined): value is number {
 function touchCacheEntry<T>(cache: Map<string, CacheEntry<T>>, key: string, entry: CacheEntry<T>, maxEntries: number) {
   cache.delete(key);
   cache.set(key, entry);
+  while (cache.size > maxEntries) {
+    const oldestKey = cache.keys().next().value;
+    if (!oldestKey) break;
+    cache.delete(oldestKey);
