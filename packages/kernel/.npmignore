@@ -2,3 +2,9 @@
 # both for @pikiloom/kernel's own publish AND for pikiloom bundling packages/kernel/dist
 # into its tarball (files allowlist). Everything below is source/dev-only.
 node_modules/
+*.tsbuildinfo
+src/
+test/
+examples/
+vitest.config.ts
+tsconfig.json
