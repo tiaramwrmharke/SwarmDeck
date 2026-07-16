@@ -286,3 +286,4 @@ function getCopy(locale: Locale): CopyPack {
       rowSummaryNoEffort: '默认强度',
       rowWorkflowChipOn: '编排开',
       rowWorkflowChipOff: '编排关',
+    };
