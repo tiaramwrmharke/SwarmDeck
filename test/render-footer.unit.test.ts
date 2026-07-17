@@ -20,3 +20,13 @@ describe('formatFooterParts — BYOK profile name + provider', () => {
       model: 'gpt-5.5',
       effort: 'high',
     });
+    expect(parts.identity).toBe('codex · 豆包 Seed 2.1');
+    expect(parts.runtime).toContain('via 豆包 (Volcengine Ark)');
+  });
+
+  it('falls back to the raw model label when no profile is bound', () => {
+    const parts = formatFooterParts('claude', 2000, null, null, { model: 'sonnet-4-6', effort: 'high' });
+    expect(parts.identity).toBe('claude · sonnet-4-6');
+    expect(parts.runtime).not.toContain('via');
+  });
+});
