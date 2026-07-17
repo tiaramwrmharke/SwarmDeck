@@ -45,3 +45,5 @@ describe('optimisticSendWasQueued', () => {
     expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'b', queuedTaskIds: [] })).toBe(false);
   });
 
+  it('demotes when the optimistic send was queued behind a different running task', () => {
+    expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'a', queuedTaskIds: ['b'] })).toBe(true);

@@ -33,3 +33,5 @@ export function Sidebar({
   restartPhase: RestartPhase;
   onRestartClick: () => void;
   onConnectionClick: () => void;
+}) {
+  const theme = useStore(s => s.theme);

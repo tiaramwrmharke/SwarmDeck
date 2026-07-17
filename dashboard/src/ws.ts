@@ -92,3 +92,5 @@ function channelToSnapshot(key: string, u: any): any {
       promptId: it.promptId,
       kind: it.kind,
       title: it.title,
+      hint: it.hint,
+      currentIndex: it.currentIndex,
