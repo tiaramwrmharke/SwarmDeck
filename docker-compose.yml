@@ -50,3 +50,91 @@ services:
       DEFAULT_AGENT: ${DEFAULT_AGENT:-claude}
       PIKILOOM_WORKDIR: /workspace
       PIKILOOM_TIMEOUT: ${PIKILOOM_TIMEOUT:-1800}
+      PIKILOOM_FULL_ACCESS: ${PIKILOOM_FULL_ACCESS:-true}
+      PIKILOOM_ALLOWED_IDS: ${PIKILOOM_ALLOWED_IDS:-}
+
+      # ─── Per-agent tuning (optional) ──────────────────────────────────────
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-}
+      CLAUDE_PERMISSION_MODE: ${CLAUDE_PERMISSION_MODE:-bypassPermissions}
+      CODEX_MODEL: ${CODEX_MODEL:-}
+      CODEX_REASONING_EFFORT: ${CODEX_REASONING_EFFORT:-xhigh}
+      CODEX_FULL_ACCESS: ${CODEX_FULL_ACCESS:-true}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+
+      # ─── Browser automation (optional) ─────────────────────────────────────
+      # The base image does NOT bundle Chrome. To give the agent a real browser
+      # in Docker, run the Chromium sidecar + CDP bridge below and point swarmdeck
+      # at the bridge endpoint. Setting PIKILOOM_BROWSER_CDP_URL alone turns on
+      # browser tooling — no separate PIKILOOM_BROWSER_ENABLED needed.
+      # PIKILOOM_BROWSER_CDP_URL: http://chromium:9223
+
+    volumes:
+      # setting.json, sessions, MCP/CLI state, etc.
+      - swarmdeck-config:/home/piki/.swarmdeck
+      # Projects the agent can read/write. Either a named volume or a host
+      # bind mount — the latter is what you want if your code lives on the
+      # host and you intend to edit it from the IDE as well.
+      - swarmdeck-workspace:/workspace
+      # Uncomment to reuse a host-side OAuth login for an agent CLI. The host
+      # path's uid must match PUID (default 1000) or the agent CLI will refuse
+      # to read the token file.
+      #
+      # ⚠️ Codex stores its state in a SQLite db under ~/.codex/. Mounting the
+      # whole dir while the host's Codex desktop is also running can corrupt
+      # the db (errno 11 / "database disk image is malformed"). If you only
+      # need OAuth, mount just the auth file read-only:
+      #     - ${HOME}/.codex/auth.json:/home/piki/.codex/auth.json:ro
+      # See docs/DOCKER.md §3-B for full guidance.
+      # - ${HOME}/.claude:/home/piki/.claude
+      # - ${HOME}/.codex:/home/piki/.codex
+      # - ${HOME}/.gemini:/home/piki/.gemini
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3939/api/state"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  # ─── Optional: Chromium sidecar + CDP bridge for browser automation ─────────
+  # Uncomment both services below (and the PIKILOOM_BROWSER_CDP_URL env above) to
+  # let the agent drive a real browser. Open http://<host>:3000 in your own
+  # browser to sign in to sites — the profile persists in `chromium-config`, and
+  # swarmdeck attaches over CDP. See docs/DOCKER.md §6 for the full rationale.
+  #
+  # chromium:
+  #   image: lscr.io/linuxserver/chromium:latest
+  #   container_name: swarmdeck-chromium
+  #   restart: unless-stopped
+  #   environment:
+  #     PUID: 1000
+  #     PGID: 1000
+  #     TZ: Etc/UTC
+  #     # --remote-allow-origins=* is REQUIRED — without it Chrome 111+ rejects
+  #     # the cross-host CDP handshake with "403 Forbidden". Note this image
+  #     # ignores --remote-debugging-address, so CDP only ever binds to
+  #     # 127.0.0.1; the socat bridge below is what exposes it to swarmdeck.
+  #     CHROME_CLI: "--remote-debugging-port=9222 --remote-allow-origins=*"
+  #   ports:
+  #     - "3000:3000"   # web UI (KasmVNC) — open this to sign in
+  #     - "3001:3001"   # https variant
+  #   volumes:
+  #     - chromium-config:/config
+  #   shm_size: 1gb
+  #
+  # # Bridges Chrome's localhost-only CDP (127.0.0.1:9222) to 0.0.0.0:9223 inside
+  # # the chromium container's network namespace, so swarmdeck reaches it at
+  # # http://chromium:9223. socat connects from 127.0.0.1, which also satisfies
+  # # Chrome's host-header check.
+  # chromium-cdp-bridge:
+  #   image: alpine/socat:latest
+  #   container_name: swarmdeck-chromium-cdp-bridge
+  #   restart: unless-stopped
+  #   network_mode: "service:chromium"
+  #   depends_on: [chromium]
+  #   command: TCP-LISTEN:9223,fork,reuseaddr,bind=0.0.0.0 TCP:127.0.0.1:9222
+
+volumes:
+  swarmdeck-config:
+  swarmdeck-workspace:
+  # chromium-config:
