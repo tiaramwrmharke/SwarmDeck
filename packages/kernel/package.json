@@ -17,3 +17,5 @@
     "codex",
     "orchestrator",
     "tui",
+    "pty",
+    "websocket"

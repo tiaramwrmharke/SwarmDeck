@@ -15,3 +15,6 @@ export function hasConfiguredChannelToken(
       return !!(
         config.channels?.includes('weixin')
         && config.weixinBaseUrl
+        && config.weixinBotToken
+        && config.weixinAccountId
+      );
