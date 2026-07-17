@@ -39,3 +39,5 @@ describe('claudeResumeArgs (rewind flag contract)', () => {
   });
   it('a fork wins over a rewind (mutually exclusive — never emits both)', () => {
     expect(claudeResumeArgs('sid', { anchor: 'f' }, { anchor: 'r' }))
+      .toEqual(['--resume', 'sid', '--fork-session', '--resume-session-at', 'f']);
+  });

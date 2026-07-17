@@ -400,3 +400,7 @@ describe('stageSessionFiles', () => {
     fs.writeFileSync(path.join(tmpDir, '.swarmdeck', 'sessions', 'index.json'), JSON.stringify({
       version: 1,
       sessions: [{
+        sessionId: legacySessionId,
+        agent: 'claude',
+        workdir: tmpDir,
+        workspacePath: legacyWorkspacePath,
