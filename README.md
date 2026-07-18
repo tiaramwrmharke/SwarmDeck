@@ -71,3 +71,6 @@ A typical day of development inside swarmdeck:
 
 The orchestrator is the product. It also happens to be the ultimate IDE in which the orchestrator itself is built.
 
+---
+
+## A Swarm by Default
