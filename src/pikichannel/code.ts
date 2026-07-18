@@ -16,3 +16,16 @@ export interface ServerCode {
 }
 
 export function buildServerCode(opts: {
+  token?: string;
+  nodeId?: string;
+  publicHost?: string;
+  rendezvous?: string;
+}): ServerCode {
+  const token = (opts.token || '').trim();
+  const publicHost = (opts.publicHost || '').trim();
+  const rendezvous = (opts.rendezvous || '').trim();
+  const nodeId = (opts.nodeId || '').trim();
+  if (publicHost) return { mode: 'direct', code: encodeConnectionCode({ host: publicHost, token }), detail: publicHost };
+  if (rendezvous && nodeId) return { mode: 'remote', code: encodeConnectionCode({ rendezvous, nodeId, token }), detail: rendezvous };
+  return { mode: 'none', code: '', detail: '' };
+}
