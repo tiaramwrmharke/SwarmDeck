@@ -304,3 +304,5 @@ export const InputComposer = memo(function InputComposer({ session, workdir, onS
           setLocalTaskId(res.taskId);
           onSendTaskAssigned?.(res.taskId);
         }
+        if (!res.ok) return;
+        const nextSession = typeof res.sessionKey === 'string' ? parseSessionKey(res.sessionKey) : null;
