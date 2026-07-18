@@ -106,3 +106,155 @@ export function UserBubble({ text, blocks, t, onResend, onEdit, onFork }: {
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
   };
 
+  const expandLabel = t('hub.expand')
+    .replace('{chars}', text ? text.length.toLocaleString() : '0')
+    .replace('{lines}', String(totalLines));
+
+  return (
+    <div
+      className="flex flex-col items-end mb-5 group/bubble"
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
+      <div className="max-w-[72%] rounded-md border border-fg-6 bg-panel px-4 py-3 text-[13.5px] leading-[1.72] text-fg shadow-sm">
+        {text && (
+          <div className="whitespace-pre-wrap break-words">
+            {displayText}
+            {isLong && !expanded && <span className="text-fg-5/60">…</span>}
+          </div>
+        )}
+        {isLong && (
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            className="mt-2 text-[11.5px] text-fg-4 hover:text-fg-2 underline decoration-fg-5/40 underline-offset-2 transition-colors"
+          >
+            {expanded ? t('hub.collapse') : expandLabel}
+          </button>
+        )}
+        {imageBlocks.length > 0 && (
+          <div className={cn('flex flex-wrap gap-2', text && 'mt-2')}>
+            {imageBlocks.map((img, i) => (
+              <img
+                key={i}
+                src={img.content}
+                className="max-w-[280px] max-h-[200px] rounded border border-fg-6/50 object-cover cursor-zoom-in hover:opacity-90 transition-opacity"
+                onClick={() => setLightboxSrc(img.content)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
+      {hasActions && (
+        <div className={cn(
+          'flex items-center gap-1 mt-1.5 mr-1 transition-all duration-200',
+          showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none',
+        )}>
+          <BubbleAction label={copied ? t('hub.copied') : t('hub.copy')} onClick={handleCopy}>
+            {copied
+              ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+              : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+            }
+          </BubbleAction>
+          {onResend && (
+            <BubbleAction label={t('hub.rerun')} onClick={() => onResend(text)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </BubbleAction>
+          )}
+          {onEdit && (
+            <BubbleAction label={t('hub.edit')} onClick={() => onEdit(text)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </BubbleAction>
+          )}
+          {onFork && (
+            <BubbleAction label={t('hub.fork')} onClick={onFork}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="6" cy="6" r="2" /><circle cx="18" cy="6" r="2" /><circle cx="12" cy="20" r="2" />
+                <path d="M6 8v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V8" /><path d="M12 14v4" />
+              </svg>
+            </BubbleAction>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function BubbleAction({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      className="flex items-center justify-center w-7 h-7 rounded border border-fg-6 bg-panel text-fg-4 shadow-sm hover:text-fg-2 hover:border-edge-h hover:bg-panel-h transition-colors"
+    >
+      {children}
+    </button>
+  );
+}
+
+export function TurnDivider({ agent, meta, model, effort, providerName: providerNameProp, previewMeta, hideContextUsage }: {
+  agent: string;
+  meta: ReturnType<typeof getAgentMeta>;
+  model?: string | null;
+  effort?: string | null;
+  providerName?: string | null;
+  previewMeta?: StreamPreviewMeta | null;
+  // While a turn streams, usage + elapsed are shown together in LivePreview's live-status
+  // line; suppress them here so the header stays a clean identity line during streaming.
+  hideContextUsage?: boolean;
+}) {
+  const ctxPct = hideContextUsage ? null : (previewMeta?.contextPercent ?? null);
+  const ctxTokens = hideContextUsage ? 0 : (previewMeta?.contextUsedTokens ?? 0);
+  const turnOutTokens = hideContextUsage ? 0 : (previewMeta?.turnOutputTokens ?? 0);
+  const showCtx = ctxPct != null || ctxTokens > 0 || turnOutTokens > 0;
+  const providerName = previewMeta?.providerName ?? providerNameProp ?? null;
+  return (
+    <div className="flex items-center gap-1.5 mt-1 mb-3">
+      <BrandIcon brand={agent} size={13} />
+      <span style={{ color: meta.color }} className="text-[12px] font-semibold opacity-70">{meta.label}</span>
+      {(model || effort) && (
+        <span className="text-[10px] font-mono text-fg-5/50">
+          {model || ''}{model && effort ? ' · ' : ''}{effort || ''}
+        </span>
+      )}
+      {providerName && (
+        <span
+          className="text-[10px] font-mono text-fg-5/70 px-1.5 py-px rounded bg-fg-5/8"
+          title={`This turn is routed through ${providerName} (BYOK), not the agent CLI's native auth.`}
+        >
+          via {providerName}
+        </span>
+      )}
+      {showCtx && (
+        <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-mono text-fg-5/55" title={formatContextTitle(previewMeta)}>
+          {ctxPct != null && <ContextDot pct={ctxPct} />}
+          <span>{ctxPct != null ? `${ctxPct.toFixed(1)}%` : ''}</span>
+          {ctxTokens > 0 && <span className="text-fg-5/40">· {formatTokens(ctxTokens)}</span>}
+          {turnOutTokens > 0 && (
+            <span className="text-fg-5/40">· ↑{formatTokensShort(turnOutTokens)}</span>
+          )}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function formatContextTitle(meta: StreamPreviewMeta | null | undefined): string {
+  if (!meta) return '';
+  const parts: string[] = [];
+  if (meta.contextPercent != null) parts.push(`Context: ${meta.contextPercent.toFixed(1)}%`);
+  if (meta.inputTokens != null) parts.push(`Input: ${meta.inputTokens.toLocaleString()}`);
+  if (meta.turnOutputTokens != null) parts.push(`Output (turn): ${meta.turnOutputTokens.toLocaleString()}`);
+  else if (meta.outputTokens != null) parts.push(`Output: ${meta.outputTokens.toLocaleString()}`);
+  if (meta.cachedInputTokens != null) parts.push(`Cached: ${meta.cachedInputTokens.toLocaleString()}`);
+  return parts.join('  ·  ');
+}
+
+function ContextDot({ pct }: { pct: number }) {
+  return <span className={`h-1.5 w-1.5 rounded-full ${contextDotClass(pct)}`} />;
+}
