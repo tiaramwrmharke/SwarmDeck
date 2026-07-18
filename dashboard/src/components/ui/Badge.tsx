@@ -41,3 +41,6 @@ const TONE_VARS: Record<BadgeTone, CSSProperties> = {
   },
 };
 
+export type BadgeSize = 'xs' | 'sm';
+const SIZE_CLASSES: Record<BadgeSize, string> = {
+  xs: 'h-[18px] px-1.5 text-[10px]',
