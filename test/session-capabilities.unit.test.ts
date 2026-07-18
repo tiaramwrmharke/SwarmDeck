@@ -22,3 +22,4 @@ describe('session tool capabilities (co-located tool + prompt)', () => {
   });
 
   it('non-claude agents never get the claude-only ask-user block', () => {
+    expect(composeSessionToolPrompt({ agent: 'codex', onInteraction: true })).toBe(ARTIFACT_RETURN);

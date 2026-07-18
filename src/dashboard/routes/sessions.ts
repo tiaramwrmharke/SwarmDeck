@@ -248,3 +248,4 @@ async function parseSessionSendRequest(c: any): Promise<{
       workdir: readStringField(form.get('workdir')),
       agent: readStringField(form.get('agent')),
       sessionId: readStringField(form.get('sessionId')),
+      prompt: readStringField(form.get('prompt')),
