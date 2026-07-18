@@ -41,3 +41,5 @@ export async function readKeychain(account: string): Promise<string | null> {
       const value = entry.getPassword();
       return typeof value === 'string' && value.length > 0 ? value : null;
     } catch (e: any) {
+      if (/NoEntry|no.such|not.found/i.test(e?.message || '')) return null;
+      throw e;

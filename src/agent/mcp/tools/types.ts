@@ -28,3 +28,6 @@ export interface ToolContext {
   stagedFiles: string[];
   callbackUrl: string;
 }
+
+export function toolResult(text: string, isError = false): ToolResult {
+  return { content: [{ type: 'text', text }], ...(isError ? { isError: true } : {}) };
