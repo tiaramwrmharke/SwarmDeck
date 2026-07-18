@@ -29,3 +29,25 @@ const COMPANIES: LogoItem[] = [
   { node: <Co logo={brand(Stepfun)} name="StepFun" />, title: 'StepFun' },
 ];
 
+export default function UsedBy() {
+  return (
+    <section className="relative mx-auto max-w-6xl px-6 py-16">
+      <p className="text-center text-xs uppercase tracking-[0.22em] text-neutral-600">
+        Engineers from these teams build with swarmdeck
+      </p>
+      <div className="mt-9">
+        <LogoLoop
+          logos={COMPANIES}
+          speed={28}
+          logoHeight={28}
+          gap={64}
+          pauseOnHover
+          scaleOnHover
+          fadeOut
+          fadeOutColor="#05060a"
+          ariaLabel="Companies whose engineers use swarmdeck"
+        />
+      </div>
+    </section>
+  );
+}
