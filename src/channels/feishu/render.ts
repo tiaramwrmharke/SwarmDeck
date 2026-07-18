@@ -156,3 +156,7 @@ function ensureBalancedCodeFences(text: string): string {
 
 function escapeFeishuMarkdownText(text: string): string {
   return text.replace(/([\\`*_{}[\]()#+\-.!|>~])/g, '\\$1');
+}
+
+function renderFeishuQuote(text: string): string {
+  return text

@@ -45,3 +45,6 @@ Every port has a default (zero config). Override any: sessionStore, modelResolve
 interface UniversalSnapshot {
   phase: 'idle'|'queued'|'streaming'|'done';
   taskId?; sessionId?; agent?; model?; effort?; prompt?: string|null;
+  text?: string;        // accumulated assistant output (append)
+  reasoning?: string;   // accumulated thinking (append; empty if the model/auth withholds it — see gotchas)
+  activity?: string;    // human-readable execution trail, kernel-derived from toolCalls (one line per tool, status suffix)
