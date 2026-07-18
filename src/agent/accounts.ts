@@ -56,3 +56,7 @@ export function getAccount(agent: string, id: string): AgentAccountRecord | null
 }
 
 export async function addAccount(agent: string, label: string, token: string): Promise<AgentAccountRecord> {
+  if (!accountAgentSupported(agent)) throw new Error(`Agent ${agent} does not support multiple accounts`);
+  const name = (label || '').trim();
+  if (!name) throw new Error('Account name is required');
+  const t = (token || '').trim();

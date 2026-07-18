@@ -32,3 +32,7 @@ describe('FeishuSurface (IM as a Surface over LoomIO, hermetic)', () => {
   beforeEach(async () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-feishu-'));
     fake = new FakeFeishuTransport();
+    loom = createLoom({
+      drivers: [new EchoDriver()], defaultAgent: 'echo',
+      sessionStore: new FsSessionStore(tmp),
+      surfaces: [new FeishuSurface(fake, { agent: 'echo' })],

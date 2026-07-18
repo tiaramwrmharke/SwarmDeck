@@ -90,3 +90,7 @@ describe('workspace/native — discovering an agent\'s own sessions', () => {
     fs.utimesSync(path.join(projDir, 'old.jsonl'), migration, new Date(migration.getTime() + 1000));
 
     const out = discoverClaudeNativeSessions(workdir, { home: tmp });
+    expect(out.map((s) => s.sessionId)).toEqual(['recent', 'old']);
+    expect(out[0].updatedAt).toBe('2026-07-24T20:43:00.000Z');
+    expect(out[1].updatedAt).toBe('2026-06-26T04:48:26.181Z');
+    // …and the bounded limit keeps the row that is actually newest.
