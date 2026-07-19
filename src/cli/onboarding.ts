@@ -83,3 +83,5 @@ function defaultChannelState(channel: string, tokenProvided: boolean): ChannelSe
       configured: tokenProvided,
       ready: tokenProvided,
       validated: false,
+      status: tokenProvided ? 'ready' : 'missing',
+      detail: tokenProvided ? 'Discord credentials are configured.' : 'Discord is not configured.',
