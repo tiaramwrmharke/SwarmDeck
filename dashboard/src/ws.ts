@@ -94,3 +94,6 @@ function channelToSnapshot(key: string, u: any): any {
       title: it.title,
       hint: it.hint,
       currentIndex: it.currentIndex,
+      questions: Array.isArray(it.questions) ? it.questions.map((q: any) => ({
+        id: q.id,
+        header: q.header ?? '',
