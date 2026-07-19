@@ -60,3 +60,4 @@ describe('claudeUserMessage (kernel)', () => {
 // sequence, exits 0 — so ClaudeDriver.run() is exercised end-to-end without the real binary.
 // The driver keeps stdin OPEN for the whole turn (background wake-up hold), so reply on the
 // first full stdin line rather than waiting for an 'end' that never comes.
+const FAKE_CLAUDE = `#!/usr/bin/env node
