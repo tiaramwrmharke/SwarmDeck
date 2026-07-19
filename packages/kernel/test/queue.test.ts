@@ -30,3 +30,4 @@ describe('per-session serial queue (hermetic)', () => {
 
   it('a 2nd prompt to a busy session queues, then promotes in order on finish', async () => {
     const w = watchAll(loom.io);
+    const { sessionKey, taskId: t1 } = await loom.io.prompt({ prompt: 'HOLD' });
