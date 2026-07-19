@@ -32,3 +32,27 @@ dashboard/node_modules
 
 # Test artifacts.
 coverage
+test/__snapshots__
+**/*.tsbuildinfo
+
+# Browser-mcp / dev screenshots that occasionally land at the repo root.
+/*.png
+.playwright-mcp
+**/.playwright-mcp
+
+# CI/workflow scaffolding the image build doesn't need.
+.github
+
+# Docs and marketing artifacts.
+artifacts
+*.md
+!README.md
+docs/
+
+# Bundled tarballs / native binaries left behind by `npm pack` or local builds.
+*.tgz
+pikiclaw-*-*
+
+# Replied-issues tracker etc.
+replied_issues.txt
+snipe_raw_tweets.json
