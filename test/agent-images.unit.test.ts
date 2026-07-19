@@ -56,3 +56,4 @@ describe('attachInlineImage', () => {
     const homeSnapshot = process.env.HOME;
     process.env.HOME = tmp;
     try {
+      const persisted = attachInlineImage({
