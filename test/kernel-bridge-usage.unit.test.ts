@@ -34,3 +34,7 @@ describe('kernel-bridge final usage projection', () => {
       cacheCreationInputTokens: null,
       contextWindow: null,
       contextUsedTokens: null,
+      contextPercent: null,
+    });
+    expect(kernelUsageToResultFields(null).contextPercent).toBeNull();
+  });

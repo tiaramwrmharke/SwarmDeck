@@ -25,3 +25,6 @@ export class CliSurface implements Surface {
         pendingPromptId = interaction.promptId;              // surface HITL; next line answers it
         const q = interaction.questions[interaction.currentIndex ?? 0] || interaction.questions[0];
         out.write(`\n[?] ${q?.text || interaction.title}\n> `);
+        return;
+      }
+      const q = snap.queued?.length ?? 0;
