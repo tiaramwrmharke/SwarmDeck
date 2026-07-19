@@ -23,3 +23,5 @@ export default function Layers() {
             className="!bg-white/[0.02] !border-white/10"
           >
             <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="font-mono text-xs text-neutral-500">{layer.index}</span>

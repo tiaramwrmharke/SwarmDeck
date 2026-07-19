@@ -28,3 +28,4 @@ BASE_VERSION=$(node -e "
   const versions = process.argv.slice(1).filter(Boolean);
   const parsed = versions.map((value) => value.split('.').map(Number));
   parsed.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const [major, minor, patch] = parsed.at(-1);
