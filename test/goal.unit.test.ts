@@ -49,3 +49,4 @@ describe('goal state CRUD and accountTurn budget enforcement', () => {
     expect(resumeGoal(workdir, AGENT, sid)?.status).toBe('complete');
 
     {
+      setGoal(workdir, AGENT, sid, { objective: 'x', tokenBudget: 1000 });
