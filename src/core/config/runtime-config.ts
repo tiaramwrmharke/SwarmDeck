@@ -59,3 +59,5 @@ export function resolveAgentModel(config: Partial<UserConfig> | Record<string, a
   let value = '';
   switch (agent) {
     case 'claude':
+      value = trimmed((config as Partial<UserConfig>).claudeModel || agentModelEnv('claude') || DEFAULT_AGENT_MODELS.claude);
+      return normalizeClaudeModelId(value);
