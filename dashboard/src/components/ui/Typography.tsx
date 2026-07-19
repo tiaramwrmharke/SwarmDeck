@@ -29,3 +29,4 @@ const TEXT_VARIANTS = {
 };
 
 export type TextVariant = keyof typeof TEXT_VARIANTS;
+
