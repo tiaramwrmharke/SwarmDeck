@@ -88,3 +88,7 @@ while True:
         for chunk in SCRIPT.get("promptChunks", ["Hello!"]):
             write({"jsonrpc":"2.0","method":"session/update","params":{
                 "sessionId": session_id,
+                "update":{"sessionUpdate":"agent_message_chunk","content":{"text":chunk}},
+            }})
+            time.sleep(0.01)
+        write({"jsonrpc":"2.0","id":rid,"result":{"stopReason": SCRIPT.get("stopReason", "end_turn")}})

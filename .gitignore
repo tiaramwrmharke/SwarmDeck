@@ -19,3 +19,6 @@ dashboard-*.png
 # Antigravity CLI local project state (symlink farm into ~/.gemini); machine-local.
 .antigravitycli/
 replied_issues.txt
+.scratch/
+# Legacy state dir (pre-rename) — never track in the swarmdeck repo.
+# Canonical state dir: ignore runtime state, keep committed project skills.
