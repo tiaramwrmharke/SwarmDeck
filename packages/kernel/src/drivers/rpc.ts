@@ -48,3 +48,7 @@ export class StdioRpcClient {
   /** Rolling tail of the process' stderr — startup/crash diagnostics. */
   stderrText(): string { return this.stderrTail.join('\n'); }
 
+  start(): boolean {
+    try {
+      this.proc = spawn(this.opts.command, this.opts.args, {
+        cwd: this.opts.cwd,
