@@ -165,3 +165,6 @@ export class SlackBot extends Bot {
         return true;
       }
       case 'status': await this.cmdStatus(ctx); return true;
+      case 'host': await this.cmdHost(ctx); return true;
+      case 'agent': await this.cmdAgent(ctx, args); return true;
+      case 'models': await this.cmdModels(ctx, args); return true;
