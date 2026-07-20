@@ -39,3 +39,6 @@ export interface McpRegistryOptions {
 }
 
 const BUILTIN_RECOMMENDED: McpCatalogEntry[] = [
+  { id: 'filesystem', name: 'Filesystem', description: 'Read/write files under allowed directories.', category: 'core', transport: { type: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-filesystem'] }, homepage: 'https://github.com/modelcontextprotocol/servers' },
+  { id: 'github', name: 'GitHub', description: 'GitHub repos, issues, and PRs.', category: 'dev', brand: 'github', transport: { type: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-github'] }, envKeys: ['GITHUB_PERSONAL_ACCESS_TOKEN'], homepage: 'https://github.com/modelcontextprotocol/servers' },
+  { id: 'fetch', name: 'Fetch', description: 'Fetch and convert web pages to markdown.', category: 'web', transport: { type: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-fetch'] }, homepage: 'https://github.com/modelcontextprotocol/servers' },
