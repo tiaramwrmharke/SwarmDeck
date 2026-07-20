@@ -17,3 +17,6 @@ describe('agent install specs', () => {
       expect(spec!.command).toBe(`npm install -g ${pkg}`);
       expect(getAgentInstallCommand(agent)).toBe(`npm install -g ${pkg}`);
     }
+  });
+
+  it('hermes is a manual install, never npm (regression: "Unsupported agent: hermes")', () => {

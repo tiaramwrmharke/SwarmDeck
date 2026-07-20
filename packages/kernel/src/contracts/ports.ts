@@ -36,3 +36,5 @@ export interface CoreSessionRecord {
   // mode 'native': resume the parent's native id with AgentTurnInput.fork (fork-capable
   // drivers). mode 'seed': start a fresh native session and replay the copied transcript
   // as a context seed (any driver). `anchor` is pinned at fork time so the branch is
+  // immune to the parent continuing to run afterwards.
+  pendingFork?: { parentNativeSessionId: string | null; anchor: string | null; mode: 'native' | 'seed' } | null;
