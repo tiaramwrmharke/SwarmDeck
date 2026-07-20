@@ -94,3 +94,7 @@ function startStreamingSession(opts: StreamingSessionOpts): StartAuthSessionResu
     }
     events.emit('event', { type: 'output', chunk } satisfies AuthSessionEvent);
   };
+
+  child.stdout?.on('data', (buf: Buffer) => pushOutput(buf.toString('utf8')));
+  child.stderr?.on('data', (buf: Buffer) => pushOutput(buf.toString('utf8')));
+  child.on('error', (err) => {
