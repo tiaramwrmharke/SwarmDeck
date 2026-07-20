@@ -31,3 +31,4 @@ describe('snapshot diff/apply', () => {
     const applied = applySnapshotPatch(emptySnapshot(), { full });
     expect(applied).toEqual(full);
   });
+

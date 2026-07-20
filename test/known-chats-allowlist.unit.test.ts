@@ -20,3 +20,6 @@ beforeEach(() => {
   process.env.TELEGRAM_BOT_TOKEN = 'test-token';
   process.env.FEISHU_APP_ID = 'test-app';
   process.env.FEISHU_APP_SECRET = 'test-secret';
+  delete process.env.PIKILOOM_ALLOWED_IDS;
+  delete process.env.TELEGRAM_ALLOWED_CHAT_IDS;
+  delete process.env.FEISHU_ALLOWED_CHAT_IDS;
