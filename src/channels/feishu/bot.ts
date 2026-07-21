@@ -222,3 +222,5 @@ export class FeishuBot extends Bot {
     process.once('SIGTERM', onSigterm);
   }
 
+  private removeSignalHandlers() {
+    for (const sig of Object.keys(this.signalHandlers)) {

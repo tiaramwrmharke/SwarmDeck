@@ -100,3 +100,6 @@ export function applyAcpUpdate(update: any, s: any, tools: Set<string>, emit: (e
       const t = acpContentText(update.content);
       if (t) { s.text = (s.text || '') + t; emit({ type: 'text', delta: t }); }
       return;
+    }
+    case 'agent_thought_chunk': {
+      const t = acpContentText(update.content);
