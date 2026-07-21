@@ -43,3 +43,7 @@ export async function readKeychain(account: string): Promise<string | null> {
     } catch (e: any) {
       if (/NoEntry|no.such|not.found/i.test(e?.message || '')) return null;
       throw e;
+    }
+  };
+
+  const current = readUnder(KEYCHAIN_SERVICE);
