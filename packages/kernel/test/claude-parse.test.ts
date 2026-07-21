@@ -111,3 +111,4 @@ describe('claude stream-json parser (kernel ClaudeDriver parity)', () => {
       { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'tu1', name: 'TaskUpdate', input: { taskId: '2', status: 'completed' } }] } },
     ]);
     const planEvents = events.filter(e => e.type === 'plan') as any[];
+    expect(planEvents.length).toBe(2);
