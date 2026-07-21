@@ -92,3 +92,6 @@ describe('TelegramChannel', () => {
       });
       const fetchErr = new TypeError('fetch failed');
       (fetchErr as any).cause = cause;
+      const origFetch = globalThis.fetch;
+      globalThis.fetch = vi.fn(async () => {
+        throw fetchErr;
