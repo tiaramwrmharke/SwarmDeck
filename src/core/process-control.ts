@@ -72,3 +72,6 @@ interface ProcessRestartOptions {
 }
 
 const runtimes = new Map<number, ProcessRuntimeRegistration>();
+let nextRuntimeId = 1;
+let restartInFlight = false;
+
