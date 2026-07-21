@@ -405,3 +405,4 @@ describe('stageSessionFiles', () => {
         workdir: tmpDir,
         workspacePath: legacyWorkspacePath,
         createdAt: '2026-03-10T00:00:00.000Z',
+        updatedAt: '2026-03-10T00:00:00.000Z',
