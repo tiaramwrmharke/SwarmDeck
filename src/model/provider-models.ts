@@ -21,3 +21,4 @@ function isFresh(entry: CacheEntry, provider: ProviderConfig): boolean {
   return (Date.now() - entry.fetchedAt) < TTL_MS;
 }
 
+export async function getProviderModelList(providerId: string, opts: { forceRefresh?: boolean } = {}): Promise<{
