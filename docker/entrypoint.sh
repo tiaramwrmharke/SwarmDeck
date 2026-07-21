@@ -19,3 +19,7 @@
 
 set -euo pipefail
 
+HOME_DIR="${HOME:-/home/piki}"
+PIKILOOM_DIR="${HOME_DIR}/.swarmdeck"
+WORKDIR_DEFAULT="${PIKILOOM_WORKDIR:-/workspace}"
+
