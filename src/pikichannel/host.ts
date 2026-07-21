@@ -91,3 +91,4 @@ export class PikichannelHost {
     );
     this.unsubscribers.push(
       this.source.onSessionsChanged((sessions) => this.broadcast({ type: 'sessions', sessions }, true)),
+    );
