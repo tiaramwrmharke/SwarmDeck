@@ -91,3 +91,4 @@ describe('TelegramChannel', () => {
         hostname: 'api.telegram.org',
       });
       const fetchErr = new TypeError('fetch failed');
+      (fetchErr as any).cause = cause;
