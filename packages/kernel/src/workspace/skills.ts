@@ -59,3 +59,6 @@ export function parseSkillMeta(content: string): SkillMeta {
     if (lm) label = lm[1].trim();
     const dm = fm[1].match(/^description:\s*(.+)/m);
     if (dm) description = dm[1].trim();
+    const mr = fm[1].match(/^mcp_requires:\s*\n((?:\s+-\s+.+\n?)+)/m);
+    if (mr) {
+      mcpRequires = mr[1].split('\n').map(l => l.replace(/^\s*-\s*/, '').replace(/["']/g, '').trim()).filter(Boolean);
