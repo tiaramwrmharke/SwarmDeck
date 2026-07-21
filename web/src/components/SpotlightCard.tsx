@@ -27,3 +27,6 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
     setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
+  const handleFocus = () => {
+    setIsFocused(true);
+    setOpacity(0.6);
