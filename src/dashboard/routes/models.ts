@@ -47,3 +47,6 @@ router.get('/api/models/catalog', async c => {
         env: p.env || [],
         modelCount: Object.keys(p.models || {}).length,
       })),
+    });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
