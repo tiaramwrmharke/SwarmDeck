@@ -56,3 +56,7 @@ describe('formatUsageWindowsSummary', () => {
     expect(formatUsageWindowsSummary(u, NOW)).toBe('status=warning (reset 2h)');
   });
   it('reports unavailable for null or errored usage', () => {
+    expect(formatUsageWindowsSummary(null)).toBe('unavailable');
+    expect(formatUsageWindowsSummary(unavailable)).toBe('unavailable');
+  });
+  it('falls back to status when ok but no windows have a percent', () => {
