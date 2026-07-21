@@ -26,3 +26,7 @@ export class RendezvousHostClient {
     try { ws?.close(); } catch {  }
     for (const a of this.answerers.values()) a.close();
     this.answerers.clear();
+    this.adopted.clear();
+  }
+
+  private connect(): void {

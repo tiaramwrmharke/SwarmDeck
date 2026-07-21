@@ -21,3 +21,6 @@ const waitFor = async (pred: () => boolean, ms = 5000) => {
   while (!pred()) { if (Date.now() - t0 > ms) throw new Error('waitFor timeout'); await new Promise(r => setTimeout(r, 5)); }
 };
 function loomWith(tmp: string, handler?: InteractionHandler): Loom {
+  return createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', sessionStore: new FsSessionStore(tmp), ...(handler ? { interactionHandler: handler } : {}) });
+}
+
