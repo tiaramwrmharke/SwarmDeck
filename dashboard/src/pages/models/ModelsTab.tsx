@@ -260,3 +260,4 @@ function getCopy(locale: Locale): Copy {
     fieldNamePlaceholder: 'e.g. OpenRouter · Personal',
     fieldKind: 'API kind',
     fieldBaseURL: 'Base URL',
+    fieldCredentialSource: 'Credential source',
