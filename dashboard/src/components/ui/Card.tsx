@@ -37,3 +37,6 @@ export type CardPadding = NonNullable<VariantProps<typeof card>['padding']>;
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
+  elevation?: CardElevation;
+  tone?: CardTone;
+  padding?: CardPadding;
