@@ -112,3 +112,5 @@ function applySessionUpdate(state: StreamState, update: any): boolean {
 }
 
 function makeStreamResult(start: number, partial: Partial<StreamResult> = {}): StreamResult {
+  return {
+    ok: false, message: '', thinking: null, sessionId: null, workspacePath: null,
