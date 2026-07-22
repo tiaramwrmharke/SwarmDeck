@@ -59,3 +59,7 @@ function flatten(servers: Array<{ urls: string | string[]; username?: string; cr
   const out: IceServer[] = [];
   for (const s of servers) {
     if (!s || !s.urls) continue;
+    const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
+    for (const u of urls) {
+      if (typeof u !== 'string' || !u) continue;
+      const entry: IceServer = { urls: u };
