@@ -187,3 +187,6 @@ export class Hub implements LoomIO {
       anchor = null;
     }
     if (!anchor && cutIsTail && driver.resolveNativeAnchor) {
+      try { anchor = (await driver.resolveNativeAnchor({ sessionId: parentNativeId, workdir })) ?? null; }
+      catch { anchor = null; }
+    }

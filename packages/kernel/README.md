@@ -104,3 +104,7 @@ To add an **IM channel**, implement `Surface.start(io)`: route inbound messages 
 
 ### 3. Raw TUI passthrough — `runTui` / `openTui`
 
+```ts
+const loom = createLoom({ drivers: [new ClaudeDriver()], defaultAgent: 'claude' });
+await loom.runTui({ agent: 'claude', workdir: process.cwd() }); // you're now in the real Claude TUI
+```
