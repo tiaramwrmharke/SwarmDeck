@@ -88,3 +88,7 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
     case 'gemini':
       return { driver: new kernel.GeminiDriver(), input: { ...common, model: opts.geminiModel ?? opts.model ?? null, systemPrompt: opts.geminiSystemInstruction, extraArgs: opts.geminiExtraArgs } };
     case 'hermes':
+      return { driver: new kernel.HermesDriver(), input: { ...common, model: opts.hermesModel ?? opts.model ?? null } };
+    case 'claude':
+    default:
+      return {
