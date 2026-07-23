@@ -22,3 +22,5 @@ export function createTelegramBotHarness(): TelegramBotHarness {
   const edits: Array<{ text: string; opts?: any }> = [];
   const sends: Array<{ text: string; opts?: any }> = [];
   const docs: Array<{ content: string | Buffer; filename: string; opts?: any }> = [];
+  const files: Array<{ filePath: string; opts?: any }> = [];
+  const reactions: Array<{ chatId: number; messageId: number; reactions: string[] }> = [];
