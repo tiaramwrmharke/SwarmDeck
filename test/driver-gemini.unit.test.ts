@@ -124,3 +124,6 @@ describe('Gemini session tail', () => {
     fs.writeFileSync(path.join(geminiDir, 'projects.json'), JSON.stringify({
       projects: { [workdir]: 'swarmdeck' },
     }));
+
+    const chatsDir = path.join(geminiDir, 'tmp', 'swarmdeck', 'chats');
+    fs.mkdirSync(chatsDir, { recursive: true });
