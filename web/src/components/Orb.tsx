@@ -90,3 +90,7 @@ export default function Orb({
       vec3 d3 = d0 - 0.5;
       vec4 h = max(0.6 - vec4(
         dot(d0, d0),
+        dot(d1, d1),
+        dot(d2, d2),
+        dot(d3, d3)
+      ), 0.0);
