@@ -22,3 +22,7 @@ jobs:
           # bundled-npm cache probe would trip the devEngines npm pin (see ci.yml)
           package-manager-cache: false
 
+      - run: bash scripts/activate-toolchain.sh
+      - run: npm ci
+      - run: npm run verify:toolchain
+
