@@ -20,3 +20,4 @@ function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSes
     model: 'claude-sonnet-4-6',
     thinkingEffort: null,
     title: 'test',
+    createdAt: new Date().toISOString(),
