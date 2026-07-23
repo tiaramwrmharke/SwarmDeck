@@ -57,3 +57,7 @@ export interface ForkSessionResult {
   droppedTaskIds: string[];
 }
 
+export interface LoomIO {
+  // inbound (terminal -> kernel)
+  prompt(input: PromptInput): Promise<{ sessionKey: string; taskId: string }>;
+  // Create a new managed session branched off `fromSessionKey` at a turn boundary: copies
