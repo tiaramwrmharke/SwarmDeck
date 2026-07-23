@@ -42,3 +42,7 @@ describe('sameUserText (image-dedup whitespace robustness)', () => {
     expect(normalizeUserText(null)).toBe('');
     expect(normalizeUserText(undefined)).toBe('');
     expect(sameUserText('', null)).toBe(true);
+  });
+});
+
+describe('streamPromptMatchesTurnText (truncated managed-fallback dedup)', () => {
