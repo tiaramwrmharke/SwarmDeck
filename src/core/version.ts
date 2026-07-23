@@ -6,3 +6,4 @@ const packageJsonPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)
 
 function readPackageVersion(): string {
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
+  const version = typeof pkg.version === 'string' ? pkg.version.trim() : '';
