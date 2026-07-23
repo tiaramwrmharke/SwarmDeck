@@ -52,3 +52,5 @@ export class StdioRpcClient {
     try {
       this.proc = spawn(this.opts.command, this.opts.args, {
         cwd: this.opts.cwd,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: this.opts.env ? { ...process.env, ...this.opts.env } : process.env,
