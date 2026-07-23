@@ -19,3 +19,6 @@ const MAIN = [
   'WebSurface', 'CliSurface',
   // native-session discovery
   'discoverClaudeNativeSessions', 'discoverCodexNativeSessions', 'discoverGeminiNativeSessions',
+  'encodeClaudeProjectDir',
+  // workspace
+  'resolveLoomPaths', 'normalizeStateDirName', 'SessionsManager', 'SkillsManager',
