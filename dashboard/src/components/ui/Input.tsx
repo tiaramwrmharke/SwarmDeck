@@ -32,3 +32,4 @@ const input = tv({
     },
   },
   defaults: { size: 'md', tone: 'default' },
+});
