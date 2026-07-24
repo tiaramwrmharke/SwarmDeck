@@ -13,3 +13,23 @@ export function WorkspaceExtensionsModal({
 }: {
   open: boolean;
   onClose: () => void;
+  workdir: string;
+}) {
+  const locale = useStore(s => s.locale);
+  const wsName = workdir.split('/').pop() || workdir;
+
+  return (
+    <Modal open={open} onClose={onClose} wide>
+      <ModalHeader
+        title={L(locale, `${wsName} — 项目扩展`, `${wsName} — Project Extensions`)}
+        description={L(
+          locale,
+          '仅对当前工作区生效。直接操作项目目录中的 .mcp.json 与 .swarmdeck/skills/。',
+          'Project-scoped only. Operates directly on .mcp.json and .swarmdeck/skills/ in the workspace directory.',
+        )}
+        onClose={onClose}
+      />
+      {open ? <WorkspaceExtensionsBody workdir={workdir} /> : null}
+    </Modal>
+  );
+}
