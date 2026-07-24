@@ -61,3 +61,7 @@ describe('delivered-artifact manifest', () => {
     const b = path.join(workdir, 'b.log');
     fs.writeFileSync(a, 'aaa');
     fs.writeFileSync(b, 'bbbb');
+
+    deliverArtifact('codex', 'sess-2', a, { kind: 'document' });
+    deliverArtifact('codex', 'sess-2', b, { kind: 'document', taskId: 't-9' });
+
