@@ -19,3 +19,6 @@ const ACCOUNT_TOKEN_ENV: Record<string, string> = {
 /** Whether this agent's local accounts are switched by injecting a token. */
 export function accountTokenSupported(agent: string): boolean {
   return Object.prototype.hasOwnProperty.call(ACCOUNT_TOKEN_ENV, agent);
+}
+
+/** The env-var name that overrides this agent's subscription identity, or null. */
