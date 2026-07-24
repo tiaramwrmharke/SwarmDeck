@@ -33,3 +33,44 @@ const input = tv({
   },
   defaults: { size: 'md', tone: 'default' },
 });
+
+export type InputSize = NonNullable<VariantProps<typeof input>['size']>;
+export type InputTone = NonNullable<VariantProps<typeof input>['tone']>;
+
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  size?: InputSize;
+  tone?: InputTone;
+}
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { className, size, tone, ...props },
+  ref,
+) {
+  return (
+    <input
+      ref={ref}
+      className={cn(input({ size, tone, className }))}
+      style={{ transitionDuration: '180ms' }}
+      {...props}
+    />
+  );
+});
+
+export function Label({
+  children,
+  htmlFor,
+  className,
+}: {
+  children: ReactNode;
+  htmlFor?: string;
+  className?: string;
+}) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className={cn('mb-2 block text-sm font-medium text-fg-3', className)}
+    >
+      {children}
+    </label>
+  );
+}
