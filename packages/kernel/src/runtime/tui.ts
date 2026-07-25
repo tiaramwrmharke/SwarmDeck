@@ -18,3 +18,23 @@ export async function attachTui(spec: TuiSpec, opts: AttachTuiOptions = {}): Pro
   for (const obs of opts.observers ?? []) bridge.onData(obs);
   const offData = bridge.onData((d) => { stdout.write(d); });
 
+  const wasRaw = !!(stdin as any).isRaw;
+  if (stdin.isTTY) stdin.setRawMode(true);
+  stdin.resume();
+
+  const onInput = (chunk: Buffer | string) => bridge.write(typeof chunk === 'string' ? chunk : chunk.toString('utf8'));
+  stdin.on('data', onInput);
+  const onResize = () => bridge.resize(stdout.columns || 80, stdout.rows || 24);
+  stdout.on('resize', onResize);
+
+  return await new Promise<PtyExit>((resolve) => {
+    bridge.onExit((e) => {
+      stdin.off('data', onInput);
+      stdout.off('resize', onResize);
+      offData();
+      if (stdin.isTTY) { try { stdin.setRawMode(wasRaw); } catch { /* ignore */ } }
+      stdin.pause();
+      resolve(e);
+    });
+  });
+}
