@@ -161,3 +161,403 @@ describe('codexToolSummary (content items must NOT become Activity tools)', () =
     expect(codexToolSummary({ id: 'm1', type: 'agentMessage', phase: 'final_answer', text: 'the answer' })).toBeNull();
     expect(codexToolSummary({ id: 'r1', type: 'reasoning', summary: ['thinking'] })).toBeNull();
   });
+  it('summarizes real tool calls (shell / edit / mcp+dynamic+collab)', () => {
+    expect(codexToolSummary({ id: 'c1', type: 'commandExecution', command: 'ls -la' })).toMatchObject({ name: 'shell' });
+    expect(codexToolSummary({ id: 'f1', type: 'fileChange', changes: [{ path: 'a/b.ts' }] })).toMatchObject({ name: 'edit' });
+    expect(codexToolSummary({ id: 't1', type: 'mcpToolCall', tool: 'sim.run_case' })).toMatchObject({ name: 'run_case' });
+    expect(codexToolSummary({ id: 'd1', type: 'dynamicToolCall', name: 'web.search' })).toMatchObject({ name: 'search' });
+  });
+  it('summarizes webSearch items — the query lives at top level or under action', () => {
+    expect(codexToolSummary({ id: 'w1', type: 'webSearch', query: 'swarmdeck naming' }))
+      .toMatchObject({ name: 'web_search', summary: 'Search web: swarmdeck naming' });
+    expect(codexToolSummary({ id: 'w2', type: 'webSearch' })).toMatchObject({ summary: 'Search web' });
+    expect(codexToolSummary({ id: 'w3', type: 'webSearch', action: { type: 'openPage', url: 'https://example.com' } }))
+      .toMatchObject({ summary: 'Open https://example.com' });
+    expect(codexToolSummary({ id: 'w4', type: 'webSearch', action: { type: 'search', query: 'q2' } }))
+      .toMatchObject({ summary: 'Search web: q2' });
+  });
+  it('ignores unknown/content item types and id-less items', () => {
+    expect(codexToolSummary({ id: 'x1', type: 'tokenCount' })).toBeNull();
+    expect(codexToolSummary({ type: 'mcpToolCall', tool: 'x' })).toBeNull(); // no id
+  });
+});
+
+describe('codexToolCall live detail projection', () => {
+  it('projects shell input/output and marks non-zero commands failed', () => {
+    const call = codexToolCall({
+      id: 'c1', type: 'commandExecution', command: 'npm test', cwd: '/repo',
+      status: 'failed', aggregatedOutput: '1 test failed', exitCode: 1,
+    }, 'done');
+    expect(call).toMatchObject({ name: 'shell', status: 'failed' });
+    expect(call?.input).toContain('"command": "npm test"');
+    expect(call?.input).toContain('"cwd": "/repo"');
+    expect(call?.result).toBe('1 test failed\n\n(exit code 1)');
+  });
+
+  it('projects file diffs plus MCP/dynamic tool arguments and results', () => {
+    const patch = codexToolCall({
+      id: 'p1', type: 'fileChange', status: 'completed',
+      changes: [{ path: '/repo/a.ts', kind: 'update', diff: '@@ -1 +1 @@' }],
+    }, 'running');
+    expect(patch).toMatchObject({ name: 'edit', status: 'done' });
+    expect(patch?.input).toContain('@@ -1 +1 @@');
+
+    const mcp = codexToolCall({
+      id: 'm1', type: 'mcpToolCall', tool: 'browser.open', status: 'completed',
+      arguments: { url: 'https://example.com' }, result: { content: [{ type: 'text', text: 'ok' }] },
+    }, 'running');
+    expect(mcp).toMatchObject({ name: 'open', status: 'done' });
+    expect(mcp?.input).toContain('https://example.com');
+    expect(mcp?.result).toContain('"text": "ok"');
+
+    const dynamic = codexToolCall({
+      id: 'd1', type: 'dynamicToolCall', tool: 'image.inspect', status: 'failed',
+      arguments: { path: '/tmp/a.png' }, contentItems: [{ type: 'inputText', text: 'bad image' }], success: false,
+    }, 'running');
+    expect(dynamic).toMatchObject({ name: 'inspect', status: 'failed' });
+    expect(dynamic?.input).toContain('/tmp/a.png');
+    expect(dynamic?.result).toContain('bad image');
+  });
+});
+
+describe('codex completed-item helpers (pure)', () => {
+  const fresh = (): CodexContentState => ({ text: '', reasoning: '', streamedReasoning: false, msgs: [], thinkParts: [] });
+
+  it('extracts reasoning text from string and {text}-object arrays', () => {
+    expect(codexReasoningItemText({ summary: ['a', 'b'] })).toBe('a\nb');
+    expect(codexReasoningItemText({ summary: [{ text: 'x' }], content: [{ text: 'y' }] })).toBe('x\ny');
+    expect(codexReasoningItemText({ summary: [] })).toBe('');
+  });
+
+  it('does NOT re-emit completed reasoning when deltas already streamed (dedup)', () => {
+    const emits: DriverEvent[] = [];
+    const s = fresh(); s.reasoning = 'streamed'; s.streamedReasoning = true;
+    captureCodexReasoning('completed dup', s, (e) => emits.push(e));
+    expect(emits).toHaveLength(0);                 // not streamed again
+    expect(s.thinkParts).toEqual(['completed dup']); // but kept as fallback material
+    expect(s.reasoning).toBe('streamed');
+  });
+
+  it('does NOT re-emit a completed agentMessage already streamed via delta', () => {
+    const emits: DriverEvent[] = [];
+    const s = fresh(); s.text = 'streamed';
+    const deltaItems = new Set<string>(['msg1']);
+    captureCodexAgentMessage({ id: 'msg1', phase: 'final_answer', text: 'streamed' }, s, deltaItems, new Map(), (e) => emits.push(e));
+    expect(emits).toHaveLength(0);
+    expect(s.text).toBe('streamed');
+  });
+
+  it('captures a commentary (non-final-answer) agentMessage — the preamble 中间过程, not just final_answer', () => {
+    const emits: DriverEvent[] = [];
+    const s = fresh();
+    captureCodexAgentMessage({ id: 'c1', phase: 'commentary', text: 'Let me list the files first.' }, s, new Set(), new Map(), (e) => emits.push(e));
+    expect(emits).toEqual([{ type: 'text', delta: 'Let me list the files first.' }]);
+    expect(s.text).toBe('Let me list the files first.');
+    // A subsequent final answer is separated by a blank line.
+    captureCodexAgentMessage({ id: 'm1', phase: 'final_answer', text: 'Here are the files.' }, s, new Set(), new Map(), (e) => emits.push(e));
+    expect(s.text).toBe('Let me list the files first.\n\nHere are the files.');
+  });
+
+  it('finalizers prefer streamed content, fall back to completed-item parts', () => {
+    const streamed: CodexContentState = { text: 'live', reasoning: 'think', streamedReasoning: true, msgs: ['m'], thinkParts: ['t'] };
+    expect(codexFinalText(streamed)).toBe('live');
+    expect(codexFinalReasoning(streamed)).toBe('think');
+    const completedOnly: CodexContentState = { text: '', reasoning: '', streamedReasoning: false, msgs: ['m1', 'm2'], thinkParts: ['t1', 't2'] };
+    expect(codexFinalText(completedOnly)).toBe('m1\n\nm2');
+    expect(codexFinalReasoning(completedOnly)).toBe('t1\n\nt2');
+  });
+});
+
+// Real codex narrates what it is about to do via phase=commentary agentMessages before tool
+// calls. The kernel port used to gate on phase=final_answer and drop them, so the live preview
+// showed nothing during the "中间过程" until the final answer landed.
+const FAKE_COMMENTARY_SERVER = `#!/usr/bin/env node
+let buf = '';
+const reply = (id, result) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', id, result }) + '\\n');
+const notify = (method, params) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', method, params }) + '\\n');
+const TID = 'codex-thread-commentary';
+process.stdin.on('data', (d) => {
+  buf += d; const lines = buf.split('\\n'); buf = lines.pop() || '';
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    let m; try { m = JSON.parse(line); } catch { continue; }
+    if (m.method === 'initialize') reply(m.id, {});
+    else if (m.method === 'thread/start') reply(m.id, { thread: { id: TID } });
+    else if (m.method === 'turn/start') {
+      reply(m.id, {});
+      notify('turn/started', { threadId: TID, turn: { id: 'turn-1' } });
+      notify('item/started', { threadId: TID, item: { type: 'agentMessage', id: 'c1', phase: 'commentary' } });
+      notify('item/agentMessage/delta', { threadId: TID, itemId: 'c1', delta: "I'll list src/." });
+      notify('item/completed', { threadId: TID, item: { type: 'agentMessage', id: 'c1', phase: 'commentary', text: "I'll list src/." } });
+      notify('item/started', { threadId: TID, item: { type: 'commandExecution', id: 'cmd1', command: 'ls src' } });
+      notify('item/completed', { threadId: TID, item: { type: 'commandExecution', id: 'cmd1', status: 'completed' } });
+      notify('item/started', { threadId: TID, item: { type: 'agentMessage', id: 'm1', phase: 'final_answer' } });
+      notify('item/agentMessage/delta', { threadId: TID, itemId: 'm1', delta: 'Done.' });
+      notify('item/completed', { threadId: TID, item: { type: 'agentMessage', id: 'm1', phase: 'final_answer', text: 'Done.' } });
+      notify('turn/completed', { threadId: TID, turn: { id: 'turn-1', status: 'completed' } });
+    }
+  }
+});
+`;
+
+describe('CodexDriver commentary (preamble) is surfaced live', () => {
+  let tmp: string; let fake: string;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-codex-cm-'));
+    fake = path.join(tmp, 'fake-codex.mjs');
+    fs.writeFileSync(fake, FAKE_COMMENTARY_SERVER);
+    fs.chmodSync(fake, 0o755);
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  it('streams commentary then final_answer (separated), and keeps shell as the only Activity tool', async () => {
+    const { ctx, events } = ctxCollect();
+    const result = await new CodexDriver(fake).run({ prompt: 'go', workdir: tmp }, ctx);
+    expect(result.ok).toBe(true);
+    // Both the preamble and the final answer are in the text, blank-line separated.
+    expect(result.text).toBe("I'll list src/.\n\nDone.");
+    const textStream = events.filter(e => e.type === 'text').map(e => (e as any).delta).join('');
+    expect(textStream).toBe("I'll list src/.\n\nDone.");
+    // The commentary did NOT become a bogus Activity tool — only the shell call did.
+    const tools = events.filter(e => e.type === 'tool').map(e => (e as any).call.name);
+    expect(tools).toEqual(['shell', 'shell']); // running + done for cmd1
+  }, 20_000);
+});
+
+// Regression: aborting a codex turn must RESOLVE run() (stopReason 'interrupted'), not hang.
+// A long-running turn never sends turn/completed; onAbort interrupts and settles turnDone itself.
+// Before the fix, srv.kill() alone left `await turnDone` pending forever — the task stayed
+// "running" in the orchestrator even though the codex process was already dead.
+const FAKE_HANGING_SERVER = `#!/usr/bin/env node
+let buf = '';
+const reply = (id, result) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', id, result }) + '\\n');
+const notify = (method, params) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', method, params }) + '\\n');
+const TID = 'codex-thread-hang';
+process.stdin.on('data', (d) => {
+  buf += d; const lines = buf.split('\\n'); buf = lines.pop() || '';
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    let m; try { m = JSON.parse(line); } catch { continue; }
+    if (m.method === 'initialize') reply(m.id, {});
+    else if (m.method === 'thread/start') reply(m.id, { thread: { id: TID } });
+    else if (m.method === 'turn/start') {
+      reply(m.id, {});
+      notify('turn/started', { threadId: TID, turn: { id: 'turn-1' } });
+      // ...and then nothing: NO turn/completed (simulates an in-flight long turn).
+    }
+    else if (m.method === 'turn/interrupt') reply(m.id, {}); // ack the interrupt
+  }
+});
+`;
+
+describe('CodexDriver abort resolves the turn (no hang)', () => {
+  let tmp: string; let fake: string;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-codex-hang-'));
+    fake = path.join(tmp, 'fake-codex.mjs');
+    fs.writeFileSync(fake, FAKE_HANGING_SERVER);
+    fs.chmodSync(fake, 0o755);
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  it('settles run() with stopReason interrupted when aborted mid-turn', async () => {
+    const ac = new AbortController();
+    const events: DriverEvent[] = [];
+    // registerSteer fires from the turn/started handler, AFTER turnId is set — use it as the
+    // "turn is underway" signal so the abort exercises the graceful turn/interrupt branch
+    // (rather than racing the app-server cold-start spawn).
+    let turnStarted: () => void = () => {};
+    const turnUnderway = new Promise<void>((r) => { turnStarted = r; });
+    const ctx: DriverContext = {
+      signal: ac.signal,
+      emit: (e) => events.push(e),
+      askUser: async () => ({}),
+      registerSteer: () => { turnStarted(); },
+    };
+    const runP = new CodexDriver(fake).run({ prompt: 'long task', workdir: tmp }, ctx);
+    await turnUnderway;
+    ac.abort();
+    const result = await runP; // must NOT hang
+    expect(result.ok).toBe(false);
+    expect(result.stopReason).toBe('interrupted');
+    expect(result.error).toBe('Interrupted by user.');
+  }, 15_000);
+});
+
+// Regression: if the app-server process DIES mid-turn without ever sending turn/completed
+// (crash / external kill / disconnect), run() must RESOLVE as a failed turn — not hang. Before
+// the fix, `await turnDone` only settled on turn/completed or abort, so a dead process stranded
+// the session at runState:"running" forever (the "已经结束了但左上角还是绿色运行中" bug).
+const FAKE_DYING_SERVER = `#!/usr/bin/env node
+let buf = '';
+const reply = (id, result) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', id, result }) + '\\n');
+const notify = (method, params) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', method, params }) + '\\n');
+const TID = 'codex-thread-die';
+process.stdin.on('data', (d) => {
+  buf += d; const lines = buf.split('\\n'); buf = lines.pop() || '';
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    let m; try { m = JSON.parse(line); } catch { continue; }
+    if (m.method === 'initialize') reply(m.id, {});
+    else if (m.method === 'thread/start') reply(m.id, { thread: { id: TID } });
+    else if (m.method === 'turn/start') {
+      reply(m.id, {});
+      notify('turn/started', { threadId: TID, turn: { id: 'turn-1' } });
+      // ...then the process crashes: exit WITHOUT ever sending turn/completed.
+      process.stderr.write('fatal: codex app-server crashed\\n');
+      process.exit(1);
+    }
+  }
+});
+`;
+
+describe('CodexDriver settles when the app-server dies mid-turn (no hang)', () => {
+  let tmp: string; let fake: string;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-codex-die-'));
+    fake = path.join(tmp, 'fake-codex.mjs');
+    fs.writeFileSync(fake, FAKE_DYING_SERVER);
+    fs.chmodSync(fake, 0o755);
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  it('resolves run() as a failed turn instead of hanging when the process exits without turn/completed', async () => {
+    const { ctx } = ctxCollect();
+    const result = await new CodexDriver(fake).run({ prompt: 'boom', workdir: tmp }, ctx); // must NOT hang
+    expect(result.ok).toBe(false);
+    expect(result.stopReason).toBe('error');
+    expect(result.error).toBeTruthy();
+  }, 15_000);
+});
+
+// ── Turn liveness: the codex turn/steer boundary race + silent stalls ───────────────
+// Real-world signature (codex-cli 0.144.x): a turn/steer that lands the instant an item
+// completes is ACCEPTED (recorded into the rollout) but never dispatched — no further
+// notifications, no turn/completed, process idle forever. The driver must treat steer-ok
+// as accepted-not-consumed and heal the turn (interrupt + replay) instead of hanging.
+const FAKE_LIVENESS_SERVER = `#!/usr/bin/env node
+const scenario = process.env.FAKE_SCENARIO || 'wedge';
+let buf = '';
+let turnStarts = 0;
+let sawInterrupt = false;
+const reply = (id, result) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', id, result }) + '\\n');
+const notify = (method, params) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', method, params }) + '\\n');
+const TID = 'codex-thread-live';
+process.stdin.on('data', (d) => {
+  buf += d; const lines = buf.split('\\n'); buf = lines.pop() || '';
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    let m; try { m = JSON.parse(line); } catch { continue; }
+    if (m.method === 'initialize') reply(m.id, {});
+    else if (m.method === 'thread/start') reply(m.id, { thread: { id: TID } });
+    else if (m.method === 'turn/start') {
+      turnStarts++;
+      if (turnStarts === 1) {
+        reply(m.id, { turn: { id: 'turn-1' } });
+        notify('turn/started', { threadId: TID, turn: { id: 'turn-1' } });
+        notify('item/started', { threadId: TID, item: { type: 'commandExecution', id: 'cmd1', command: 'make' } });
+        notify('item/completed', { threadId: TID, item: { type: 'commandExecution', id: 'cmd1', status: 'completed', exitCode: 0 } });
+        // ...then dead air: the turn never advances and never completes on its own.
+      } else {
+        // The heal/replay turn: echo back what input we received and how we got here.
+        const texts = (m.params.input || []).filter(p => p.type === 'text').map(p => p.text).join('|');
+        reply(m.id, { turn: { id: 'turn-2' } });
+        notify('turn/started', { threadId: TID, turn: { id: 'turn-2' } });
+        notify('item/agentMessage/delta', { threadId: TID, itemId: 'msg2', delta: (sawInterrupt ? 'HEALED:' : 'REPLAYED:') + texts });
+        notify('turn/completed', { threadId: TID, turn: { id: 'turn-2', status: 'completed' } });
+      }
+    }
+    else if (m.method === 'turn/steer') {
+      if (scenario === 'wedge') reply(m.id, { turnId: 'turn-1' });   // accepted... then swallowed
+      else if (scenario === 'lost-completion') {
+        reply(m.id, { turnId: 'turn-1' });
+        notify('turn/completed', { threadId: TID, turn: { id: 'turn-1', status: 'completed' } });
+      } else if (scenario === 'consumed') {
+        reply(m.id, { turnId: 'turn-1' });
+        notify('item/agentMessage/delta', { threadId: TID, itemId: 'msg1', delta: 'CONSUMED-OK' });
+        notify('turn/completed', { threadId: TID, turn: { id: 'turn-1', status: 'completed' } });
+      }
+    }
+    else if (m.method === 'turn/interrupt') {
+      sawInterrupt = true;
+      reply(m.id, {});
+      notify('turn/completed', { threadId: TID, turn: { id: 'turn-1', status: 'interrupted' } });
+    }
+  }
+});
+`;
+
+type SteerFn = (prompt: string, attachments?: string[]) => Promise<boolean>;
+
+function ctxSteerable(): { ctx: DriverContext; events: DriverEvent[]; steer: () => SteerFn | null } {
+  const events: DriverEvent[] = [];
+  let steerFn: SteerFn | null = null;
+  const ctx: DriverContext = {
+    signal: new AbortController().signal,
+    emit: (e) => events.push(e),
+    askUser: async () => ({}),
+    registerSteer: (fn) => { steerFn = fn; },
+  };
+  return { ctx, events, steer: () => steerFn };
+}
+
+async function until(cond: () => boolean, ms = 5_000): Promise<void> {
+  const start = Date.now();
+  while (!cond()) {
+    if (Date.now() - start > ms) throw new Error('condition not met in time');
+    await new Promise(r => setTimeout(r, 10));
+  }
+}
+
+describe('CodexDriver turn liveness (steer race + silent stall, hermetic)', () => {
+  let tmp: string; let fake: string;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-codex-live-'));
+    fake = path.join(tmp, 'fake-codex.mjs');
+    fs.writeFileSync(fake, FAKE_LIVENESS_SERVER);
+    fs.chmodSync(fake, 0o755);
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  it('heals a steer the turn swallowed at a boundary: interrupt + replay under the same run()', async () => {
+    const { ctx, steer } = ctxSteerable();
+    const driver = new CodexDriver(fake, { steerStallMs: 120 });
+    const done = driver.run({ prompt: 'start', workdir: tmp, env: { FAKE_SCENARIO: 'wedge' } }, ctx);
+    await until(() => steer() !== null);
+    expect(await steer()!('follow-up question')).toBe(true);
+    const result = await done;
+    expect(result.ok).toBe(true);
+    expect(result.text).toBe('HEALED:follow-up question');   // interrupted the wedged turn, replayed the steer
+  }, 20_000);
+
+  it('replays a steer when the turn completes without consuming it (no settle, no message loss)', async () => {
+    const { ctx, steer } = ctxSteerable();
+    const driver = new CodexDriver(fake);   // default liveness: replay is completion-driven, not timer-driven
+    const done = driver.run({ prompt: 'start', workdir: tmp, env: { FAKE_SCENARIO: 'lost-completion' } }, ctx);
+    await until(() => steer() !== null);
+    expect(await steer()!('follow-up question')).toBe(true);
+    const result = await done;
+    expect(result.ok).toBe(true);
+    expect(result.text).toBe('REPLAYED:follow-up question'); // fresh turn/start, no interrupt needed
+  }, 20_000);
+
+  it('does NOT heal a healthy steer: progress after steer-ok clears the pending marker', async () => {
+    const { ctx, steer } = ctxSteerable();
+    const driver = new CodexDriver(fake, { steerStallMs: 120 });
+    const done = driver.run({ prompt: 'start', workdir: tmp, env: { FAKE_SCENARIO: 'consumed' } }, ctx);
+    await until(() => steer() !== null);
+    expect(await steer()!('follow-up question')).toBe(true);
+    const result = await done;
+    expect(result.ok).toBe(true);
+    expect(result.text).toBe('CONSUMED-OK');                 // single turn, no replay/duplicate
+  }, 20_000);
+
+  it('force-closes a turn that goes silent with nothing in flight (stalled, not hung forever)', async () => {
+    const { ctx } = ctxSteerable();
+    const driver = new CodexDriver(fake, { turnStallMs: 250 });
+    const result = await driver.run({ prompt: 'start', workdir: tmp, env: { FAKE_SCENARIO: 'silent-stall' } }, ctx);
+    expect(result.ok).toBe(false);
+    expect(result.stopReason).toBe('stalled');
+    expect(result.error).toMatch(/silent/);
+  }, 20_000);
+});
