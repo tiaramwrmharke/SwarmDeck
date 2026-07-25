@@ -61,3 +61,127 @@ for (const mod of TOOL_MODULES) {
   for (const t of mod.tools) {
     TOOL_HANDLERS.set(t.name, mod);
   }
+}
+
+let transport: 'framed' | 'ndjson' | null = null;
+
+function send(msg: object) {
+  const body = JSON.stringify(msg);
+  if (transport === 'ndjson') {
+    process.stdout.write(body + '\n');
+  } else {
+    process.stdout.write(`Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`);
+  }
+}
+
+function respond(id: unknown, result: object) {
+  send({ jsonrpc: '2.0', id, result });
+}
+
+function respondError(id: unknown, code: number, message: string) {
+  send({ jsonrpc: '2.0', id, error: { code, message } });
+}
+
+let buffer = '';
+
+function processFramed() {
+  while (true) {
+    const headerEnd = buffer.indexOf('\r\n\r\n');
+    if (headerEnd < 0) break;
+    const header = buffer.slice(0, headerEnd);
+    const match = header.match(/Content-Length:\s*(\d+)/i);
+    if (!match) { buffer = buffer.slice(headerEnd + 4); continue; }
+    const len = parseInt(match[1], 10);
+    const bodyStart = headerEnd + 4;
+    if (buffer.length < bodyStart + len) break;
+    const body = buffer.slice(bodyStart, bodyStart + len);
+    buffer = buffer.slice(bodyStart + len);
+    try { handleMessage(JSON.parse(body)); } catch {  }
+  }
+}
+
+function processNdjson() {
+  while (true) {
+    const newlineIdx = buffer.indexOf('\n');
+    if (newlineIdx < 0) break;
+    const line = buffer.slice(0, newlineIdx).trim();
+    buffer = buffer.slice(newlineIdx + 1);
+    if (!line) continue;
+    try { handleMessage(JSON.parse(line)); } catch {  }
+  }
+}
+
+function processBuffer() {
+  if (transport === null) {
+    const trimmed = buffer.trimStart();
+    if (!trimmed) return;
+    transport = trimmed[0] === '{' ? 'ndjson' : 'framed';
+  }
+  if (transport === 'ndjson') processNdjson();
+  else processFramed();
+}
+
+process.stdin.setEncoding('utf-8');
+process.stdin.on('data', (chunk: string) => {
+  buffer += chunk;
+  processBuffer();
+});
+process.stdin.on('end', () => process.exit(0));
+
+function handleMessage(msg: any) {
+  const { id, method, params } = msg;
+
+  switch (method) {
+    case 'initialize':
+      log(`initialize protocolVersion=${params?.protocolVersion || '?'}`);
+      respond(id, {
+        protocolVersion: params?.protocolVersion || '2024-11-05',
+        capabilities: { tools: {} },
+        serverInfo: { name: 'swarmdeck-session', version: '1.0.0' },
+      });
+      break;
+
+    case 'notifications/initialized':
+      log('initialized notification received');
+      break;
+
+    case 'tools/list':
+      log(`tools/list → ${ALL_TOOLS.length} tools: ${ALL_TOOLS.map(t => t.name).join(', ')}`);
+      respond(id, { tools: ALL_TOOLS });
+      break;
+
+    case 'tools/call': {
+      const name = params?.name;
+      const args = params?.arguments || {};
+      const mod = TOOL_HANDLERS.get(name);
+      if (!mod) {
+        log(`tools/call UNKNOWN tool="${name}"`, 'warn');
+        respondError(id, -32601, `Unknown tool: ${name}`);
+        break;
+      }
+      const argsSummary = summarizeArgs(args);
+      log(`tools/call tool="${name}" args=${argsSummary}`);
+      const callStart = Date.now();
+      void Promise.resolve(mod.handle(name, args, ctx)).then(
+        result => {
+          const elapsed = Date.now() - callStart;
+          const text = result.content?.[0]?.text || '';
+          log(`tools/call tool="${name}" ${result.isError ? 'ERROR' : 'OK'} ${elapsed}ms args=${argsSummary} result=${text.slice(0, 150)}`);
+          respond(id, result);
+        },
+        err => {
+          const elapsed = Date.now() - callStart;
+          log(`tools/call tool="${name}" EXCEPTION ${elapsed}ms args=${argsSummary} error=${err?.message || err}`, 'warn');
+          respond(id, { content: [{ type: 'text', text: `Tool error: ${err?.message || err}` }], isError: true });
+        },
+      );
+      break;
+    }
+
+    default:
+      if (id !== undefined) {
+        log(`unknown method="${method}"`, 'warn');
+        respondError(id, -32601, `Method not found: ${method}`);
+      }
+  }
+}
