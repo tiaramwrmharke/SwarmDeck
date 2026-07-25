@@ -49,3 +49,53 @@ describe('parseGitStatusV2', () => {
     expect(g.branch).toBeNull();
     expect(g.shortSha).toBe('a1b2c3d');
     expect(g.upstream).toBeNull();
+  });
+
+  it('handles a local branch with no upstream', () => {
+    const out = ['# branch.oid 3333333333333333333333333333333333333333', '# branch.head local-only'].join('\n');
+    const g = parseGitStatusV2(out);
+    expect(g.branch).toBe('local-only');
+    expect(g.upstream).toBeNull();
+    expect(g.ahead).toBe(0);
+    expect(g.behind).toBe(0);
+  });
+});
+
+describe('formatGitStatusLine', () => {
+  it('returns null for no status', () => {
+    expect(formatGitStatusLine(null)).toBeNull();
+    expect(formatGitStatusLine(undefined)).toBeNull();
+  });
+
+  it('renders a clean tracked branch', () => {
+    const line = formatGitStatusLine({
+      branch: 'main', detached: false, shortSha: null, upstream: 'origin/main',
+      ahead: 0, behind: 0, staged: 0, unstaged: 0, untracked: 0, changed: 0,
+    });
+    expect(line).toBe('main  ·  clean');
+  });
+
+  it('renders ahead/behind with a change breakdown', () => {
+    const line = formatGitStatusLine({
+      branch: 'feature/x', detached: false, shortSha: null, upstream: 'origin/feature/x',
+      ahead: 2, behind: 1, staged: 3, unstaged: 0, untracked: 2, changed: 5,
+    });
+    expect(line).toBe('feature/x  ↑2 ↓1  ·  5 changed (3 staged · 2 untracked)');
+  });
+
+  it('flags a local branch with no upstream', () => {
+    const line = formatGitStatusLine({
+      branch: 'local-only', detached: false, shortSha: null, upstream: null,
+      ahead: 0, behind: 0, staged: 0, unstaged: 0, untracked: 0, changed: 0,
+    });
+    expect(line).toBe('local-only  ·  no upstream  ·  clean');
+  });
+
+  it('labels a detached HEAD without a no-upstream note', () => {
+    const line = formatGitStatusLine({
+      branch: null, detached: true, shortSha: 'a1b2c3d', upstream: null,
+      ahead: 0, behind: 0, staged: 0, unstaged: 1, untracked: 0, changed: 1,
+    });
+    expect(line).toBe('(detached a1b2c3d)  ·  1 changed (1 unstaged)');
+  });
+});
