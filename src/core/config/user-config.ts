@@ -128,3 +128,456 @@ const MANAGED_ENV_KEYS = [
   'WEIXIN_BASE_URL',
   'WEIXIN_BOT_TOKEN',
   'WEIXIN_ACCOUNT_ID',
+  'SLACK_BOT_TOKEN',
+  'SLACK_APP_TOKEN',
+  'DISCORD_BOT_TOKEN',
+  'DINGTALK_CLIENT_ID',
+  'DINGTALK_CLIENT_SECRET',
+  'WECOM_BOT_ID',
+  'WECOM_BOT_SECRET',
+  'WECOM_ENDPOINT',
+] as const;
+
+const EXTERNAL_ENV_PRESET = new Set<string>(
+  MANAGED_ENV_KEYS.filter(key => {
+    const value = process.env[key];
+    return typeof value === 'string' && value.trim() !== '';
+  }),
+);
+
+const ENV_TO_CONFIG_KEY: ReadonlyArray<readonly [keyof UserConfig, string]> = [
+  ['telegramBotToken', 'TELEGRAM_BOT_TOKEN'],
+  ['telegramAllowedChatIds', 'TELEGRAM_ALLOWED_CHAT_IDS'],
+  ['feishuAppId', 'FEISHU_APP_ID'],
+  ['feishuAppSecret', 'FEISHU_APP_SECRET'],
+  ['weixinBaseUrl', 'WEIXIN_BASE_URL'],
+  ['weixinBotToken', 'WEIXIN_BOT_TOKEN'],
+  ['weixinAccountId', 'WEIXIN_ACCOUNT_ID'],
+  ['slackBotToken', 'SLACK_BOT_TOKEN'],
+  ['slackAppToken', 'SLACK_APP_TOKEN'],
+  ['discordBotToken', 'DISCORD_BOT_TOKEN'],
+  ['dingtalkClientId', 'DINGTALK_CLIENT_ID'],
+  ['dingtalkClientSecret', 'DINGTALK_CLIENT_SECRET'],
+  ['wecomBotId', 'WECOM_BOT_ID'],
+  ['wecomBotSecret', 'WECOM_BOT_SECRET'],
+  ['wecomEndpoint', 'WECOM_ENDPOINT'],
+];
+
+export function applyChannelEnvFallback(config: Partial<UserConfig>): Partial<UserConfig> {
+  let next: Partial<UserConfig> | null = null;
+  for (const [key, envName] of ENV_TO_CONFIG_KEY) {
+    const current = String((config as any)[key] || '').trim();
+    if (current) continue;
+    const env = String(process.env[envName] || '').trim();
+    if (!env) continue;
+    if (!next) next = { ...config };
+    (next as any)[key] = env;
+  }
+  return next ?? config;
+}
+const USER_CONFIG_DIRNAME = STATE_DIR_NAME;
+const USER_CONFIG_FILENAME = 'setting.json';
+
+let activeUserConfig: Partial<UserConfig> = {};
+let userConfigCache: { path: string; mtimeMs: number; size: number; config: Partial<UserConfig> } | null = null;
+const userConfigListeners = new Set<UserConfigChangeListener>();
+let userConfigSyncTimer: ReturnType<typeof setInterval> | null = null;
+let userConfigSyncRefCount = 0;
+let userConfigSyncRaw = '';
+let userConfigSyncOverrides: Partial<UserConfig> = {};
+
+const expandHomeDir = expandTilde;
+
+function normalizeWorkspaces(raw: unknown): WorkspaceEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const entries: WorkspaceEntry[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const rawPath = typeof (item as any).path === 'string' ? (item as any).path.trim() : '';
+    if (!rawPath) continue;
+    const resolved = path.resolve(expandHomeDir(rawPath));
+    if (seen.has(resolved)) continue;
+    seen.add(resolved);
+    entries.push({
+      path: resolved,
+      name: typeof (item as any).name === 'string' && (item as any).name.trim()
+        ? (item as any).name.trim()
+        : path.basename(resolved),
+      order: typeof (item as any).order === 'number' ? (item as any).order : entries.length,
+      preferredAgent: typeof (item as any).preferredAgent === 'string' && (item as any).preferredAgent.trim()
+        ? (item as any).preferredAgent.trim()
+        : undefined,
+      addedAt: typeof (item as any).addedAt === 'string' && (item as any).addedAt.trim()
+        ? (item as any).addedAt
+        : new Date().toISOString(),
+    });
+  }
+  entries.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+  return entries;
+}
+
+export function getDevUserConfigPath(): string {
+  return path.join(os.homedir(), USER_CONFIG_DIRNAME, 'dev', USER_CONFIG_FILENAME);
+}
+
+export function getUserConfigPath(): string {
+  const custom = (process.env.PIKILOOM_CONFIG || '').trim();
+  if (custom) return path.resolve(custom);
+  return path.join(os.homedir(), USER_CONFIG_DIRNAME, USER_CONFIG_FILENAME);
+}
+
+function loadJsonFile(filePath: string): Partial<UserConfig> {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed ? normalizeUserConfig(parsed) : {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeUserConfig(config: Partial<UserConfig>): Partial<UserConfig> {
+  const next: Record<string, unknown> = { ...config };
+  const workdir = typeof next.workdir === 'string' && next.workdir.trim() ? next.workdir.trim() : '';
+  if (workdir) next.workdir = resolveUserWorkdir({ workdir });
+  else delete next.workdir;
+  if (typeof next.browserEnabled !== 'boolean' && typeof next.browserUseProfile === 'boolean') {
+    next.browserEnabled = next.browserUseProfile;
+  }
+  if (typeof next.browserHeadless !== 'boolean' && typeof next.browserGuiHeadless === 'boolean') {
+    next.browserHeadless = next.browserGuiHeadless;
+  }
+  delete next.browserUseProfile;
+  delete next.browserCdpEndpoint;
+  delete next.browserGuiEnabled;
+  delete next.browserGuiHeadless;
+  delete next.browserGuiIsolated;
+  delete next.browserGuiUseExtension;
+  delete next.browserGuiExtensionToken;
+  if (Array.isArray(next.workspaces)) {
+    next.workspaces = normalizeWorkspaces(next.workspaces);
+  } else {
+    delete next.workspaces;
+  }
+  return next as Partial<UserConfig>;
+}
+
+export function loadUserConfig(): Partial<UserConfig> {
+  const filePath = getUserConfigPath();
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(filePath);
+  } catch {
+    userConfigCache = null;
+    return {};
+  }
+  const cached = userConfigCache;
+  if (cached && cached.path === filePath && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+    return cached.config;
+  }
+  const config = loadJsonFile(filePath);
+  userConfigCache = { path: filePath, mtimeMs: stat.mtimeMs, size: stat.size, config };
+  return config;
+}
+
+export function hasUserConfigFile(): boolean {
+  try {
+    return fs.existsSync(getUserConfigPath());
+  } catch {
+    return false;
+  }
+}
+
+export function getActiveUserConfig(): Partial<UserConfig> {
+  return activeUserConfig;
+}
+
+export function saveUserConfig(config: Partial<UserConfig>): string {
+  const filePath = getUserConfigPath();
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const normalized: Partial<UserConfig> = { version: 1, ...normalizeUserConfig(config) };
+  fs.writeFileSync(filePath, `${JSON.stringify(normalized, null, 2)}\n`, { mode: 0o600 });
+  try {
+    const stat = fs.statSync(filePath);
+    userConfigCache = { path: filePath, mtimeMs: stat.mtimeMs, size: stat.size, config: normalized };
+  } catch {
+    userConfigCache = null;
+  }
+  return filePath;
+}
+
+export function updateUserConfig(patch: Partial<UserConfig>): string {
+  return saveUserConfig({ ...loadUserConfig(), ...patch });
+}
+
+export function resolveUserWorkdir(opts: {
+  workdir?: string | null;
+  config?: Partial<UserConfig>;
+  cwd?: string;
+} = {}): string {
+  const raw = String(
+    opts.workdir
+    || opts.config?.workdir
+    || process.env.PIKILOOM_WORKDIR
+    || opts.cwd
+    || process.cwd(),
+  ).trim();
+  return path.resolve(expandHomeDir(raw));
+}
+
+function buildManagedEnv(config: Partial<UserConfig>): Record<(typeof MANAGED_ENV_KEYS)[number], string> {
+  const configuredWorkdir = config.workdir || '';
+  return {
+    PIKILOOM_CHANNEL: String(config.channel || '').trim(),
+    PIKILOOM_WORKDIR: configuredWorkdir ? resolveUserWorkdir({ workdir: configuredWorkdir }) : '',
+    DEFAULT_AGENT: String(config.defaultAgent || '').trim(),
+    TELEGRAM_BOT_TOKEN: String(config.telegramBotToken || '').trim(),
+    TELEGRAM_ALLOWED_CHAT_IDS: String(config.telegramAllowedChatIds || '').trim(),
+    FEISHU_APP_ID: String(config.feishuAppId || '').trim(),
+    FEISHU_APP_SECRET: String(config.feishuAppSecret || '').trim(),
+    WEIXIN_BASE_URL: String(config.weixinBaseUrl || '').trim(),
+    WEIXIN_BOT_TOKEN: String(config.weixinBotToken || '').trim(),
+    WEIXIN_ACCOUNT_ID: String(config.weixinAccountId || '').trim(),
+    SLACK_BOT_TOKEN: String(config.slackBotToken || '').trim(),
+    SLACK_APP_TOKEN: String(config.slackAppToken || '').trim(),
+    DISCORD_BOT_TOKEN: String(config.discordBotToken || '').trim(),
+    DINGTALK_CLIENT_ID: String(config.dingtalkClientId || '').trim(),
+    DINGTALK_CLIENT_SECRET: String(config.dingtalkClientSecret || '').trim(),
+    WECOM_BOT_ID: String(config.wecomBotId || '').trim(),
+    WECOM_BOT_SECRET: String(config.wecomBotSecret || '').trim(),
+    WECOM_ENDPOINT: String(config.wecomEndpoint || '').trim(),
+  };
+}
+
+function notifyUserConfigListeners(config: Partial<UserConfig>, changedKeys: string[]) {
+  for (const listener of userConfigListeners) {
+    try {
+      listener(config, changedKeys);
+    } catch {}
+  }
+}
+
+function readUserConfigRaw(): string {
+  try {
+    return fs.readFileSync(getUserConfigPath(), 'utf-8');
+  } catch {
+    return '';
+  }
+}
+
+export function onUserConfigChange(listener: UserConfigChangeListener): () => void {
+  userConfigListeners.add(listener);
+  return () => userConfigListeners.delete(listener);
+}
+
+function configValuesEqual(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) || Array.isArray(b)) return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  return a === b;
+}
+
+function diffConfigKeys(prev: Partial<UserConfig>, next: Partial<UserConfig>): string[] {
+  const keys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+  const changed: string[] = [];
+  for (const key of keys) {
+    if (!configValuesEqual(prev[key as keyof UserConfig], next[key as keyof UserConfig])) changed.push(key);
+  }
+  return changed;
+}
+
+export function applyUserConfig(config: Partial<UserConfig>, _channel?: string, options: ApplyUserConfigOptions = {}): string[] {
+  const overwrite = options.overwrite ?? true;
+  const clearMissing = options.clearMissing ?? true;
+  const notify = options.notify ?? true;
+  const managed = buildManagedEnv(config);
+  const changedKeys: string[] = [];
+  const prevConfig = activeUserConfig;
+
+  for (const key of MANAGED_ENV_KEYS) {
+    const next = managed[key];
+    const prev = process.env[key] ?? '';
+    if (!next) {
+      if (clearMissing && key in process.env && !EXTERNAL_ENV_PRESET.has(key)) {
+        delete process.env[key];
+        changedKeys.push(key);
+      }
+      continue;
+    }
+    if (!overwrite && prev) continue;
+    if (prev !== next) {
+      process.env[key] = next;
+      changedKeys.push(key);
+    }
+  }
+
+  activeUserConfig = { ...config };
+  const configChangedKeys = diffConfigKeys(prevConfig, activeUserConfig);
+  const notifyKeys = [...new Set([...changedKeys, ...configChangedKeys])];
+  if (notify && notifyKeys.length) notifyUserConfigListeners(activeUserConfig, notifyKeys);
+  return changedKeys;
+}
+
+export function setUserWorkdir(workdir: string, options: { notify?: boolean } = {}): {
+  configPath: string;
+  workdir: string;
+  config: Partial<UserConfig>;
+} {
+  const resolvedWorkdir = resolveUserWorkdir({ workdir });
+  const config = normalizeUserConfig({ ...loadUserConfig(), workdir: resolvedWorkdir });
+  const configPath = saveUserConfig(config);
+  applyUserConfig(config, undefined, { overwrite: true, clearMissing: true, notify: options.notify ?? true });
+  return { configPath, workdir: resolvedWorkdir, config };
+}
+
+export function startUserConfigSync(options: SyncUserConfigOptions = {}): () => void {
+  const intervalMs = Math.max(250, Math.round(options.intervalMs ?? USER_CONFIG_SYNC_DEFAULT_INTERVAL_MS));
+  if (options.overrides) userConfigSyncOverrides = { ...options.overrides };
+
+  const syncNow = () => {
+    const raw = readUserConfigRaw();
+    if (raw === userConfigSyncRaw && userConfigSyncTimer) return;
+    userConfigSyncRaw = raw;
+    const merged = { ...loadUserConfig(), ...userConfigSyncOverrides };
+    const changedKeys = applyUserConfig(merged, undefined, { overwrite: true, clearMissing: true, notify: true });
+    if (changedKeys.length) options.log?.(`config reloaded from setting.json (${changedKeys.join(', ')})`);
+  };
+
+  syncNow();
+  userConfigSyncRefCount++;
+  if (!userConfigSyncTimer) {
+    userConfigSyncTimer = setInterval(syncNow, intervalMs);
+    userConfigSyncTimer.unref?.();
+  }
+
+  return () => {
+    userConfigSyncRefCount = Math.max(0, userConfigSyncRefCount - 1);
+    if (userConfigSyncRefCount > 0 || !userConfigSyncTimer) return;
+    clearInterval(userConfigSyncTimer);
+    userConfigSyncTimer = null;
+    userConfigSyncRaw = '';
+    userConfigSyncOverrides = {};
+  };
+}
+
+const KNOWN_CHAT_CONFIG_KEY = {
+  feishu: 'feishuKnownChatIds',
+  telegram: 'telegramKnownChatIds',
+} as const;
+
+export function recordKnownChatId(channelType: 'feishu' | 'telegram', chatId: string | number): void {
+  const id = String(chatId ?? '').trim();
+  if (!id) return;
+  const key = KNOWN_CHAT_CONFIG_KEY[channelType];
+  const config = loadUserConfig();
+  const existing = Array.isArray((config as any)[key]) ? ((config as any)[key] as string[]) : [];
+  if (existing.includes(id)) return;
+  const next = [...existing, id];
+  try {
+    saveUserConfig({ ...config, [key]: next });
+  } catch {}
+}
+
+export function loadKnownChatIds(channelType: 'feishu' | 'telegram'): string[] {
+  const key = KNOWN_CHAT_CONFIG_KEY[channelType];
+  const config = loadUserConfig();
+  const list = (config as any)[key];
+  return Array.isArray(list)
+    ? list.map(v => String(v ?? '').trim()).filter(Boolean)
+    : [];
+}
+
+export function loadWorkspaces(): WorkspaceEntry[] {
+  const config = loadUserConfig();
+  return normalizeWorkspaces(config.workspaces);
+}
+
+export function addWorkspace(workspacePath: string, name?: string): WorkspaceEntry {
+  const resolved = path.resolve(expandHomeDir(workspacePath));
+  const config = loadUserConfig();
+  const workspaces = normalizeWorkspaces(config.workspaces);
+
+  const existing = workspaces.find(w => w.path === resolved);
+  if (existing) {
+    if (name) existing.name = name;
+    saveUserConfig({ ...config, workspaces });
+    return existing;
+  }
+
+  const entry: WorkspaceEntry = {
+    path: resolved,
+    name: name?.trim() || path.basename(resolved),
+    order: workspaces.length,
+    addedAt: new Date().toISOString(),
+  };
+  workspaces.push(entry);
+  saveUserConfig({ ...config, workspaces });
+  return entry;
+}
+
+export function removeWorkspace(workspacePath: string): boolean {
+  const resolved = path.resolve(expandHomeDir(workspacePath));
+  const config = loadUserConfig();
+  const workspaces = normalizeWorkspaces(config.workspaces);
+  const before = workspaces.length;
+  const filtered = workspaces.filter(w => w.path !== resolved);
+  if (filtered.length === before) return false;
+  saveUserConfig({ ...config, workspaces: filtered });
+  return true;
+}
+
+export function renameWorkspace(workspacePath: string, newName: string): WorkspaceEntry | null {
+  const resolved = path.resolve(expandHomeDir(workspacePath));
+  const config = loadUserConfig();
+  const workspaces = normalizeWorkspaces(config.workspaces);
+  const entry = workspaces.find(w => w.path === resolved);
+  if (!entry) return null;
+  entry.name = newName.trim() || entry.name;
+  saveUserConfig({ ...config, workspaces });
+  return entry;
+}
+
+export function reorderWorkspaces(orderedPaths: string[]): WorkspaceEntry[] {
+  const config = loadUserConfig();
+  const workspaces = normalizeWorkspaces(config.workspaces);
+  const byPath = new Map(workspaces.map(w => [w.path, w]));
+  const reordered: WorkspaceEntry[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < orderedPaths.length; i++) {
+    const resolved = path.resolve(expandHomeDir(orderedPaths[i]));
+    const entry = byPath.get(resolved);
+    if (entry && !seen.has(resolved)) {
+      entry.order = i;
+      reordered.push(entry);
+      seen.add(resolved);
+    }
+  }
+
+  for (const entry of workspaces) {
+    if (!seen.has(entry.path)) {
+      entry.order = reordered.length;
+      reordered.push(entry);
+    }
+  }
+
+  saveUserConfig({ ...config, workspaces: reordered });
+  return reordered;
+}
+
+export function updateWorkspace(workspacePath: string, patch: Partial<Pick<WorkspaceEntry, 'name' | 'preferredAgent' | 'order'>>): WorkspaceEntry | null {
+  const resolved = path.resolve(expandHomeDir(workspacePath));
+  const config = loadUserConfig();
+  const workspaces = normalizeWorkspaces(config.workspaces);
+  const entry = workspaces.find(w => w.path === resolved);
+  if (!entry) return null;
+  if (patch.name !== undefined) entry.name = patch.name.trim() || entry.name;
+  if (patch.preferredAgent !== undefined) entry.preferredAgent = patch.preferredAgent || undefined;
+  if (patch.order !== undefined) entry.order = patch.order;
+  saveUserConfig({ ...config, workspaces });
+  return entry;
+}
+
+export function findWorkspace(workspacePath: string): WorkspaceEntry | null {
+  const resolved = path.resolve(expandHomeDir(workspacePath));
+  return loadWorkspaces().find(w => w.path === resolved) || null;
+}
