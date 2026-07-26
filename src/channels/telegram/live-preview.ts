@@ -58,3 +58,198 @@ export class LivePreview {
   private typingTimer: ReturnType<typeof setInterval> | null = null;
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
   private editChain: Promise<void> = Promise.resolve();
+  private previewVersion = 0;
+  private editCount = 0;
+  private lastEditAt = 0;
+  private lastProgressAt: number;
+  private lastPreview: string;
+  private latestText = '';
+  private latestThinking = '';
+  private latestActivity = '';
+  private latestMeta: StreamPreviewMeta | null = null;
+  private latestPlan: StreamPreviewPlan | null = null;
+  private consecutiveEditFailures = 0;
+  private placeholderAbandoned = false;
+  private static readonly MAX_CONSECUTIVE_EDIT_FAILURES = 3;
+
+  constructor(options: LivePreviewOptions) {
+    this.agent = options.agent;
+    this.chatId = options.chatId;
+    this.placeholderMessageId = options.placeholderMessageId;
+    this.channel = options.channel;
+    this.renderer = options.renderer;
+    this.streamEditIntervalMs = options.streamEditIntervalMs;
+    this.startTimeMs = options.startTimeMs;
+    this.canEditMessages = options.canEditMessages;
+    this.canSendTyping = options.canSendTyping;
+    this.messageThreadId = options.messageThreadId;
+    this.parseMode = options.parseMode ?? 'HTML';
+    this.keyboard = options.keyboard;
+    this.model = options.model ?? null;
+    this.effort = options.effort ?? null;
+    this.log = options.log ?? (() => {});
+
+    this.initialText = this.renderer.renderInitial(this.agent, this.model, this.effort);
+    this.lastPreview = this.initialText;
+    this.lastProgressAt = this.startTimeMs;
+  }
+
+  start() {
+    this.sendTypingPulse();
+    if (this.canEditMessages) {
+      this.heartbeatTimer = setInterval(() => {
+        const idleMs = Date.now() - this.lastProgressAt;
+        const recentlyEdited = Date.now() - this.lastEditAt < STREAM_PREVIEW_HEARTBEAT_MS - 250;
+        if (recentlyEdited && idleMs < STREAM_STALLED_NOTICE_MS) return;
+        this.queuePreviewEdit(true);
+      }, STREAM_PREVIEW_HEARTBEAT_MS);
+      this.heartbeatTimer.unref?.();
+    }
+    if (this.canSendTyping) {
+      this.typingTimer = setInterval(() => this.sendTypingPulse(), STREAM_TYPING_HEARTBEAT_MS);
+      this.typingTimer.unref?.();
+    }
+  }
+
+  update(
+    text: string,
+    thinking: string,
+    activity = '',
+    meta?: StreamPreviewMeta,
+    plan?: StreamPreviewPlan | null,
+  ) {
+    const nextMeta: StreamPreviewMeta | null = hasPreviewMeta(meta) ? meta! : null;
+    const nextPlan = plan?.steps?.length ? plan : null;
+    const changed = text !== this.latestText
+      || thinking !== this.latestThinking
+      || activity !== this.latestActivity
+      || !samePreviewMeta(nextMeta, this.latestMeta)
+      || !samePreviewPlan(nextPlan, this.latestPlan);
+
+    this.latestText = text;
+    this.latestThinking = thinking;
+    this.latestActivity = activity;
+    this.latestMeta = nextMeta;
+    this.latestPlan = nextPlan;
+
+    if (changed) this.lastProgressAt = Date.now();
+    if (!text.trim() && !thinking.trim() && !activity.trim() && !nextMeta && !nextPlan) return;
+    this.schedulePreviewEdit();
+  }
+
+  async settle() {
+    this.stopFeedback();
+    await this.flushPreviewEdits();
+  }
+
+  dispose() {
+    this.stopFeedback();
+    if (this.flushTimer) {
+      clearTimeout(this.flushTimer);
+      this.flushTimer = null;
+    }
+    this.previewVersion++;
+  }
+
+  getEditCount(): number {
+    return this.editCount;
+  }
+
+  getRenderedPreview(): string {
+    return this.lastPreview;
+  }
+
+  private stopFeedback() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    if (this.typingTimer) {
+      clearInterval(this.typingTimer);
+      this.typingTimer = null;
+    }
+  }
+
+  private sendTypingPulse() {
+    if (!this.canSendTyping) return;
+    void this.channel.sendTyping(this.chatId, { messageThreadId: this.messageThreadId }).catch(() => {});
+  }
+
+  private renderPreview(): string {
+    return this.renderer.renderStream({
+      agent: this.agent,
+      elapsedMs: Date.now() - this.startTimeMs,
+      bodyText: this.latestText,
+      thinking: this.latestThinking,
+      activity: this.latestActivity,
+      meta: this.latestMeta,
+      plan: this.latestPlan,
+      model: this.model,
+      effort: this.effort,
+    });
+  }
+
+  private schedulePreviewEdit() {
+    if (!this.canEditMessages) return;
+    const wait = this.streamEditIntervalMs - (Date.now() - this.lastEditAt);
+    if (wait <= 0) {
+      if (this.flushTimer) {
+        clearTimeout(this.flushTimer);
+        this.flushTimer = null;
+      }
+      this.queuePreviewEdit();
+      return;
+    }
+    if (this.flushTimer) return;
+    this.flushTimer = setTimeout(() => {
+      this.flushTimer = null;
+      this.queuePreviewEdit();
+    }, wait);
+  }
+
+  private queuePreviewEdit(force = false) {
+    if (!this.canEditMessages || this.placeholderMessageId == null) return;
+    if (this.placeholderAbandoned) return;
+    const placeholderMessageId = this.placeholderMessageId;
+    const preview = this.renderPreview();
+    if (!preview) return;
+    if (!force && preview === this.lastPreview) return;
+    this.lastPreview = preview;
+    const version = ++this.previewVersion;
+    this.editCount++;
+    this.lastEditAt = Date.now();
+    this.editChain = this.editChain
+      .catch(() => {})
+      .then(async () => {
+        if (version !== this.previewVersion) return;
+        if (this.placeholderAbandoned) return;
+        try {
+          await this.channel.editMessage(this.chatId, placeholderMessageId, preview, { parseMode: this.parseMode, keyboard: this.keyboard });
+          this.consecutiveEditFailures = 0;
+        } catch (error: any) {
+          this.consecutiveEditFailures++;
+          this.log(`stream edit err (${this.consecutiveEditFailures}/${LivePreview.MAX_CONSECUTIVE_EDIT_FAILURES}): ${error?.message || error}`);
+          if (this.consecutiveEditFailures >= LivePreview.MAX_CONSECUTIVE_EDIT_FAILURES) {
+            this.placeholderAbandoned = true;
+            this.log(`placeholder abandoned after ${this.consecutiveEditFailures} consecutive failures — finalReply will fall back to a fresh card`);
+          }
+        }
+      });
+  }
+
+  isPlaceholderAbandoned(): boolean {
+    return this.placeholderAbandoned;
+  }
+
+  private async flushPreviewEdits() {
+    if (!this.canEditMessages) return;
+    if (this.flushTimer) {
+      clearTimeout(this.flushTimer);
+      this.flushTimer = null;
+    }
+    if (this.editCount > 0 || this.latestText.trim() || this.latestThinking.trim() || this.latestActivity.trim()) {
+      this.queuePreviewEdit(true);
+    }
+    await this.editChain.catch(() => {});
+  }
+}

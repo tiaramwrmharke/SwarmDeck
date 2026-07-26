@@ -106,3 +106,375 @@ export function renderCommandNoticeHtml(notice: CommandNotice): string {
   }
   if (notice.detail) lines.push(`<i>${escapeHtml(notice.detail)}</i>`);
   return lines.join('\n');
+}
+
+export function renderCommandSelectionHtml(view: CommandSelectionView): string {
+  const lines = [buildCompactSelectionTitle(view.title, view.detail)];
+  if (view.metaLines.length) lines.push(...view.metaLines.map(line => `<i>${escapeHtml(line)}</i>`));
+
+  if (view.items.length) {
+    lines.push('', ...view.items.map((item, index) => formatCommandItemHtml(item, index)));
+  } else if (view.emptyText) {
+    lines.push('', `<i>${escapeHtml(view.emptyText)}</i>`);
+  }
+
+  if (view.helperText) lines.push('', `<i>${escapeHtml(view.helperText)}</i>`);
+  return lines.join('\n');
+}
+
+const TELEGRAM_CALLBACK_LIMIT = 64;
+
+class CallbackDataRegistry {
+  private idToData = new Map<number, string>();
+  private dataToId = new Map<string, number>();
+  private nextId = 1;
+
+  pack(data: string): string {
+    if (Buffer.byteLength(data, 'utf8') <= TELEGRAM_CALLBACK_LIMIT) return data;
+    let id = this.dataToId.get(data);
+    if (id == null) {
+      id = this.nextId++;
+      this.dataToId.set(data, id);
+      this.idToData.set(id, data);
+      if (this.idToData.size > 500) {
+        for (const oldId of [...this.idToData.keys()].slice(0, 200)) {
+          const oldData = this.idToData.get(oldId)!;
+          this.idToData.delete(oldId);
+          this.dataToId.delete(oldData);
+        }
+      }
+    }
+    return `r:${id}`;
+  }
+
+  unpack(data: string): string {
+    if (!data.startsWith('r:')) return data;
+    const id = Number.parseInt(data.slice(2), 10);
+    if (!Number.isFinite(id)) return data;
+    return this.idToData.get(id) ?? data;
+  }
+}
+
+const callbackDataRegistry = new CallbackDataRegistry();
+
+export function unpackCallbackData(data: string): string {
+  return callbackDataRegistry.unpack(data);
+}
+
+export function renderCommandSelectionKeyboard(view: CommandSelectionView): { inline_keyboard: { text: string; callback_data: string }[][] } | undefined {
+  if (!view.rows.length) return undefined;
+  return {
+    inline_keyboard: view.rows.map(row => row.map(button => ({
+      text: formatCommandButtonLabel(button),
+      callback_data: callbackDataRegistry.pack(encodeCommandAction(button.action)),
+    }))),
+  };
+}
+
+export function buildHumanLoopPromptHtml(prompt: HumanLoopPromptState): string {
+  const question = currentHumanLoopQuestion(prompt);
+  const lines: string[] = [`<b>${escapeHtml(prompt.title)}</b>`];
+  if (prompt.detail) lines.push(compactCode(prompt.detail, 40));
+  lines.push(`<i>${humanLoopAnsweredCount(prompt)}/${prompt.questions.length} answered</i>`);
+  if (!question) return lines.join('\n');
+
+  lines.push('');
+  if (question.header.trim()) lines.push(`<b>${escapeHtml(question.header)}</b>`);
+  lines.push(escapeHtml(question.prompt));
+
+  const options = question.options || [];
+  if (options.length) {
+    lines.push('');
+    for (let i = 0; i < options.length; i++) {
+      const option = options[i];
+      lines.push(`${i + 1}. ${escapeHtml(option.label)}`);
+      if (option.description) lines.push(`<i>${escapeHtml(option.description)}</i>`);
+    }
+  }
+
+  if (isHumanLoopAwaitingText(prompt)) {
+    lines.push('', `<i>${question.secret ? 'Reply with the secret value in chat.' : 'Reply with text in chat to answer.'}</i>`);
+  }
+
+  if (prompt.hint) lines.push('', `<i>${escapeHtml(prompt.hint)}</i>`);
+
+  if (prompt.questions.length > 1) {
+    lines.push('');
+    for (let i = 0; i < prompt.questions.length; i++) {
+      const item = prompt.questions[i];
+      const summary = summarizeHumanLoopAnswer(prompt, item);
+      const answered = isHumanLoopQuestionAnswered(prompt, i);
+      lines.push(`${answered ? '●' : '○'} ${escapeHtml(item.header || item.prompt)}: ${escapeHtml(summary.display)}`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+export function buildAnsweredHumanLoopPromptHtml(prompt: HumanLoopPromptState, summary: ResolvedHumanLoopAnswers): string {
+  const symbol = summary.status === 'cancelled' ? '⊘' : '✓';
+  const lines = [`<b>${symbol} ${escapeHtml(prompt.title)}</b>`];
+  if (summary.status === 'cancelled') lines.push('<i>Cancelled.</i>');
+  for (const row of summary.rows) {
+    lines.push(`${escapeHtml(row.label)}: <b>${escapeHtml(row.display)}</b>`);
+  }
+  return lines.join('\n');
+}
+
+function mdInline(line: string): string {
+  const stripped = line.replace(/`([^`\n]+)`/g, '$1');
+  return formatMarkdownSegment(stripped);
+}
+
+function formatMarkdownSegment(text: string): string {
+  let value = escapeHtml(text);
+  value = value.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  value = value.replace(/__(.+?)__/g, '<b>$1</b>');
+  value = value.replace(/(?<!\w)\*([^*]+?)\*(?!\w)/g, '<i>$1</i>');
+  value = value.replace(/(?<!\w)_([^_]+?)_(?!\w)/g, '<i>$1</i>');
+  value = value.replace(/~~(.+?)~~/g, '<s>$1</s>');
+  value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  return value;
+}
+
+export function mdToTgHtml(text: string): string {
+  const result: string[] = [];
+  const lines = text.split('\n');
+  let i = 0;
+  let inCode = false;
+  let codeLang = '';
+  let codeLines: string[] = [];
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const stripped = line.trim();
+    if (stripped.startsWith('```')) {
+      if (!inCode) {
+        inCode = true;
+        codeLang = stripped.slice(3).trim().split(/\s/)[0] || '';
+        codeLines = [];
+      } else {
+        inCode = false;
+        const content = escapeHtml(codeLines.join('\n'));
+        result.push(codeLang
+          ? `<pre><code class="language-${escapeHtml(codeLang)}">${content}</code></pre>`
+          : `<pre>${content}</pre>`);
+      }
+      i++;
+      continue;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+      i++;
+      continue;
+    }
+
+    if (stripped.startsWith('|') && stripped.endsWith('|')) {
+      const tableLines: string[] = [];
+      while (i < lines.length) {
+        const tableLine = lines[i].trim();
+        if (!tableLine.startsWith('|')) break;
+        tableLines.push(tableLine);
+        i++;
+      }
+      const parsed = parseGfmTable(tableLines);
+      if (parsed && parsed.headers.length >= 2) {
+        const parts: string[] = [];
+        for (let r = 0; r < parsed.rows.length; r++) {
+          if (r > 0) parts.push('');
+          const cells = parsed.rows[r];
+          parts.push(`<b>${escapeHtml(cells[0] || '')}</b>`);
+          for (let c = 1; c < parsed.headers.length; c++) {
+            parts.push(`${escapeHtml(parsed.headers[c])}: ${escapeHtml(cells[c] || '')}`);
+          }
+        }
+        result.push(parts.join('\n'));
+      } else {
+        const plain = tableLines.filter(l => !/^\|[\s\-:|]+\|$/.test(l.trim()));
+        if (plain.length) result.push(`<pre>${escapeHtml(plain.join('\n'))}</pre>`);
+      }
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      result.push(`<b>${mdInline(heading[2])}</b>`);
+      i++;
+      continue;
+    }
+
+    result.push(mdInline(line));
+    i++;
+  }
+
+  if (inCode && codeLines.length) result.push(`<pre>${escapeHtml(codeLines.join('\n'))}</pre>`);
+  return result.join('\n');
+}
+
+export function renderSessionTurnHtml(userText: string | null | undefined, assistantText: string | null | undefined): string {
+  const parts: string[] = [];
+  const user = String(userText || '').trim();
+  const assistant = String(assistantText || '').trim();
+  if (user || assistant) parts.push('<b>Recent Context</b>');
+  if (user) parts.push(`<blockquote expandable>${escapeHtml(user)}</blockquote>`);
+  if (assistant) parts.push(mdToTgHtml(assistant));
+  return parts.join('\n\n');
+}
+
+export function formatMenuLines(commands: { command: string; description: string }[]): string[] {
+  return commands.map(cmd => `/${cmd.command} — ${escapeHtml(cmd.description)}`);
+}
+
+export function renderSkillsListHtml(d: SkillsListData): string {
+  const lines = [
+    `<b>Project Skills</b> (${d.skills.length})`,
+    '',
+    `<b>Agent:</b> ${escapeHtml(d.agent)}`,
+    `<b>Workdir:</b> <code>${escapeHtml(d.workdir)}</code>`,
+  ];
+
+  if (!d.skills.length) {
+    lines.push('', '<i>No project skills found in .swarmdeck/skills/ or .claude/commands/.</i>');
+    return lines.join('\n');
+  }
+
+  lines.push('');
+  for (const skill of d.skills) {
+    lines.push(`<b>/${escapeHtml(skill.command)}</b> — ${escapeHtml(skill.label)}`);
+    if (skill.description) lines.push(escapeHtml(skill.description));
+  }
+  return lines.join('\n');
+}
+
+export function formatPreviewFooterHtml(
+  agent: Agent,
+  elapsedMs: number,
+  meta?: StreamPreviewMeta | null,
+  decorations?: FooterDecorations,
+): string {
+  const parts = formatFooterParts(agent, elapsedMs, meta, null, decorations);
+  const primary = escapeHtml(`${footerStatusSymbol('running')} ${parts.identity}`);
+  return `${primary}\n<i>${escapeHtml(parts.runtime)}</i>`;
+}
+
+function formatFinalFooterHtml(
+  status: FooterStatus,
+  agent: Agent,
+  elapsedMs: number,
+  contextPercent?: number | null,
+  decorations?: FooterDecorations,
+): string {
+  const parts = formatFooterParts(agent, elapsedMs, null, contextPercent ?? null, decorations);
+  const primary = escapeHtml(`${footerStatusSymbol(status)} ${parts.identity}`);
+  return `${primary}\n<i>${escapeHtml(parts.runtime)}</i>`;
+}
+
+export function formatUsageOverviewLines(overview: UsageOverview): string[] {
+  return buildUsageOverviewLines(overview).map(line =>
+    line.bold ? `<b>${escapeHtml(line.text)}</b>` : escapeHtml(line.text),
+  );
+}
+
+export function buildInitialPreviewHtml(
+  agent: Agent,
+  modelOrWaiting?: string | boolean | null,
+  effortOrQueuePosition?: string | number | null,
+  waitingArg = false,
+  queuePositionArg = 0,
+): string {
+  let model: string | null = null;
+  let effort: string | null = null;
+  let waiting = waitingArg;
+  let queuePosition = queuePositionArg;
+  if (typeof modelOrWaiting === 'boolean') {
+    waiting = modelOrWaiting;
+    queuePosition = typeof effortOrQueuePosition === 'number' ? effortOrQueuePosition : 0;
+  } else {
+    model = (typeof modelOrWaiting === 'string' && modelOrWaiting) ? modelOrWaiting : null;
+    effort = (typeof effortOrQueuePosition === 'string' && effortOrQueuePosition) ? effortOrQueuePosition : null;
+  }
+  const decorations = { model, effort };
+  if (waiting) {
+    const queueLabel = queuePosition > 0
+      ? `Queued · ${queuePosition} ${queuePosition === 1 ? 'task' : 'tasks'} ahead`
+      : 'Waiting in queue...';
+    return `<i>${escapeHtml(queueLabel)}</i>\n\n${formatPreviewFooterHtml(agent, 0, null, decorations)}`;
+  }
+  return formatPreviewFooterHtml(agent, 0, null, decorations);
+}
+
+export function buildStreamPreviewHtml(input: StreamPreviewRenderInput): string {
+  const data = extractStreamPreviewData(input);
+  const parts: string[] = [];
+
+  if (data.planDisplay) {
+    const planText = data.planDisplay;
+    const nl = planText.indexOf('\n');
+    const head = nl >= 0 ? planText.slice(0, nl) : planText;
+    const body = nl >= 0 ? planText.slice(nl + 1) : '';
+    parts.push(`<blockquote><b>${escapeHtml(head)}</b>${body ? `\n${escapeHtml(body)}` : ''}</blockquote>`);
+  }
+
+  if (data.activityDisplay) {
+    parts.push(`<blockquote><b>Activity</b>\n${escapeHtml(trimActivityForPreview(data.activityDisplay, data.maxActivity))}</blockquote>`);
+  }
+  if (data.subAgentsDisplay) {
+    parts.push(`<blockquote><b>Sub-agent</b>\n${escapeHtml(data.subAgentsDisplay)}</blockquote>`);
+  }
+
+  if (data.thinkDisplay && !data.display) {
+    parts.push(`<blockquote><b>${escapeHtml(data.label)}</b>\n${escapeHtml(data.thinkDisplay)}</blockquote>`);
+  } else if (data.display) {
+    if (data.rawThinking) {
+      parts.push(`<blockquote><b>${escapeHtml(data.label)}</b>\n${escapeHtml(data.thinkSnippet)}</blockquote>`);
+    }
+    parts.push(mdToTgHtml(data.preview));
+  } else if (data.thinkingProgressText) {
+    parts.push(`<blockquote><b>${escapeHtml(data.label)}</b></blockquote>`);
+  }
+
+  parts.push(formatPreviewFooterHtml(input.agent, input.elapsedMs, input.meta ?? null, {
+    model: input.model,
+    effort: input.effort,
+  }));
+  return parts.join('\n\n');
+}
+
+export function buildFinalReplyRender(agent: Agent, result: StreamResult): FinalReplyRender {
+  const data = extractFinalReplyData(agent, result);
+  const footerHtml = `\n\n${formatFinalFooterHtml(data.footerStatus, agent, data.elapsedMs, result.contextPercent ?? null, {
+    model: result.model,
+    effort: result.thinkingEffort,
+    provider: result.byokProviderName,
+    profileName: result.byokProfileName,
+  })}`;
+
+  let activityHtml = '';
+  let activityNoteHtml = '';
+  if (data.activityNarrative) {
+    activityHtml = `<blockquote><b>Activity</b>\n${escapeHtml(data.activityNarrative)}</blockquote>\n\n`;
+  }
+  if (data.activityCommandSummary) {
+    activityNoteHtml = `<i>${escapeHtml(data.activityCommandSummary)}</i>\n\n`;
+  }
+
+  let thinkingHtml = '';
+  if (data.thinkingDisplay) {
+    thinkingHtml = `<blockquote><b>${escapeHtml(data.thinkLabel)}</b>\n${escapeHtml(data.thinkingDisplay)}</blockquote>\n\n`;
+  }
+
+  let statusHtml = '';
+  if (data.statusLines) {
+    statusHtml = `<blockquote expandable><b>Incomplete Response</b>\n${data.statusLines.map(escapeHtml).join('\n')}</blockquote>\n\n`;
+  }
+
+  const headerHtml = `${activityHtml}${activityNoteHtml}${statusHtml}${thinkingHtml}`;
+  const bodyHtml = mdToTgHtml(data.bodyMessage);
+  return {
+    fullHtml: `${headerHtml}${bodyHtml}${footerHtml}`,
+    headerHtml,
+    bodyHtml,
+    footerHtml,
+  };
+}
