@@ -36,3 +36,34 @@ describe('FeishuSurface (IM as a Surface over LoomIO, hermetic)', () => {
       drivers: [new EchoDriver()], defaultAgent: 'echo',
       sessionStore: new FsSessionStore(tmp),
       surfaces: [new FeishuSurface(fake, { agent: 'echo' })],
+    });
+    await loom.start();
+  });
+  afterEach(async () => { await loom.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
+
+  it('routes an inbound Feishu message through the kernel and streams the reply back', async () => {
+    fake.inbound('chatA', 'hello feishu');
+    // a message was created in the chat, then edited as the kernel streamed the agent reply.
+    // Wait for the DONE render (carries the 'tok' usage footer) — the streaming frame has the
+    // full text but no usage yet, so waiting on text alone races the done frame.
+    await waitFor(() => fake.rendered().some(t => t.includes('Echo: hello feishu') && t.includes('tok')));
+    expect(fake.sent.length).toBeGreaterThanOrEqual(1);
+    expect(fake.sent[0].chatId).toBe('chatA');
+    expect(fake.edits.length).toBeGreaterThanOrEqual(1);                 // edited in place (streaming)
+    const final = fake.rendered().reverse().find(t => t.includes('Echo:'))!;
+    expect(final).toContain('Echo: hello feishu');
+    expect(final).toContain('tok');                                       // usage footer on done
+  });
+
+  it('resumes the same kernel session for follow-up messages in the same chat', async () => {
+    fake.inbound('chatB', 'first');
+    await waitFor(() => fake.rendered().some(t => t.includes('Echo: first')));
+    const afterFirst = fake.sent.length;
+    fake.inbound('chatB', 'second');
+    await waitFor(() => fake.rendered().some(t => t.includes('Echo: second')));
+    // a NEW message for the new turn (msgId reset on done), but same underlying session
+    expect(fake.sent.length).toBe(afterFirst + 1);
+    const keys = loom.io.listSessions().map(s => s.sessionKey);
+    expect(new Set(keys).size).toBe(1); // one session reused across both turns in chatB
+  });
+});
