@@ -28,3 +28,19 @@ describe('runTurn (bridge primitive, hermetic)', () => {
     expect(snapshot.text).toContain('steered: EXTRA');
   });
 
+  it('accumulates subagent events into the snapshot (SessionRunner upsert)', async () => {
+    const fake: AgentDriver = {
+      id: 'fakesub',
+      async run(_i: AgentTurnInput, ctx: DriverContext): Promise<DriverResult> {
+        ctx.emit({ type: 'subagent', subagent: { id: 's1', kind: 'researcher', description: 'dig', model: null, tools: [], status: 'running' } });
+        ctx.emit({ type: 'subagent', subagent: { id: 's1', kind: 'researcher', description: 'dig', model: 'opus', tools: [{ id: 't', name: 'Grep', summary: 'Grep' }], status: 'done' } });
+        ctx.emit({ type: 'text', delta: 'ok' });
+        return { ok: true, text: 'ok' };
+      },
+    };
+    const { snapshot } = await runTurn(fake, { prompt: 'go', workdir: process.cwd() });
+    expect(snapshot.subAgents?.length).toBe(1);          // upserted by id, not duplicated
+    expect(snapshot.subAgents?.[0].status).toBe('done');
+    expect(snapshot.subAgents?.[0].model).toBe('opus');
+  });
+});
