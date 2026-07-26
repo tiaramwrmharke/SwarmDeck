@@ -37,3 +37,16 @@ describe('queuedIdsToDeferForSteer', () => {
 describe('steer run order (target jumps to front, rest keep relative order)', () => {
   const cases: Array<{ queue: string[]; target: string; expected: string[] }> = [
     { queue: ['a', 'b'], target: 'b', expected: ['b', 'a'] },
+    { queue: ['a', 'b'], target: 'a', expected: ['a', 'b'] },
+    // the 3+ regression: steering the middle task must not throw 'a' behind 'c'
+    { queue: ['a', 'b', 'c'], target: 'b', expected: ['b', 'a', 'c'] },
+    { queue: ['a', 'b', 'c'], target: 'c', expected: ['c', 'a', 'b'] },
+    { queue: ['a', 'b', 'c', 'd'], target: 'c', expected: ['c', 'a', 'b', 'd'] },
+  ];
+  for (const { queue, target, expected } of cases) {
+    it(`steer ${target} from [${queue.join(',')}] → [${expected.join(',')}]`, () => {
+      const deferIds = queuedIdsToDeferForSteer(queue, target);
+      expect(simulateRunOrder(queue, deferIds)).toEqual(expected);
+    });
+  }
+});
