@@ -60,3 +60,132 @@ vi.mock('discord.js', () => {
       hoist.onHandlers[event] = hoist.onHandlers[event] || [];
       hoist.onHandlers[event].push(handler);
       return this;
+    });
+    once = vi.fn((event: string, handler: any) => {
+      hoist.onceHandlers[event] = hoist.onceHandlers[event] || [];
+      hoist.onceHandlers[event].push(handler);
+      return this;
+    });
+  }
+  return {
+    Client: FakeClient,
+    GatewayIntentBits: { Guilds: 1, GuildMessages: 2, MessageContent: 4, DirectMessages: 8 },
+    Partials: { Channel: 'Channel', Message: 'Message' },
+    Events: {
+      ClientReady: 'ClientReady',
+      Error: 'Error',
+      MessageCreate: 'MessageCreate',
+      ShardDisconnect: 'ShardDisconnect',
+      InteractionCreate: 'InteractionCreate',
+    },
+  };
+});
+
+import { DiscordChannel } from '../src/channels/discord/channel.ts';
+
+beforeEach(() => {
+  hoist.sentMessages.length = 0;
+  hoist.editedMessages.length = 0;
+  for (const k of Object.keys(hoist.onceHandlers)) delete hoist.onceHandlers[k];
+  for (const k of Object.keys(hoist.onHandlers)) delete hoist.onHandlers[k];
+  vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe('DiscordChannel connect / send / edit', () => {
+  it('reads bot identity, sends messages, threads replies, and edits existing messages', async () => {
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      const bot = await ch.connect();
+      expect(bot.id).toBe('BOT_USER');
+      expect(bot.username).toBe('swarmdeck');
+    }
+
+    hoist.sentMessages.length = 0;
+    hoist.editedMessages.length = 0;
+
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      await ch.connect();
+      const id = await ch.send('CHAN_1', 'hello');
+      expect(id).toMatch(/^M/);
+      expect(hoist.sentMessages.length).toBe(1);
+      expect(hoist.sentMessages[0]).toMatchObject({ channelId: 'CHAN_1', payload: { content: 'hello' } });
+    }
+
+    hoist.sentMessages.length = 0;
+
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      await ch.connect();
+      await ch.send('CHAN_2', 'reply text', { replyTo: 'M_PARENT' });
+      expect(hoist.sentMessages[0].payload.reply).toMatchObject({ messageReference: 'M_PARENT', failIfNotExists: false });
+    }
+
+    hoist.editedMessages.length = 0;
+
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      await ch.connect();
+      await ch.editMessage('CHAN_1', 'M_OLD', 'updated');
+      expect(hoist.editedMessages.length).toBe(1);
+      expect(hoist.editedMessages[0]).toMatchObject({ channelId: 'CHAN_1', messageId: 'M_OLD', payload: { content: 'updated' } });
+    }
+  });
+});
+
+describe('DiscordChannel dispatch', () => {
+  function makeMsg(overrides: any = {}) {
+    return {
+      author: { bot: false, id: overrides.userId || 'U_USER', username: 'someone' },
+      channelId: overrides.channelId || 'CHAN_1',
+      id: overrides.id || 'M1',
+      content: overrides.content ?? '<@BOT_USER> hi',
+      mentions: { users: { has: (id: string) => id === 'BOT_USER' && !!overrides.mentionsBot } },
+      channel: { isDMBased: () => !!overrides.dm },
+    };
+  }
+
+  it('strips mention for DMs, skips non-mentions, drops bot messages, and enforces allowlists', async () => {
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      await ch.connect();
+      const seen: { text: string; chatId: string }[] = [];
+      ch.onMessage((msg, ctx) => seen.push({ text: msg.text, chatId: ctx.chatId }));
+      await (ch as any).dispatchMessage(makeMsg({ dm: true, content: '<@BOT_USER> please ship it' }));
+      expect(seen).toEqual([{ text: 'please ship it', chatId: 'CHAN_1' }]);
+    }
+
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      await (ch as any).dispatchMessage(makeMsg({ dm: false, mentionsBot: false, content: 'random chatter' }));
+      expect(seen).toEqual([]);
+    }
+
+    {
+      const ch = new DiscordChannel({ botToken: 'token' });
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      const msg = makeMsg({ dm: true });
+      msg.author.bot = true;
+      await (ch as any).dispatchMessage(msg);
+      expect(seen).toEqual([]);
+    }
+
+    {
+      const ch = new DiscordChannel({ botToken: 'token', allowedChatIds: new Set(['CHAN_OK']) });
+      await ch.connect();
+      const seen: any[] = [];
+      ch.onMessage(msg => seen.push(msg));
+      await (ch as any).dispatchMessage(makeMsg({ dm: true, channelId: 'CHAN_BLOCKED' }));
+      expect(seen).toEqual([]);
+    }
+  });
+});
