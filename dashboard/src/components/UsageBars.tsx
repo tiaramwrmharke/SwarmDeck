@@ -32,3 +32,39 @@ export function UsageBars({ usage, emptyText, className = '' }: {
                 <span
                   className="block h-full rounded-full"
                   style={{ width: `${Math.max(2, Math.min(100, pct))}%`, backgroundColor: USAGE_TONE_COLOR[tone] }}
+                />
+              )}
+            </span>
+            <span className="text-right font-mono text-fg-3">{pct != null ? `${Math.round(pct)}%` : (w.status || '—')}</span>
+            <span
+              className="whitespace-nowrap text-right tabular-nums text-[10px] text-fg-5"
+              title={rd.kind === 'elapsed' ? t('usage.resetElapsed') : undefined}
+            >
+              {rd.kind === 'countdown' ? `↻${rd.text}` : rd.kind === 'elapsed' ? t('usage.resetElapsedShort') : ''}
+            </span>
+            {w.detail && <span className="col-span-4 -mt-0.5 text-[10px] text-fg-5">{w.detail}</span>}
+          </Fragment>
+        );
+      })}
+      {usageMetaLine(usage, t) && (
+        <span className="col-span-4 text-[10px] text-fg-5">{usageMetaLine(usage, t)}</span>
+      )}
+      {usage?.degraded && (
+        <span
+          className="col-span-4 mt-0.5 inline-flex w-fit items-center gap-1 rounded-full border px-1.5 py-[1px] text-[10px] leading-none"
+          style={{
+            color: 'var(--th-badge-warn-text)',
+            borderColor: 'color-mix(in srgb, var(--th-badge-warn-text) 32%, transparent)',
+            backgroundColor: 'color-mix(in srgb, var(--th-badge-warn-text) 10%, transparent)',
+          }}
+          title={t('usage.degradedHint')}
+        >
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+          {t('usage.degradedShort')}
+        </span>
+      )}
+    </div>
+  );
+}
