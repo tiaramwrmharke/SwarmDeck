@@ -29,3 +29,77 @@ BASE_VERSION=$(node -e "
   const parsed = versions.map((value) => value.split('.').map(Number));
   parsed.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
   const [major, minor, patch] = parsed.at(-1);
+  process.stdout.write(\`\${major}.\${minor}.\${patch}\`);
+" "$PACKAGE_VERSION" "$LATEST_TAG_VERSION")
+IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+NEW_TAG="v${NEW_VERSION}"
+
+echo "▸ Bumping version: $BASE_VERSION → $NEW_VERSION"
+
+# Update package.json
+node -e "
+  const fs = require('fs');
+  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  pkg.version = '$NEW_VERSION';
+  fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+"
+
+# Keep the lockfile version in sync so CI's npm ci installs the release version.
+npm install --package-lock-only --ignore-scripts
+
+echo "  ✓ package.json and package-lock.json updated"
+
+# ── 2. Build & local install ─────────────────────────────────────────────────
+
+echo "▸ Building…"
+npm run build
+
+echo "▸ Linking globally…"
+npm link
+
+# Verify the actual published binary, not a stale orphan. The entry point is
+# whatever package.json `bin` resolves to (dist/cli/main.js), so a reorganized
+# source tree can't leave us verifying a leftover file.
+BIN=$(node -p "require('./package.json').bin.swarmdeck")
+INSTALLED=$("$BIN" --version)
+INSTALLED_VERSION=$(printf '%s\n' "$INSTALLED" | awk '{print $NF}')
+if [ "$INSTALLED_VERSION" != "$NEW_VERSION" ]; then
+  echo "✗ Version mismatch: expected $NEW_VERSION, got $INSTALLED" >&2
+  exit 1
+fi
+GLOBAL_BIN="$(npm prefix -g)/bin/swarmdeck"
+GLOBAL_INSTALLED=$("$GLOBAL_BIN" --version)
+GLOBAL_INSTALLED_VERSION=$(printf '%s\n' "$GLOBAL_INSTALLED" | awk '{print $NF}')
+if [ "$GLOBAL_INSTALLED_VERSION" != "$NEW_VERSION" ]; then
+  echo "✗ Global link version mismatch: expected $NEW_VERSION, got $GLOBAL_INSTALLED" >&2
+  exit 1
+fi
+echo "  ✓ Verified: $INSTALLED"
+echo "  ✓ Verified global link: $GLOBAL_INSTALLED"
+
+# ── 2b. Kernel package: bump patch + build (CI publishes it alongside swarmdeck) ──
+KERNEL_DIR="packages/kernel"
+if [ -f "$KERNEL_DIR/package.json" ]; then
+  KERNEL_PREV=$(node -p "require('./$KERNEL_DIR/package.json').version")
+  KERNEL_NEW=$(node -e "const v=require('./$KERNEL_DIR/package.json').version.split('.').map(Number); v[2]++; process.stdout.write(v.join('.'))")
+  node -e "const fs=require('fs'),p='$KERNEL_DIR/package.json';const j=JSON.parse(fs.readFileSync(p));j.version='$KERNEL_NEW';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n')"
+  echo "▸ Kernel @swarmdeck/kernel: $KERNEL_PREV → $KERNEL_NEW"
+  npx tsc -p "$KERNEL_DIR/tsconfig.json"
+  echo "  ✓ kernel typechecked & built (published by CI; needs @swarmdeck scope + NPM_TOKEN access)"
+fi
+
+# ── 3. Git commit, tag & push ────────────────────────────────────────────────
+
+echo "▸ Committing…"
+git add -A
+git commit -m "chore: release v${NEW_VERSION}"
+git tag "$NEW_TAG"
+
+echo "▸ Pushing…"
+git push origin main "$NEW_TAG"
+
+echo ""
+echo "✓ v${NEW_VERSION} released successfully!"
+echo "  CI will publish to npm in the background."
+echo "  Run the install skill to generate release notes."
