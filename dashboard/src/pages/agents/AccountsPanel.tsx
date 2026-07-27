@@ -81,3 +81,7 @@ export function AccountsPanel({ agentId }: { agentId: string }) {
       if (!r.ok) throw new Error(r.error || 'switch failed');
       setActiveId(id);
       toast(id ? L('已设为当前账号', 'Set as active account') : L('已清除当前账号', 'Cleared active account'));
+    } catch (e: any) {
+      toast(String(e?.message || e), false);
+    } finally {
+      setBusy(null);
