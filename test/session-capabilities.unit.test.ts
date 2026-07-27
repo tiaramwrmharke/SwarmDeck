@@ -23,3 +23,11 @@ describe('session tool capabilities (co-located tool + prompt)', () => {
 
   it('non-claude agents never get the claude-only ask-user block', () => {
     expect(composeSessionToolPrompt({ agent: 'codex', onInteraction: true })).toBe(ARTIFACT_RETURN);
+    expect(composeSessionToolPrompt({ agent: 'gemini', onInteraction: true })).toBe(ARTIFACT_RETURN);
+  });
+
+  it('each capability declares the session MCP tools it owns', () => {
+    const owned = SESSION_TOOL_CAPABILITIES.flatMap((c) => c.tools);
+    expect(owned).toEqual(expect.arrayContaining(['im_send_file', 'im_list_files', 'im_ask_user']));
+  });
+});
