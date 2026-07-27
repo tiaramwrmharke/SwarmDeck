@@ -55,3 +55,182 @@ afterEach(() => {
   for (const k of TURN_ENV) { if (savedEnv[k] === undefined) delete process.env[k]; else process.env[k] = savedEnv[k]; }
   vi.restoreAllMocks();
 });
+
+describe('resolveTurnConfig', () => {
+  it('defaults TTL to 24h and reads from config', () => {
+    cfgRef.value = { version: 1, pikichannelTurnKeyId: 'cfgkey', pikichannelTurnApiToken: 'cfgtok' };
+    expect(resolveTurnConfig()).toEqual({ keyId: 'cfgkey', apiToken: 'cfgtok', ttl: 86400 });
+  });
+
+  it('lets env override config and floors a too-small TTL', () => {
+    cfgRef.value = { version: 1, pikichannelTurnKeyId: 'cfgkey', pikichannelTurnApiToken: 'cfgtok', pikichannelTurnTtl: 99999 };
+    process.env.PIKICHANNEL_TURN_KEY_ID = 'envkey';
+    process.env.PIKICHANNEL_TURN_TTL = '5';
+    const c = resolveTurnConfig();
+    expect(c.keyId).toBe('envkey');
+    expect(c.apiToken).toBe('cfgtok');
+    expect(c.ttl).toBe(600);
+  });
+});
+
+describe('no Cloudflare config', () => {
+  it('returns STUN and never calls Cloudflare', async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+    const servers = await resolveIceServers();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(servers).toEqual(STUN_ONLY);
+    expect(turnStatus()).toEqual({ turn: false, provider: null, relay: false, expiresAt: null });
+  });
+
+  it('prewarmTurn is a no-op without creds', async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+    await prewarmTurn();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('manual PIKICHANNEL_ICE_SERVERS override', () => {
+  it('is used verbatim (flattened) and suppresses minting even when creds exist', async () => {
+    process.env.PIKICHANNEL_TURN_KEY_ID = 'k';
+    process.env.PIKICHANNEL_TURN_API_TOKEN = 't';
+    process.env.PIKICHANNEL_ICE_SERVERS = JSON.stringify([
+      { urls: ['stun:a:1', 'stun:b:2'] },
+      { urls: 'turn:c:3', username: 'u', credential: 'p' },
+    ]);
+    const fetchSpy = okFetch(CF_RESPONSE);
+    vi.stubGlobal('fetch', fetchSpy);
+    const servers = await resolveIceServers();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(servers).toEqual([
+      { urls: 'stun:a:1' },
+      { urls: 'stun:b:2' },
+      { urls: 'turn:c:3', username: 'u', credential: 'p' },
+    ]);
+    expect(turnStatus()).toMatchObject({ provider: 'manual', turn: true, relay: true });
+  });
+});
+
+describe('Cloudflare minting', () => {
+  beforeEach(() => {
+    process.env.PIKICHANNEL_TURN_KEY_ID = 'mykey';
+    process.env.PIKICHANNEL_TURN_API_TOKEN = 'mytoken';
+  });
+
+  it('POSTs the right endpoint/headers/ttl and flattens the response', async () => {
+    const fetchSpy = okFetch(CF_RESPONSE);
+    vi.stubGlobal('fetch', fetchSpy);
+    const servers = await resolveIceServers();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0] as [string, any];
+    expect(url).toBe('https://rtc.live.cloudflare.com/v1/turn/keys/mykey/credentials/generate-ice-servers');
+    expect(init.method).toBe('POST');
+    expect(init.headers.Authorization).toBe('Bearer mytoken');
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(JSON.parse(init.body)).toEqual({ ttl: 86400 });
+
+    expect(servers).toHaveLength(8);
+    expect(servers[0]).toEqual({ urls: 'stun:stun.cloudflare.com:3478' });
+    expect(servers[0].username).toBeUndefined();
+    expect(servers.find((s) => s.urls === 'turn:turn.cloudflare.com:3478?transport=udp')).toEqual({
+      urls: 'turn:turn.cloudflare.com:3478?transport=udp',
+      username: 'cf-user',
+      credential: 'cf-cred',
+    });
+    expect(servers.find((s) => s.urls.startsWith('turns:'))?.credential).toBe('cf-cred');
+
+    expect(turnStatus()).toMatchObject({ turn: true, provider: 'cloudflare', relay: true });
+    expect(turnStatus().expiresAt).toBeGreaterThan(Date.now());
+  });
+
+  it('caches across calls (single-flight) — one mint for concurrent + repeat callers', async () => {
+    const fetchSpy = okFetch(CF_RESPONSE);
+    vi.stubGlobal('fetch', fetchSpy);
+    await Promise.all([resolveIceServers(), resolveIceServers(), resolveIceServers()]);
+    await resolveIceServers();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to STUN on a non-2xx response (no throw)', async () => {
+    const fetchSpy = okFetch({ error: 'nope' }, 401);
+    vi.stubGlobal('fetch', fetchSpy);
+    const servers = await resolveIceServers();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(servers).toEqual(STUN_ONLY);
+    expect(turnStatus()).toMatchObject({ turn: true, provider: 'cloudflare', relay: false });
+  });
+
+  it('falls back to STUN when fetch throws / times out', async () => {
+    const fetchSpy = vi.fn(async () => { throw new Error('aborted'); });
+    vi.stubGlobal('fetch', fetchSpy);
+    const servers = await resolveIceServers();
+    expect(servers).toEqual(STUN_ONLY);
+  });
+
+  it('re-mints just before expiry and never serves expired credentials', async () => {
+    process.env.PIKICHANNEL_TURN_TTL = '600';
+    const fetchSpy = okFetch(CF_RESPONSE);
+    vi.stubGlobal('fetch', fetchSpy);
+    const now = vi.spyOn(Date, 'now');
+
+    now.mockReturnValue(1_000_000);
+    await resolveIceServers();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    now.mockReturnValue(1_200_000);
+    expect(getCachedIceServers().some((s) => s.urls.startsWith('turn:'))).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    now.mockReturnValue(1_350_000);
+    expect(getCachedIceServers().some((s) => s.urls.startsWith('turn:'))).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    await new Promise((r) => setImmediate(r));
+  });
+
+  it('serves STUN (not stale creds) past expiry when the re-mint fails', async () => {
+    process.env.PIKICHANNEL_TURN_TTL = '600';
+    const now = vi.spyOn(Date, 'now').mockReturnValue(0);
+    vi.stubGlobal('fetch', okFetch(CF_RESPONSE));
+    await resolveIceServers();
+
+    vi.stubGlobal('fetch', okFetch({}, 500));
+    now.mockReturnValue(700_000);
+    expect(getCachedIceServers()).toEqual(STUN_ONLY);
+    await new Promise((r) => setImmediate(r));
+  });
+
+  it('mints from config-only creds (no env)', async () => {
+    delete process.env.PIKICHANNEL_TURN_KEY_ID;
+    delete process.env.PIKICHANNEL_TURN_API_TOKEN;
+    cfgRef.value = { version: 1, pikichannelTurnKeyId: 'cfgkey', pikichannelTurnApiToken: 'cfgtok' };
+    const fetchSpy = okFetch(CF_RESPONSE);
+    vi.stubGlobal('fetch', fetchSpy);
+    await resolveIceServers();
+    const [url, init] = fetchSpy.mock.calls[0] as [string, any];
+    expect(url).toContain('/keys/cfgkey/');
+    expect(init.headers.Authorization).toBe('Bearer cfgtok');
+  });
+});
+
+describe('toWeriftIceServers', () => {
+  it('reduces a minted list to one STUN + one UDP TURN and drops turns:', async () => {
+    process.env.PIKICHANNEL_TURN_KEY_ID = 'k';
+    process.env.PIKICHANNEL_TURN_API_TOKEN = 't';
+    vi.stubGlobal('fetch', okFetch(CF_RESPONSE));
+    const full = await resolveIceServers();
+
+    const werift = toWeriftIceServers(full);
+    expect(werift).toEqual([
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'turn:turn.cloudflare.com:3478?transport=udp', username: 'cf-user', credential: 'cf-cred' },
+    ]);
+    expect(werift.some((s) => s.urls.startsWith('turns:'))).toBe(false);
+  });
+
+  it('passes STUN through (no TURN entry) when no creds are configured', () => {
+    const werift = toWeriftIceServers(getCachedIceServers());
+    expect(werift).toEqual([{ urls: 'stun:stun.l.google.com:19302' }]);
+  });
+});
