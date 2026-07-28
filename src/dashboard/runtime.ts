@@ -139,3 +139,291 @@ function buildLocalChannelStates(rawConfig: Partial<UserConfig>): NonNullable<Se
     {
       channel: 'wecom',
       configured: wecomConfigured,
+      ready: false,
+      validated: false,
+      status: !wecomConfigured ? 'missing' : wecomReady ? 'checking' : 'invalid',
+      detail: !wecomConfigured
+        ? 'WeChat Work is not configured.'
+        : wecomReady
+          ? 'Validating WeChat Work credentials…'
+          : 'Both Bot ID and Bot Secret are required.',
+    },
+  ];
+}
+
+export type DashboardEventType = 'stream-update' | 'sessions-changed';
+
+export interface DashboardEvent {
+  type: DashboardEventType;
+  key?: string;
+  snapshot?: unknown;
+}
+
+class Runtime {
+  private botRef: Bot | null = null;
+  readonly runtimePrefs: RuntimePrefs = { models: {}, efforts: {}, workflow: {}, accessMode: {} };
+
+  readonly events = new EventEmitter();
+
+  emitDashboardEvent(event: DashboardEvent): void {
+    this.events.emit('dashboard-event', event);
+  }
+  private channelStateCache = new Map<NonNullable<SetupState['channels']>[number]['channel'], {
+    key: string;
+    expiresAt: number;
+    state: NonNullable<SetupState['channels']>[number];
+  }>();
+
+  readonly knownAgents = new Set<Agent>(['claude', 'codex', 'gemini', 'hermes']);
+
+  readonly defaultModels: Record<Agent, string> = DEFAULT_AGENT_MODELS;
+
+  readonly defaultEfforts: Partial<Record<Agent, string>> = DEFAULT_AGENT_EFFORTS;
+
+  getBotRef(): Bot | null {
+    return this.botRef;
+  }
+
+  attachBot(bot: Bot): void {
+    this.botRef = bot;
+    if (this.runtimePrefs.defaultAgent) bot.setDefaultAgent(this.runtimePrefs.defaultAgent);
+    for (const [agent, model] of Object.entries(this.runtimePrefs.models)) {
+      if (this.isAgent(agent) && typeof model === 'string' && model.trim()) bot.setModelForAgent(agent, model);
+    }
+    for (const [agent, effort] of Object.entries(this.runtimePrefs.efforts)) {
+      if (this.isAgent(agent) && typeof effort === 'string' && effort.trim()) bot.setEffortForAgent(agent, effort);
+    }
+    for (const [agent, enabled] of Object.entries(this.runtimePrefs.workflow)) {
+      if (this.isAgent(agent) && typeof enabled === 'boolean') bot.setWorkflowEnabledForAgent(agent, enabled);
+    }
+    for (const [agent, mode] of Object.entries(this.runtimePrefs.accessMode)) {
+      if (agent === 'claude' && (mode === 'subscription' || mode === 'api')) bot.setClaudeAccessMode(mode);
+    }
+    const prevPhases = new Map<string, string | null>();
+    bot.onStreamSnapshot((sessionKey, snapshot) => {
+      this.emitDashboardEvent({ type: 'stream-update', key: sessionKey, snapshot });
+      const phase = snapshot && typeof snapshot === 'object' ? (snapshot as any).phase : null;
+      const prev = prevPhases.get(sessionKey) ?? null;
+      if (phase !== prev) {
+        prevPhases.set(sessionKey, phase);
+        if (!phase) prevPhases.delete(sessionKey);
+        this.emitDashboardEvent({ type: 'sessions-changed', key: sessionKey });
+      }
+    });
+  }
+
+  isAgent(value: unknown): value is Agent {
+    return typeof value === 'string' && this.knownAgents.has(value as Agent);
+  }
+
+  getRuntimeWorkdir(config: Partial<UserConfig>): string {
+    return this.botRef?.workdir || resolveUserWorkdir({ config });
+  }
+
+  getRequestWorkdir(config = loadUserConfig()): string {
+    return this.getRuntimeWorkdir(config);
+  }
+
+  getRuntimeDefaultAgent(config: Partial<UserConfig>): Agent {
+    if (this.botRef) return this.botRef.defaultAgent;
+    const preferred = this.runtimePrefs.defaultAgent || config.defaultAgent || 'codex';
+    return resolveDefaultAgent(preferred, listAgents().agents);
+  }
+
+  setModelEnv(agent: Agent, value: string): void {
+    setAgentModelEnv(agent, value);
+  }
+
+  setEffortEnv(agent: Agent, value: string): void {
+    setAgentEffortEnv(agent, value);
+  }
+
+  setWorkflowEnv(agent: Agent, value: boolean): void {
+    setAgentWorkflowEnv(agent, value);
+  }
+
+  setClaudeAccessModeEnv(value: ClaudeAccessMode): void {
+    setClaudeAccessModeEnv(value);
+  }
+
+  getRuntimeModel(agent: Agent, config = loadUserConfig()): string {
+    if (this.botRef) return this.botRef.modelForAgent(agent) || this.defaultModels[agent];
+    return String(this.runtimePrefs.models[agent] || resolveAgentModel(config, agent)).trim();
+  }
+
+  getRuntimeEffort(agent: Agent, config = loadUserConfig()): string | null {
+    if (this.botRef) return this.botRef.effortForAgent(agent);
+    const value = String(this.runtimePrefs.efforts[agent] || resolveAgentEffort(config, agent) || '').trim().toLowerCase();
+    return value || null;
+  }
+
+  getRuntimeWorkflowEnabled(agent: Agent, config = loadUserConfig()): boolean {
+    if (this.botRef) return this.botRef.workflowEnabledForAgent(agent);
+    const pref = this.runtimePrefs.workflow[agent];
+    if (typeof pref === 'boolean') return pref;
+    return resolveAgentWorkflowEnabled(config, agent);
+  }
+
+  getRuntimeClaudeAccessMode(config = loadUserConfig()): ClaudeAccessMode {
+    if (this.botRef) return this.botRef.claudeAccessMode;
+    const pref = this.runtimePrefs.accessMode.claude;
+    if (pref === 'subscription' || pref === 'api') return pref;
+    return resolveClaudeAccessMode(config);
+  }
+
+  private credKeyForChannel(
+    channel: NonNullable<SetupState['channels']>[number]['channel'],
+    config: Partial<UserConfig>,
+  ): string {
+    switch (channel) {
+      case 'weixin':
+        return JSON.stringify({
+          baseUrl: String(config.weixinBaseUrl || '').trim(),
+          token: String(config.weixinBotToken || '').trim(),
+          accountId: String(config.weixinAccountId || '').trim(),
+        });
+      case 'telegram':
+        return JSON.stringify({
+          token: String(config.telegramBotToken || '').trim(),
+          allowed: String(config.telegramAllowedChatIds || '').trim(),
+        });
+      case 'feishu':
+        return JSON.stringify({
+          appId: String(config.feishuAppId || '').trim(),
+          appSecret: String(config.feishuAppSecret || '').trim(),
+        });
+      case 'slack':
+        return JSON.stringify({
+          botToken: String(config.slackBotToken || '').trim(),
+          appToken: String(config.slackAppToken || '').trim(),
+        });
+      case 'discord':
+        return JSON.stringify({ botToken: String(config.discordBotToken || '').trim() });
+      case 'dingtalk':
+        return JSON.stringify({
+          clientId: String(config.dingtalkClientId || '').trim(),
+          clientSecret: String(config.dingtalkClientSecret || '').trim(),
+        });
+      case 'wecom':
+        return JSON.stringify({
+          botId: String(config.wecomBotId || '').trim(),
+          botSecret: String(config.wecomBotSecret || '').trim(),
+        });
+    }
+  }
+
+  private validateChannel(
+    channel: NonNullable<SetupState['channels']>[number]['channel'],
+    config: Partial<UserConfig>,
+  ): Promise<NonNullable<SetupState['channels']>[number]> {
+    switch (channel) {
+      case 'weixin':
+        return validateWeixinConfig(
+          config.weixinBaseUrl,
+          config.weixinBotToken,
+          config.weixinAccountId,
+          { timeoutMs: 2_000 },
+        ).then(r => r.state);
+      case 'telegram':
+        return validateTelegramConfig(config.telegramBotToken, config.telegramAllowedChatIds).then(r => r.state);
+      case 'feishu':
+        return validateFeishuConfig(config.feishuAppId, config.feishuAppSecret).then(r => r.state);
+      case 'slack':
+        return validateSlackConfig(config.slackBotToken, config.slackAppToken).then(r => r.state);
+      case 'discord':
+        return validateDiscordConfig(config.discordBotToken).then(r => r.state);
+      case 'dingtalk':
+        return validateDingtalkConfig(config.dingtalkClientId, config.dingtalkClientSecret).then(r => r.state);
+      case 'wecom':
+        return validateWecomConfig(config.wecomBotId, config.wecomBotSecret).then(r => r.state);
+    }
+  }
+
+  async resolveChannelStates(rawConfig: Partial<UserConfig>): Promise<NonNullable<SetupState['channels']>> {
+    const config = applyChannelEnvFallback(rawConfig);
+    const now = Date.now();
+    const fallback = buildLocalChannelStates(config);
+    const channelOrder = fallback.map(state => state.channel);
+
+    type Plan = {
+      channel: NonNullable<SetupState['channels']>[number]['channel'];
+      key: string;
+      cached: NonNullable<SetupState['channels']>[number] | null;
+      livePromise: Promise<NonNullable<SetupState['channels']>[number]> | null;
+      fallback: NonNullable<SetupState['channels']>[number];
+    };
+
+    const plans: Plan[] = channelOrder.map((channel, idx) => {
+      const key = this.credKeyForChannel(channel, config);
+      const cached = this.channelStateCache.get(channel);
+      if (cached && cached.key === key && cached.expiresAt > now) {
+        return { channel, key, cached: cached.state, livePromise: null, fallback: fallback[idx] };
+      }
+      return { channel, key, cached: null, livePromise: this.validateChannel(channel, config), fallback: fallback[idx] };
+    });
+
+    // Never block /api/state on live network validation — Feishu/Weixin round-trips can take
+    // seconds and this is the sole caller. Return fresh-cached states where available, local
+    // fallback otherwise, and validate uncached channels in the background to populate the
+    // cache. The dashboard re-polls while any channel is pending (hasPendingChannelValidation)
+    // and converges to the live result on the next poll.
+    const resolved = plans.map(plan => plan.cached ?? plan.fallback);
+
+    for (const plan of plans) {
+      if (!plan.livePromise) continue;
+      void withTimeoutFallback(plan.livePromise, CHANNEL_STATUS_VALIDATION_TIMEOUT_MS, plan.fallback)
+        .then(bgState => {
+          if (!shouldCacheChannelStates([bgState])) return;
+          const current = this.channelStateCache.get(plan.channel);
+          if (current && current.key !== plan.key) return;
+          this.channelStateCache.set(plan.channel, {
+            key: plan.key,
+            expiresAt: Date.now() + CHANNEL_STATUS_CACHE_TTL_MS,
+            state: bgState,
+          });
+        }).catch(() => {});
+    }
+
+    return resolved;
+  }
+
+  getSetupState(config = loadUserConfig(), agentOptions: AgentDetectOptions = {}): SetupState {
+    const agents = listAgents(agentOptions).agents;
+    const channels = buildLocalChannelStates(applyChannelEnvFallback(config));
+    const readyChannel = channels.find(channel => channel.ready)?.channel;
+    const configuredChannel = channels.find(channel => channel.configured)?.channel;
+    return collectSetupState({
+      agents,
+      channel: readyChannel || configuredChannel || 'telegram',
+      tokenProvided: channels.some(channel => channel.configured),
+      channels,
+    });
+  }
+
+  async buildValidatedSetupState(config = loadUserConfig(), agentOptions: AgentDetectOptions = {}): Promise<SetupState> {
+    const agents = listAgents(agentOptions).agents;
+    const channels = await this.resolveChannelStates(config);
+    const readyChannel = channels.find(channel => channel.ready)?.channel;
+    const configuredChannel = channels.find(channel => channel.configured)?.channel;
+    return collectSetupState({
+      agents,
+      channel: readyChannel || configuredChannel || 'telegram',
+      tokenProvided: channels.some(channel => channel.configured),
+      channels,
+    });
+  }
+
+  log(message: string, level: LogLevel = 'info'): void {
+    writeScopedLog('dashboard', message, { level });
+  }
+
+  debug(message: string): void {
+    this.log(message, 'debug');
+  }
+
+  warn(message: string): void {
+    this.log(message, 'warn');
+  }
+}
+
+export const runtime = new Runtime();
