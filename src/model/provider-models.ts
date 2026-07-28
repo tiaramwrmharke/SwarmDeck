@@ -22,3 +22,60 @@ function isFresh(entry: CacheEntry, provider: ProviderConfig): boolean {
 }
 
 export async function getProviderModelList(providerId: string, opts: { forceRefresh?: boolean } = {}): Promise<{
+  models: string[];
+  modelInfos: ProviderModelInfo[];
+  fetchedAt: number;
+  fromCache: boolean;
+} | null> {
+  const provider = getProvider(providerId);
+  if (!provider) return null;
+
+  const cached = cache.get(providerId);
+  if (!opts.forceRefresh && cached && isFresh(cached, provider)) {
+    return {
+      models: cached.models,
+      modelInfos: cached.modelInfos,
+      fetchedAt: cached.fetchedAt,
+      fromCache: true,
+    };
+  }
+
+  const result = await validateProvider(provider);
+  const entry: CacheEntry = {
+    models: result.models,
+    modelInfos: result.modelInfos,
+    fetchedAt: Date.now(),
+    providerUpdatedAt: provider.updatedAt,
+  };
+  cache.set(providerId, entry);
+  return {
+    models: entry.models,
+    modelInfos: entry.modelInfos,
+    fetchedAt: entry.fetchedAt,
+    fromCache: false,
+  };
+}
+
+export function invalidateProviderModels(providerId: string): void {
+  cache.delete(providerId);
+}
+
+export function peekProviderModelInfo(providerId: string, modelId: string): ProviderModelInfo | null {
+  const provider = getProvider(providerId);
+  if (!provider) return null;
+  const entry = cache.get(providerId);
+  if (!entry || !isFresh(entry, provider)) return null;
+  return entry.modelInfos.find(info => info.id === modelId) ?? null;
+}
+
+export function peekProviderModelList(providerId: string): ProviderModelInfo[] | null {
+  const provider = getProvider(providerId);
+  if (!provider) return null;
+  const entry = cache.get(providerId);
+  if (!entry || !isFresh(entry, provider)) return null;
+  return entry.modelInfos;
+}
+
+export function prefetchProviderModels(providerId: string): void {
+  void getProviderModelList(providerId).catch(() => {});
+}
