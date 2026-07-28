@@ -23,3 +23,13 @@ export function UsageRing({ percent, tone, trackTone, alert = false, size = 14 }
       <circle cx="8" cy="8" r={radius} fill="none" stroke={trackColor} strokeOpacity={trackTone ? 0.5 : 0.25} strokeWidth="2.5" />
       <circle
         cx="8" cy="8" r={radius} fill="none"
+        stroke={color} strokeWidth="2.5" strokeLinecap="round"
+        strokeDasharray={`${(clamped / 100) * circumference} ${circumference}`}
+        transform="rotate(-90 8 8)"
+      />
+      {alert && (
+        <circle cx="8" cy="8" r="7.3" fill="none" stroke={USAGE_TONE_COLOR[trackTone ?? 'err']} strokeWidth="1.1" strokeOpacity="0.95" />
+      )}
+    </svg>
+  );
+}
