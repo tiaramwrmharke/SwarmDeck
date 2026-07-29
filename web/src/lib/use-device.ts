@@ -15,3 +15,7 @@ export function useIsDesktop() {
       big.removeEventListener('change', update);
       reduced.removeEventListener('change', update);
     };
+  }, []);
+
+  return isDesktop;
+}
