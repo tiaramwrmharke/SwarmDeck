@@ -44,3 +44,81 @@ const TONE_VARS: Record<BadgeTone, CSSProperties> = {
 export type BadgeSize = 'xs' | 'sm';
 const SIZE_CLASSES: Record<BadgeSize, string> = {
   xs: 'h-[18px] px-1.5 text-[10px]',
+  sm: 'h-5 px-2 text-[11px]',
+};
+
+export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  tone?: BadgeTone;
+  size?: BadgeSize;
+  children: ReactNode;
+  variant?: BadgeTone;
+}
+
+export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
+  { tone, variant, size = 'sm', children, className, style, ...rest },
+  ref,
+) {
+  const resolvedTone: BadgeTone = tone ?? variant ?? 'muted';
+  return (
+    <span
+      ref={ref}
+      style={{ ...TONE_VARS[resolvedTone], ...style }}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-md border font-medium tracking-[0.01em]',
+        SIZE_CLASSES[size],
+        className,
+      )}
+      {...rest}
+    >
+      {children}
+    </span>
+  );
+});
+
+export type DotTone = 'ok' | 'warn' | 'err' | 'info' | 'running' | 'idle';
+const DOT_CLASSES: Record<DotTone, string> = {
+  ok:      'bg-[var(--th-ok)] shadow-[0_0_10px_var(--th-ok-glow)]',
+  warn:    'bg-[var(--th-warn)] shadow-[0_0_10px_var(--th-warn-glow)]',
+  err:     'bg-[var(--th-err)] shadow-[0_0_10px_var(--th-err-glow)]',
+  info:    'bg-[var(--th-info)] shadow-[0_0_10px_var(--th-info-glow)]',
+  running: 'bg-[var(--th-running)] shadow-[0_0_10px_var(--th-running-glow)]',
+  idle:    'bg-fg-5',
+};
+
+export function Dot({
+  tone,
+  variant,
+  pulse,
+  className,
+}: {
+  tone?: DotTone;
+  variant?: DotTone;
+  pulse?: boolean;
+  className?: string;
+}) {
+  const resolved = tone ?? variant ?? 'idle';
+  return (
+    <span
+      className={cn(
+        'h-1.5 w-1.5 shrink-0 rounded-full',
+        DOT_CLASSES[resolved],
+        pulse && 'animate-pulse-soft',
+        className,
+      )}
+    />
+  );
+}
+
+export function CountBadge({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span
+      className={cn(
+        'rounded-md border border-[var(--edge-subtle)] bg-[var(--surface-2)] px-1.5 py-0.5',
+        'text-[10px] font-mono text-fg-5',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
