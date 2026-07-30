@@ -43,3 +43,33 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
   streaming?: boolean;
   glow?: boolean;
+}
+
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
+  { children, className, elevation, tone, padding, interactive, streaming, glow, ...rest },
+  ref,
+) {
+  const resolvedElevation = elevation ?? 'raised';
+  const resolvedPadding = padding ?? 'sm';
+  return (
+    <div
+      ref={ref}
+      data-streaming={streaming ? 'true' : undefined}
+      className={cn(
+        card({
+          elevation: resolvedElevation,
+          tone,
+          padding: resolvedPadding,
+          interactive: interactive ? 'true' : undefined,
+          className,
+        }),
+        streaming && 'ambient-glow',
+        glow && 'card-glow',
+      )}
+      style={{ transitionDuration: '240ms' }}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+});
