@@ -61,3 +61,169 @@ export function resolveAgentModel(config: Partial<UserConfig> | Record<string, a
     case 'claude':
       value = trimmed((config as Partial<UserConfig>).claudeModel || agentModelEnv('claude') || DEFAULT_AGENT_MODELS.claude);
       return normalizeClaudeModelId(value);
+    case 'codex':
+      value = trimmed((config as Partial<UserConfig>).codexModel || agentModelEnv('codex') || DEFAULT_AGENT_MODELS.codex);
+      return value || DEFAULT_AGENT_MODELS.codex;
+    case 'gemini':
+      value = trimmed((config as Partial<UserConfig>).geminiModel || agentModelEnv('gemini') || DEFAULT_AGENT_MODELS.gemini);
+      return value || DEFAULT_AGENT_MODELS.gemini;
+    case 'hermes':
+      value = trimmed((config as Partial<UserConfig>).hermesModel || agentModelEnv('hermes') || DEFAULT_AGENT_MODELS.hermes);
+      return value || DEFAULT_AGENT_MODELS.hermes;
+  }
+  return '';
+}
+
+export function resolveAgentEffort(config: Partial<UserConfig> | Record<string, any>, agent: Agent): string | null {
+  switch (agent) {
+    case 'claude': {
+      const value = trimmed((config as Partial<UserConfig>).claudeReasoningEffort || agentEffortEnv('claude') || DEFAULT_AGENT_EFFORTS.claude).toLowerCase();
+      return value || DEFAULT_AGENT_EFFORTS.claude || null;
+    }
+    case 'codex': {
+      const value = trimmed((config as Partial<UserConfig>).codexReasoningEffort || agentEffortEnv('codex') || DEFAULT_AGENT_EFFORTS.codex).toLowerCase();
+      return value || DEFAULT_AGENT_EFFORTS.codex || null;
+    }
+    case 'gemini': {
+      const value = trimmed((config as Partial<UserConfig>).geminiReasoningEffort || agentEffortEnv('gemini') || DEFAULT_AGENT_EFFORTS.gemini).toLowerCase();
+      return value || DEFAULT_AGENT_EFFORTS.gemini || null;
+    }
+    case 'hermes': {
+      const value = trimmed((config as Partial<UserConfig>).hermesReasoningEffort || agentEffortEnv('hermes') || DEFAULT_AGENT_EFFORTS.hermes).toLowerCase();
+      return value || DEFAULT_AGENT_EFFORTS.hermes || null;
+    }
+  }
+  return null;
+}
+
+export function agentWorkflowEnv(agent: Agent, env: Record<string, string | undefined> = process.env): string {
+  switch (agent) {
+    case 'claude': return trimmed(env.CLAUDE_WORKFLOW);
+  }
+  return '';
+}
+
+export function resolveAgentWorkflowEnabled(config: Partial<UserConfig> | Record<string, any>, agent: Agent): boolean {
+  switch (agent) {
+    case 'claude': {
+      const raw = (config as Partial<UserConfig>).claudeWorkflowEnabled;
+      if (typeof raw === 'boolean') return raw;
+      const fromEnv = parseBoolish(agentWorkflowEnv('claude'));
+      return fromEnv ?? false;
+    }
+  }
+  return false;
+}
+
+export function setAgentWorkflowEnv(agent: Agent, value: boolean, env: NodeJS.ProcessEnv = process.env): void {
+  switch (agent) {
+    case 'claude': env.CLAUDE_WORKFLOW = value ? '1' : '0'; break;
+  }
+}
+
+export type ClaudeAccessMode = 'subscription' | 'api';
+
+export const DEFAULT_CLAUDE_ACCESS_MODE: ClaudeAccessMode = 'api';
+
+export function claudeAccessModeEnv(env: Record<string, string | undefined> = process.env): ClaudeAccessMode | null {
+  const print = parseBoolish(trimmed(env.PIKILOOM_CLAUDE_PRINT));
+  if (print != null) return print ? 'api' : 'subscription';
+  const tui = parseBoolish(trimmed(env.PIKILOOM_CLAUDE_TUI));
+  if (tui != null) return tui ? 'subscription' : 'api';
+  return null;
+}
+
+export function resolveClaudeAccessMode(config: Partial<UserConfig> | Record<string, any>): ClaudeAccessMode {
+  const raw = (config as Partial<UserConfig>).claudeAccessMode;
+  if (raw === 'subscription' || raw === 'api') return raw;
+  return claudeAccessModeEnv() ?? DEFAULT_CLAUDE_ACCESS_MODE;
+}
+
+export function setClaudeAccessModeEnv(value: ClaudeAccessMode, env: NodeJS.ProcessEnv = process.env): void {
+  env.PIKILOOM_CLAUDE_PRINT = value === 'api' ? '1' : '0';
+}
+
+export function setAgentModelEnv(agent: Agent, value: string, env: NodeJS.ProcessEnv = process.env): void {
+  switch (agent) {
+    case 'claude': env.CLAUDE_MODEL = value; break;
+    case 'codex': env.CODEX_MODEL = value; break;
+    case 'gemini': env.GEMINI_MODEL = value; break;
+    case 'hermes': env.HERMES_MODEL = value; break;
+  }
+}
+
+export function setAgentEffortEnv(agent: Agent, value: string, env: NodeJS.ProcessEnv = process.env): void {
+  switch (agent) {
+    case 'claude': env.CLAUDE_REASONING_EFFORT = value; break;
+    case 'codex': env.CODEX_REASONING_EFFORT = value; break;
+    case 'gemini': env.GEMINI_REASONING_EFFORT = value; break;
+    case 'hermes': env.HERMES_REASONING_EFFORT = value; break;
+  }
+}
+
+export const ULTRA_EFFORT = 'ultra';
+
+export function decomposeEffortSelection(raw: string | null | undefined): { effort: string; workflow: boolean } {
+  const value = trimmed(raw).toLowerCase();
+  if (value === ULTRA_EFFORT) return { effort: 'max', workflow: true };
+  return { effort: value, workflow: false };
+}
+
+export interface EffortLevel { id: string; label: string }
+
+// The one canonical, human-facing name for an effort token. The picker (effortOptionsFor →
+// dashboard composer + IM /models), the dashboard turn header, and the IM agent-status row all
+// render this, so a level reads identically on every surface — no upper layer relabels it. We
+// surface the raw token (low/medium/high/xhigh/max/ultra/minimal), not a prose label like
+// "Very High", to match the id used in config, CLI flags and logs. Change presentation here only.
+export function effortLabel(id: string | null | undefined): string {
+  return (id ?? '').trim().toLowerCase();
+}
+
+// Single source of truth for reasoning-effort levels, ordered low→high. BOTH the dashboard
+// (which receives them via the agent/model API payload) and the IM bot consume this — do not
+// reintroduce a second copy. Resolve options through effortOptionsFor(), never index directly,
+// so per-model/provider rules stay in one place. Labels come from effortLabel() so the picker
+// and the live status row can never diverge.
+const effortLevels = (...ids: string[]): EffortLevel[] => ids.map(id => ({ id, label: effortLabel(id) }));
+const CODEX_BASE_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
+// Per-model Codex reasoning ladders. GPT-5.6 adds the native `max` rung (sol/terra also expose
+// `ultra`), which older Codex models (5.5/5.4) do not support — so the picker must vary by model,
+// never a single flat list. For codex, `max`/`ultra` are REAL CLI reasoning levels (not the
+// claude display alias): they are dispatched verbatim (see splitEffortForAgent / the codex driver).
+const CODEX_56_EFFORTS: Record<(typeof CODEX_56_MODEL_IDS)[number], readonly string[]> = {
+  'gpt-5.6-sol': [...CODEX_BASE_EFFORTS, 'max', ULTRA_EFFORT],
+  'gpt-5.6-terra': [...CODEX_BASE_EFFORTS, 'max', ULTRA_EFFORT],
+  'gpt-5.6-luna': [...CODEX_BASE_EFFORTS, 'max'],
+};
+const AGENT_EFFORT_LEVELS: Partial<Record<Agent, EffortLevel[]>> = {
+  claude: effortLevels('low', 'medium', 'high', 'xhigh', 'max', ULTRA_EFFORT),
+  codex: effortLevels(...CODEX_BASE_EFFORTS),
+  // gemini intentionally has no UI-exposed effort levels: swarmdeck sends it no reasoning-effort
+  // (see the gemini→null guards in InputComposer). Add a gemini entry here to surface low/high.
+  hermes: effortLevels('minimal', 'low', 'medium', 'high', 'xhigh'),
+};
+
+// Valid effort levels for a given (agent, model, providerKind). Returns [] when reasoning
+// effort does not apply (the UI then hides the selector entirely). model/providerKind are the
+// seam for per-model rules — add them here and nowhere else. A known GPT-5.6 codex model unlocks
+// its `max`/`ultra` rungs; every other codex model (incl. BYOK) keeps the base low→xhigh ladder.
+export function effortOptionsFor(
+  agent: Agent,
+  model?: string | null,
+  _providerKind?: string | null,
+): EffortLevel[] {
+  if (agent === 'codex' && model && model in CODEX_56_EFFORTS) {
+    return effortLevels(...CODEX_56_EFFORTS[model as (typeof CODEX_56_MODEL_IDS)[number]]);
+  }
+  return AGENT_EFFORT_LEVELS[agent] ?? [];
+}
+
+// Reconcile the two meanings of the effort token before dispatch. Codex (GPT-5.6+) treats
+// `max`/`ultra` as NATIVE reasoning levels, so its token must reach the CLI verbatim — never fold
+// `ultra` into `max`, and never turn on the (claude-only) workflow orchestration. For every other
+// agent `ultra` stays a display alias that decomposes to `max` effort + workflow (decomposeEffortSelection).
+export function splitEffortForAgent(agent: Agent, raw: string | null | undefined): { effort: string; workflow: boolean } {
+  if (agent === 'codex') return { effort: trimmed(raw).toLowerCase(), workflow: false };
+  return decomposeEffortSelection(raw);
+}
