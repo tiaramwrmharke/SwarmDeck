@@ -92,3 +92,187 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
     case 'claude':
     default:
       return {
+        driver: new kernel.ClaudeDriver(),
+        input: { ...common, model: opts.claudeModel ?? opts.model ?? null, systemPrompt: opts.claudeAppendSystemPrompt, permissionMode: opts.claudePermissionMode ?? null, extraArgs: opts.claudeExtraArgs, steerable: !!opts.onSteerReady },
+      };
+  }
+}
+
+// Kernel plan steps key their text as { text }; swarmdeck's StreamPlan and the entire dashboard
+// pipeline (pikichannel adapter -> ws.ts -> PlanProgressCard) key it as { step }. Translate at
+// this seam — the same place we already remap usage fields — so codex/claude task lists render
+// their text. Without it the progress count ("0/4") shows but every row is blank (the card reads
+// step.step, which is undefined on the kernel shape).
+export function toSwarmDeckPlan(plan: any): StreamPreviewPlan | null {
+  if (!plan || !Array.isArray(plan.steps)) return null;
+  const steps = plan.steps
+    .map((st: any) => ({
+      step: typeof st?.text === 'string' ? st.text : typeof st?.step === 'string' ? st.step : '',
+      status: (st?.status === 'completed' ? 'completed' : st?.status === 'inProgress' ? 'inProgress' : 'pending') as StreamPreviewPlan['steps'][number]['status'],
+    }))
+    .filter((st: { step: string }) => st.step.trim());
+  return steps.length ? { explanation: typeof plan.explanation === 'string' ? plan.explanation : null, steps } : null;
+}
+
+// Final-result token projection (kernel UniversalUsage -> StreamResult fields). contextPercent
+// must flow through: the IM final footer (feishu/telegram formatFinalFooter) reads
+// result.contextPercent, so nulling it here showed the % on the live footer (preview meta carries
+// it) but dropped it from the finished message. Pure + exported for regression testing.
+export function kernelUsageToResultFields(u: any): Pick<StreamResult,
+  'inputTokens' | 'outputTokens' | 'cachedInputTokens' | 'cacheCreationInputTokens' |
+  'contextWindow' | 'contextUsedTokens' | 'contextPercent'> {
+  return {
+    inputTokens: u?.inputTokens ?? null,
+    outputTokens: u?.outputTokens ?? null,
+    cachedInputTokens: u?.cachedInputTokens ?? null,
+    cacheCreationInputTokens: null,
+    contextWindow: null,
+    contextUsedTokens: u?.contextUsedTokens ?? null,
+    contextPercent: u?.contextPercent ?? null,
+  };
+}
+
+// How a kernel DriverResult presents as the finished message + incomplete flag. Pure +
+// exported for regression testing. The load-bearing rule: a turn whose closing reply never
+// arrived (stopReason 'stalled'/'truncated') must SAY so even when mid-turn narration exists —
+// substituting a note only for empty text is exactly what let those endings read as normal
+// answers that stop mid-sentence, with nothing marking the swallow.
+export function composeKernelFinalPresentation(input: {
+  bodyText: string; finalError: string | null; ok: boolean; stopReason: string | null;
+}): { message: string; incomplete: boolean } {
+  const endNote = input.stopReason === 'stalled'
+    ? 'The turn stopped responding after tool use without producing a reply (the model or provider may have stalled). Send any message to continue.'
+    : input.stopReason === 'truncated'
+    ? 'The reply ended after the last tool call without a closing message (the model returned an empty final response). Send any message to continue.'
+    // 'background' with narration = the hold cap closed the turn while background work was
+    // still running (a silent stop from the user's view). With NO narration it is the
+    // intentional detached-launch shape, which keeps the friendlier substitution below.
+    : (input.stopReason === 'background' && input.bodyText)
+    ? 'Background work was still running when this turn closed (hold limit reached). Send any message to check on it or continue.'
+    : null;
+  // Empty-text fallback (mirrors the legacy driver): a clean turn with no prose reads
+  // "(no textual response)", not "(no output)" (which the kernel path used to show for every
+  // textless turn — including a background-launch turn that intentionally ends without prose).
+  // A turn that settled while work keeps running in the background gets an explicit note.
+  const message = input.bodyText
+    ? (endNote ? `${input.bodyText}\n\n⚠️ ${endNote}` : input.bodyText)
+    : input.finalError
+    || endNote
+    || (input.stopReason === 'background'
+      ? 'Work is now running in the background — I’ll report back here once it finishes. (Send any message to check on it.)'
+      : input.ok ? '(no textual response)' : '(no output)');
+  return { message, incomplete: !input.ok || !!endNote };
+}
+
+let _kernel: any = null;
+export async function loadKernel(): Promise<any> {
+  if (_kernel) return _kernel;
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.resolve(here, '../../packages/kernel/dist/index.js'),      // src/agent (dev) & dist/agent (prod) -> <repo>/packages/kernel
+    path.resolve(process.cwd(), 'packages/kernel/dist/index.js'),
+  ];
+  // Prefer an installed package if present, else the in-repo built dist.
+  // (specifier kept in a variable so tsc treats it as a dynamic any, not a static resolve)
+  const pkgName = '@swarmdeck/kernel';
+  try { _kernel = await import(pkgName); return _kernel; } catch { /* not installed */ }
+  for (const c of candidates) {
+    if (fs.existsSync(c)) { _kernel = await import(pathToFileURL(c).href); return _kernel; }
+  }
+  throw new Error(`@swarmdeck/kernel not found (build it: npm run build in packages/kernel). Looked in: ${candidates.join(', ')}`);
+}
+
+// A kernel 'artifact' (e.g. a generated image as a data URL) -> write to a temp file and
+// deliver through swarmdeck's normal file-delivery seam (same path as im_send_file).
+async function deliverKernelArtifact(artifact: any, opts: StreamOpts): Promise<void> {
+  try {
+    const send = (opts as any).mcpSendFile;
+    if (typeof send !== 'function' || !artifact?.url) return;
+    const m = String(artifact.url).match(/^data:([^;]+);base64,(.*)$/s);
+    if (!m) return;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-art-'));
+    const file = path.join(dir, artifact.fileName || 'artifact.bin');
+    fs.writeFileSync(file, Buffer.from(m[2], 'base64'));
+    await send(file, { kind: artifact.kind || 'document', caption: artifact.caption });
+  } catch { /* best-effort delivery */ }
+}
+
+export async function kernelStream(opts: StreamOpts): Promise<StreamResult> {
+  const start = Date.now();
+  const kernel = await loadKernel();
+  const { driver, input } = buildKernelDriver(kernel, opts);
+  agentLog(`[kernel-bridge] routing ${opts.agent} turn via @swarmdeck/kernel ${driver?.constructor?.name || 'Driver'}`);
+
+  let delivered = 0;                 // artifacts already sent out-of-band
+  let seenSid: string | null = null;
+
+  // SessionRunner (via runTurn) owns the event accumulation; the bridge only translates
+  // the kernel's UniversalSnapshot onto swarmdeck's preview (onText) and delivers any new
+  // artifacts through the normal file seam. This is the "product bridge" pattern: map your
+  // request -> AgentTurnInput, map snapshot -> your UI, map result -> your result shape.
+  const onSnapshot = (s: any) => {
+    const arts = s.artifacts || [];
+    for (; delivered < arts.length; delivered++) void deliverKernelArtifact(arts[delivered], opts);
+    if (s.sessionId && s.sessionId !== seenSid) { seenSid = s.sessionId; try { opts.onSessionId?.(s.sessionId); } catch { /* ignore */ } }
+    const m: StreamPreviewMeta = {
+      inputTokens: s.usage?.inputTokens ?? null,
+      outputTokens: s.usage?.outputTokens ?? null,
+      cachedInputTokens: s.usage?.cachedInputTokens ?? null,
+      contextUsedTokens: s.usage?.contextUsedTokens ?? null,
+      contextPercent: s.usage?.contextPercent ?? null,
+      turnOutputTokens: s.usage?.turnOutputTokens ?? null,
+      toolCalls: s.toolCalls?.length ? (s.toolCalls as StreamToolCall[]) : undefined,
+      subAgents: s.subAgents?.length ? s.subAgents : undefined,
+      providerName: opts.byokProviderName ?? null,
+    };
+    try { opts.onText(s.text || '', s.reasoning || '', s.activity || '', m, toSwarmDeckPlan(s.plan)); } catch { /* isolate */ }
+  };
+
+  let result: any; let snapshot: any = {};
+  try {
+    ({ result, snapshot } = await kernel.runTurn(driver, input, {
+      onSnapshot,
+      onSteer: (fn: any) => { try { opts.onSteerReady?.(fn); } catch { /* ignore */ } },
+      signal: opts.abortSignal,
+    }));
+  } catch (err: any) {
+    agentWarn(`[kernel-bridge] kernel run failed: ${err?.message || err}`);
+    result = { ok: false, text: '', error: err?.message || String(err), stopReason: 'error', sessionId: opts.sessionId ?? null };
+  }
+
+  const finalSessionId = result.sessionId || snapshot.sessionId || opts.sessionId || null;
+  if (finalSessionId && finalSessionId !== seenSid) { try { opts.onSessionId?.(finalSessionId); } catch { /* ignore */ } }
+
+  // App-level parity the pure kernel must not own (mirrors legacy *.doStream):
+  //  - claude: rewrite the native jsonl entrypoint sdk-cli->cli (VSCode session visibility).
+  //  - codex: translate raw provider error JSON (ChatGPT-account / third-party) to prose.
+  if (opts.agent === 'claude') { try { normalizeClaudeSessionEntrypoint(opts.workdir, finalSessionId); } catch { /* best-effort */ } }
+  const finalError = (opts.agent === 'codex' && result.error)
+    ? (humanizeCodexError(result.error) ?? result.error)
+    : (result.error ?? null);
+
+  const usageFields = kernelUsageToResultFields(result.usage || snapshot.usage || {});
+  const presentation = composeKernelFinalPresentation({
+    bodyText: (result.text || snapshot.text || '').trim(),
+    finalError,
+    ok: !!result.ok,
+    stopReason: result.stopReason ?? null,
+  });
+  return {
+    ok: !!result.ok,
+    message: presentation.message,
+    thinking: (result.reasoning || snapshot.reasoning || '').trim() || null,
+    plan: toSwarmDeckPlan(snapshot.plan),
+    sessionId: finalSessionId,
+    workspacePath: null,
+    model: input.model ?? null,
+    thinkingEffort: opts.thinkingEffort,
+    elapsedS: (Date.now() - start) / 1000,
+    ...usageFields,
+    codexCumulative: null,
+    error: finalError,
+    stopReason: result.stopReason ?? null,
+    incomplete: presentation.incomplete,
+    activity: snapshot.activity || null,
+  };
+}
