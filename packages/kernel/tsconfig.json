@@ -8,3 +8,8 @@
     "skipLibCheck": true,
     "declaration": true,
     "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}
