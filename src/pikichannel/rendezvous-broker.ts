@@ -47,3 +47,39 @@ export class RendezvousBroker {
         }
         case 'dial': {
           const nodeId = String(m.nodeId || '').trim();
+          const host = this.hosts.get(nodeId);
+          if (!host || host.readyState !== host.OPEN) { this.send(ws, { t: 'error', message: 'node offline' }); return; }
+          const sessionId = crypto.randomUUID();
+          this.sessions.set(sessionId, { client: ws, host, nodeId });
+          mySessions.add(sessionId);
+          this.send(ws, { t: 'dialed', sessionId });
+          this.send(host, { t: 'open', sessionId });
+          rlog(`dial nodeId=${nodeId} → session=${sessionId.slice(0, 8)}`);
+          return;
+        }
+        case 'signal': {
+          const sessionId = String(m.sessionId || '');
+          const s = this.sessions.get(sessionId);
+          if (!s) return;
+          const other = ws === s.client ? s.host : s.client;
+          mySessions.add(sessionId);
+          this.send(other, { t: 'signal', sessionId, data: m.data });
+          return;
+        }
+      }
+    });
+
+    const cleanup = () => {
+      if (myNodeId && this.hosts.get(myNodeId) === ws) { this.hosts.delete(myNodeId); rlog(`host gone nodeId=${myNodeId}`); }
+      for (const sessionId of mySessions) {
+        const s = this.sessions.get(sessionId);
+        if (!s) continue;
+        const other = ws === s.client ? s.host : s.client;
+        this.send(other, { t: 'close', sessionId });
+        this.sessions.delete(sessionId);
+      }
+    };
+    ws.on('close', cleanup);
+    ws.on('error', cleanup);
+  }
+}
