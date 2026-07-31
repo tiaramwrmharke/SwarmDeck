@@ -26,3 +26,26 @@ const MAIN = [
   // accounts
   'accountTokenSupported', 'accountTokenEnvVar', 'accountTokenEnv',
   // protocol
+  'PROTOCOL_VERSION', 'emptySnapshot', 'diffSnapshot', 'applySnapshotPatch', 'isClientMessage',
+  'makeSessionKey', 'splitSessionKey', 'turnLanded',
+].sort();
+
+const DRIVERS = [
+  'EchoDriver', 'ClaudeDriver', 'CodexDriver', 'GeminiDriver', 'AcpDriver', 'HermesDriver',
+  'discoverClaudeNativeSessions', 'discoverCodexNativeSessions', 'discoverGeminiNativeSessions',
+  'encodeClaudeProjectDir',
+].sort();
+
+const SURFACES = ['WebSurface', 'CliSurface'].sort();
+
+describe('public API surface', () => {
+  it('main barrel exports exactly the pinned value set', () => {
+    expect(Object.keys(kernel).sort()).toEqual(MAIN);
+  });
+  it('drivers subpath exports exactly the driver classes + native discovery', () => {
+    expect(Object.keys(drivers).sort()).toEqual(DRIVERS);
+  });
+  it('surfaces subpath exports exactly the surface classes', () => {
+    expect(Object.keys(surfaces).sort()).toEqual(SURFACES);
+  });
+});
