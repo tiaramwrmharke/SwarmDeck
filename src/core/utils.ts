@@ -63,3 +63,112 @@ export function shellSplit(str: string): string[] {
     if (ch === ' ' && !inS && !inD) { if (cur) { args.push(cur); cur = ''; } continue; }
     cur += ch;
   }
+  if (cur) args.push(cur);
+  return args;
+}
+
+export const whichSync = platformWhichSync;
+
+export function stripAnsiEscapes(input: string): string {
+  if (!input) return input;
+  let out = input.replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+  out = out.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
+  out = out.replace(/\[[0-9;?]+[A-Za-z]/g, '');
+  out = out.replace(/\x1b[@-Z\\-_]/g, '');
+  return out;
+}
+
+export function fmtTokens(n: number | null): string {
+  if (n == null) return '-';
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
+
+export function fmtUptime(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ${s % 60}s`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ${m % 60}m`;
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h`;
+}
+
+export function fmtBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+  if (bytes < 1024 * 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)}GB`;
+  return `${(bytes / 1024 / 1024 / 1024 / 1024).toFixed(1)}TB`;
+}
+
+export function parseAllowedChatIds(raw: string): Set<ChatId> {
+  const ids = new Set<ChatId>();
+  for (const t of raw.split(',')) {
+    const v = t.trim();
+    if (!v) continue;
+    const n = parseInt(v, 10);
+    if (!Number.isNaN(n) && String(n) === v) ids.add(n);
+    else if (v) ids.add(v);
+  }
+  return ids;
+}
+
+export function listSubdirs(dirPath: string): string[] {
+  try {
+    return fs.readdirSync(dirPath)
+      .filter(name => {
+        if (name.startsWith('.')) return false;
+        try { return fs.statSync(path.join(dirPath, name)).isDirectory(); } catch { return false; }
+      })
+      .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  } catch { return []; }
+}
+
+export function extractThinkingTail(text: string, maxLines = 10): string {
+  const normalized = text.replace(/\r\n?/g, '\n').trim();
+  if (!normalized) return '';
+
+  const lines = normalized
+    .split('\n')
+    .map(line => line.trimEnd())
+    .filter(line => line.trim());
+  if (lines.length > maxLines) return lines.slice(-maxLines).join('\n').trim();
+  return normalized;
+}
+
+export function formatThinkingForDisplay(text: string, maxChars = 1600): string {
+  let display = extractThinkingTail(text);
+  if (display.length > maxChars) display = '...\n' + display.slice(-maxChars);
+  return display;
+}
+
+export function buildPrompt(text: string, files: string[]): string {
+  if (!files.length) return text;
+  return `${text || 'Please analyze this.'}\n\n[Files: ${files.map(f => path.basename(f)).join(', ')}]`;
+}
+
+export function withTimeoutFallback<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  return new Promise(resolve => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve(fallback);
+    }, timeoutMs);
+
+    promise
+      .then(result => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(fallback);
+      });
+  });
+}
