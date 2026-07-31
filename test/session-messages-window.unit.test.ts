@@ -30,3 +30,26 @@ describe('applyTurnWindow', () => {
     expect(windowed.window).toEqual({
       offset: 1,
       limit: 2,
+      returnedTurns: 2,
+      totalTurns: 4,
+      hasOlder: true,
+      hasNewer: true,
+      startTurn: 1,
+      endTurn: 3,
+    });
+
+    const all = applyTurnWindow(conversation(3), {});
+    expect(all.ok).toBe(true);
+    expect(all.messages).toHaveLength(6);
+    expect(all.window).toEqual({
+      offset: 0,
+      limit: 3,
+      returnedTurns: 3,
+      totalTurns: 3,
+      hasOlder: false,
+      hasNewer: false,
+      startTurn: 0,
+      endTurn: 3,
+    });
+  });
+});
