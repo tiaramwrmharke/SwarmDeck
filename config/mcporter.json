@@ -4,3 +4,4 @@
       "command": "npx @playwright/mcp"
     }
   }
+}
