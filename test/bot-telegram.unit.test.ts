@@ -232,3 +232,574 @@ describe('TelegramBot', () => {
             stdio: 'inherit',
             detached: true,
             env: expect.objectContaining({ npm_config_yes: 'true' }),
+          }),
+        );
+
+        process.env.PIKILOOM_RESTART_CMD = 'npx tsx src/cli.ts';
+        const customBot = createBot().bot;
+        const customExitSpy = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as any);
+        const customStopKeepAliveSpy = vi.spyOn(customBot as any, 'stopKeepAlive').mockImplementation(() => {});
+
+        try {
+          spawnMock.mockClear();
+          (customBot as any).performRestart();
+          expect(shutdownSpy).toHaveBeenCalledTimes(2);
+          expect(spawnMock).toHaveBeenCalledWith(
+            'npx',
+            ['--yes', 'tsx', 'src/cli.ts', '-c', 'telegram'],
+            expect.objectContaining({
+              env: expect.objectContaining({ npm_config_yes: 'true' }),
+            }),
+          );
+        } finally {
+          customExitSpy.mockRestore();
+          customStopKeepAliveSpy.mockRestore();
+        }
+      } finally {
+        process.argv = oldArgv;
+        shutdownSpy.mockRestore();
+        defaultExitSpy.mockRestore();
+        defaultStopKeepAliveSpy.mockRestore();
+      }
+    }
+
+    {
+      const { bot, ctx } = createBot();
+      const replies: Array<{ text: string; opts?: any }> = [];
+      ctx.reply = vi.fn(async (text: string, opts?: any) => {
+        replies.push({ text, opts });
+        return 1;
+      });
+
+      vi.spyOn(bot, 'fetchAgents').mockReturnValue({
+        ok: true,
+        agents: [
+          { agent: 'claude', installed: true, version: '1.2.3', path: '/tmp/claude' } as any,
+          { agent: 'codex', installed: true, version: '9.9.9', path: '/tmp/codex' } as any,
+        ],
+        error: null,
+      });
+      bot.chat(ctx.chatId).agent = 'codex';
+
+      await (bot as any).cmdAgents(ctx);
+
+      expect(replies[0]?.text).toContain('<b>Agents</b>');
+      expect(replies[0]?.text).not.toContain('Version 1.2.3');
+      expect(replies[0]?.text).not.toContain('Use the controls below to switch agents.');
+      expect(replies[0]?.text).not.toContain('Path:');
+      expect(replies[0]?.opts?.keyboard?.inline_keyboard).toEqual([
+        [{ text: 'Claude Code', callback_data: 'ag:claude' }],
+        [{ text: '● Codex', callback_data: 'ag:codex' }],
+      ]);
+      expect(replies[0]?.text).toContain('Claude Code · v1.2.3');
+      expect(replies[0]?.text).toContain('Codex · v9.9.9');
+
+      replies.length = 0;
+      vi.spyOn(bot, 'fetchModels').mockResolvedValue({
+        agent: 'claude',
+        models: [
+          { id: 'claude-sonnet-4-6', alias: 'sonnet' },
+          { id: DEFAULT_AGENT_MODELS.claude, alias: 'opus' },
+        ],
+        sources: ['app-server model/list'],
+        note: 'debug note should stay hidden while models exist',
+      });
+      bot.chat(ctx.chatId).agent = 'claude';
+
+      await (bot as any).cmdModels(ctx);
+
+      expect(replies[0]?.text).toContain('<b>Models</b> · <code>claude</code>');
+      expect(replies[0]?.text).toContain('Source: app-server model/list');
+      expect(replies[0]?.text).toContain('debug note should stay hidden while models exist');
+      const keyboard = replies[0]?.opts?.keyboard?.inline_keyboard || [];
+      expect(keyboard[0]).toEqual([{ text: '— Native —', callback_data: 'mc' }]);
+      expect(keyboard[1]).toEqual([{ text: '● opus', callback_data: `md:n:${DEFAULT_AGENT_MODELS.claude}` }]);
+      expect(keyboard[2]).toEqual([{ text: 'sonnet', callback_data: 'md:n:claude-sonnet-4-6' }]);
+      const keyboardJson = JSON.stringify(keyboard);
+      expect(keyboardJson).toContain('"callback_data":"ed:high"');
+      expect(keyboardJson).toContain('"callback_data":"mc"');
+      expect(keyboardJson).toContain('"callback_data":"ed:max"');
+    }
+
+    {
+      const { bot, ctx } = createBot();
+      const replies: Array<{ text: string; opts?: any }> = [];
+      ctx.reply = vi.fn(async (text: string, opts?: any) => {
+        replies.push({ text, opts });
+        return 1;
+      });
+
+      bot.activeTasks.set(ctx.chatId, {
+        prompt: '进度怎么样\n第二行',
+        startedAt: Date.now() - 65_000,
+      });
+
+      await (bot as any).cmdStatus(ctx);
+
+      expect(replies).toHaveLength(1);
+      expect(replies[0].text).toContain('<b>Running:</b>');
+      expect(replies[0].text).toContain('进度怎么样 第二行');
+    }
+
+    {
+      const { bot, ctx, sends } = createBot();
+      const sessionId = 'engine-history-preview';
+
+      vi.spyOn(bot, 'fetchSessions').mockResolvedValue({
+        ok: true,
+        sessions: [{
+          sessionId,
+          agent: 'claude',
+          workdir: process.env.PIKILOOM_WORKDIR!,
+          workspacePath: path.join(process.env.PIKILOOM_WORKDIR!, '.swarmdeck', 'sessions', 'claude', sessionId, 'workspace'),
+          model: 'claude-opus-4-7',
+          createdAt: new Date().toISOString(),
+          title: 'history preview',
+          running: false,
+          runState: 'incomplete',
+          runDetail: 'Timed out before completion.',
+          runUpdatedAt: new Date().toISOString(),
+        }],
+        error: null,
+      });
+
+      vi.spyOn(bot, 'fetchSessionTail').mockResolvedValue({
+        ok: true,
+        messages: [
+          { role: 'user', text: '请总结这次修改\n第二行保留原样' },
+          { role: 'assistant', text: '# Summary\nUse **bold** and `code`.\n\n```ts\nconst x = 1;\n```' },
+        ],
+        error: null,
+      });
+
+      await bot.handleCallback(`sess:${sessionId}`, ctx as any);
+
+      expect(ctx.editReply).toHaveBeenCalledWith(
+        ctx.messageId,
+        `<b>Session Switched</b>\n<code>${sessionId}</code>\n<i>Status: unfinished · Timed out before completion. · agent → claude · model → claude-opus-4-7</i>`,
+        { parseMode: 'HTML' },
+      );
+      expect(bot.chat(ctx.chatId).sessionId).toBe(sessionId);
+      expect(sends).toHaveLength(1);
+      expect(sends[0].text).toContain('<b>Recent Context</b>');
+      expect(sends[0].text).toContain('<blockquote expandable>请总结这次修改\n第二行保留原样</blockquote>');
+      expect(sends[0].text).toContain('<b>Summary</b>');
+      expect(sends[0].text).toContain('<pre><code class="language-ts">const x = 1;</code></pre>');
+    }
+
+    {
+      const { bot, ctx } = createBot();
+      bot.chat(ctx.chatId).agent = 'claude';
+
+      await bot.handleCallback('ag:codex', ctx as any);
+      expect(ctx.editReply).toHaveBeenLastCalledWith(
+        ctx.messageId,
+        '<b>Agent</b>\ncodex\n<i>Session reset</i>',
+        { parseMode: 'HTML' },
+      );
+
+      bot.chat(ctx.chatId).agent = 'claude';
+      await bot.handleCallback('mod:claude-sonnet-4-6', ctx as any);
+      expect(ctx.editReply).toHaveBeenLastCalledWith(
+        ctx.messageId,
+        '<b>Model</b>\n<code>claude-sonnet-4-6</code>\n<i>claude · session reset</i>',
+        { parseMode: 'HTML' },
+      );
+    }
+
+    {
+      const { bot, ctx, sends } = createBot();
+      const workdir = process.env.PIKILOOM_WORKDIR!;
+      ensureManagedSession({
+        agent: 'claude',
+        workdir,
+        sessionId: 'sess-claude-thread',
+        title: 'claude thread',
+        threadId: 'thread-im',
+      });
+      ensureManagedSession({
+        agent: 'codex',
+        workdir,
+        sessionId: 'sess-codex-thread',
+        title: 'codex thread',
+        threadId: 'thread-im',
+      });
+      vi.spyOn(bot, 'fetchSessionTail').mockResolvedValue({
+        ok: true,
+        messages: [
+          { role: 'user', text: 'keep context' },
+          { role: 'assistant', text: 'restored answer' },
+        ],
+        error: null,
+      });
+      bot.adoptExistingSessionForChat(ctx.chatId, {
+        agent: 'claude',
+        sessionId: 'sess-claude-thread',
+        workdir,
+        workspacePath: null,
+        model: 'claude-opus-4-7',
+        title: 'claude thread',
+        threadId: 'thread-im',
+      });
+
+      await bot.handleCallback('ag:codex', ctx as any);
+
+      expect(ctx.editReply).toHaveBeenLastCalledWith(
+        ctx.messageId,
+        '<b>Agent</b>\ncodex\n<i>Resumed previous session</i>',
+        { parseMode: 'HTML' },
+      );
+      expect(bot.chat(ctx.chatId).sessionId).toBe('sess-codex-thread');
+      expect(sends).toHaveLength(1);
+      expect(sends[0].text).toContain('<b>Recent Context</b>');
+    }
+
+    {
+      vi.useFakeTimers();
+      const { bot, ctx, channel, sends, edits } = createBot();
+      ctx.raw = { chat: { type: 'private' }, message_thread_id: 42 };
+      bot.chat(ctx.chatId).agent = 'codex';
+
+      const thinking = '先读代码路径\n再看 streaming 触发条件\n\n最后确认只需要展示 reasoning 的尾段就够了';
+
+      vi.spyOn(bot, 'runStream').mockImplementation(async (_prompt: string, _cs: any, _files: string[], onText: any) => {
+        onText('**Partial** `answer`', '', '改动已经落下去了，现在跑相关单测确认结果\nRan: /bin/zsh -lc npm run build\n$ /bin/zsh -lc pwd');
+        await new Promise(resolve => setTimeout(resolve, 12_000));
+        onText('', thinking, '', {
+          inputTokens: 120,
+          cachedInputTokens: 30,
+          outputTokens: 18,
+          contextPercent: 4.2,
+        }, {
+          explanation: 'Investigating',
+          steps: [
+            { step: 'Inspect streaming paths', status: 'completed' },
+            { step: 'Keep previews terse', status: 'inProgress' },
+          ],
+        });
+        return codexResult({
+          message: 'Final answer.',
+          thinking,
+          sessionId: 'sess-streaming',
+          elapsedS: 12,
+          inputTokens: 120,
+          outputTokens: 18,
+          cachedInputTokens: 30,
+          contextWindow: 200000,
+          contextUsedTokens: 150,
+          contextPercent: 4.2,
+        });
+      });
+
+      try {
+        const pending = (bot as any).handleMessage({ text: 'Inspect this repo', files: [] }, ctx);
+        await vi.advanceTimersByTimeAsync(12_000);
+        await pending;
+
+        expect((channel as any).sendMessageDraft).toBeUndefined();
+        expect(vi.mocked(ctx.reply)).toHaveBeenCalledWith(
+          expect.stringMatching(/● codex[\s\S]*0s/),
+          expect.objectContaining({ messageThreadId: 42, parseMode: 'HTML' }),
+        );
+        expect(sends).toHaveLength(0);
+
+        const previews = previewText(edits);
+        expect(previews).toContain('改动已经落下去了，现在跑相关单测确认结果');
+        expect(previews).toContain('最后确认只需要展示 reasoning 的尾段就够了');
+        expect(previews).toContain('Plan 1/2');
+        expect(previews).toMatch(/● codex[\s\S]*4\.2% · /);
+        expect(previews).toMatch(/● codex[\s\S]*5s/);
+        expect(previews).toMatch(/● codex[\s\S]*10s/);
+        expect(previews).not.toContain('Ran:');
+        expect(previews).not.toContain('npm run build');
+        expect(previews).not.toContain('pwd');
+        expect(previews).toContain('先读代码路径');
+        expect(vi.mocked(channel.sendTyping).mock.calls.length).toBeGreaterThanOrEqual(3);
+
+        const final = edits[edits.length - 1];
+        expect(final.text).toContain('Final answer.');
+        expect(final.text).toContain('最后确认只需要展示 reasoning 的尾段就够了');
+        expect(final.text).toContain('先读代码路径');
+        expect(final.opts?.parseMode).toBe('HTML');
+      } finally {
+        vi.useRealTimers();
+      }
+    }
+
+    {
+      const uploadDir = makeTmpDir('bot-tg-upload-');
+      const uploadPath = path.join(uploadDir, 'report.pdf');
+      fs.writeFileSync(uploadPath, 'pdf');
+
+      const stagedHarness = createBot();
+      let stagedSessionId: string | null = null;
+      let stagedWorkspacePath: string | null = null;
+
+      const stagedRunStream = vi.spyOn(stagedHarness.bot, 'runStream').mockImplementation(async (_prompt: string, state: any, files: string[]) => {
+        expect(files).toEqual([]);
+        expect(state.sessionId).toBe(stagedSessionId);
+        expect(state.workspacePath).toBe(stagedWorkspacePath);
+        expect(stagedWorkspacePath && fs.existsSync(path.join(stagedWorkspacePath, 'report.pdf'))).toBe(true);
+        return claudeResult({
+          message: 'done',
+          sessionId: 'sess-pending-file',
+          elapsedS: 1,
+          inputTokens: 3,
+          outputTokens: 2,
+        });
+      });
+
+      await (stagedHarness.bot as any).handleMessage({ text: '', files: [uploadPath] }, stagedHarness.ctx);
+      stagedSessionId = stagedHarness.bot.chat(stagedHarness.ctx.chatId).sessionId ?? null;
+      stagedWorkspacePath = stagedHarness.bot.chat(stagedHarness.ctx.chatId).workspacePath ?? null;
+
+      expect(stagedRunStream).not.toHaveBeenCalled();
+      expect(vi.mocked(stagedHarness.ctx.reply)).not.toHaveBeenCalled();
+      expect(stagedHarness.reactions).toEqual([
+        { chatId: stagedHarness.ctx.chatId, messageId: stagedHarness.ctx.messageId, reactions: ['👌'] },
+      ]);
+      expect(stagedSessionId).toBeTruthy();
+      expect(stagedWorkspacePath).toBeTruthy();
+      expect(fs.existsSync(path.join(stagedWorkspacePath!, 'report.pdf'))).toBe(true);
+
+      await (stagedHarness.bot as any).handleMessage({ text: 'Please summarize it', files: [] }, stagedHarness.ctx);
+      await vi.waitFor(() => {
+        expect(stagedRunStream).toHaveBeenCalledOnce();
+      });
+
+      fs.rmSync(uploadDir, { recursive: true, force: true });
+    }
+
+    {
+      const { bot, ctx, channel, sends, edits } = createBot();
+      ctx.raw = { chat: { type: 'private' } };
+      channel.capabilities = {
+        ...channel.capabilities,
+        editMessages: false,
+        typingIndicators: true,
+      };
+
+      vi.spyOn(bot, 'runStream').mockImplementation(async (_prompt: string, _cs: any, _files: string[], onText: any) => {
+        onText('partial', '', 'running checks');
+        return claudeResult({
+          message: 'Final fallback reply.',
+          elapsedS: 1.2,
+          inputTokens: 5,
+          outputTokens: 9,
+        });
+      });
+
+      await (bot as any).handleMessage({ text: 'hello', files: [] }, ctx);
+
+      await vi.waitFor(() => {
+        expect(sends.some(entry => entry.text.includes('Final fallback reply.'))).toBe(true);
+      });
+      expect(vi.mocked(ctx.reply)).not.toHaveBeenCalled();
+      expect(edits).toHaveLength(0);
+      expect(vi.mocked(channel.sendTyping)).toHaveBeenCalled();
+    }
+
+    {
+      const { bot, ctx } = createBot();
+      let nextReplyId = 1000;
+      ctx.reply = vi.fn(async () => nextReplyId++);
+      ctx.raw = { chat: { type: 'private' } };
+
+      const first = deferred<StreamResult>();
+      const second = deferred<StreamResult>();
+      const states: any[] = [];
+      vi.spyOn(bot, 'runStream').mockImplementation(async (_prompt: string, state: any) => {
+        states.push(state);
+        if (states.length === 1) return first.promise;
+        return second.promise;
+      });
+
+      const ctx1 = { ...ctx, messageId: 11, raw: { chat: { type: 'private' } } };
+      const callbackCtx = {
+        ...ctx,
+        messageId: 12,
+        answerCallback: vi.fn(async () => {}),
+        raw: { chat: { type: 'private' } },
+      };
+      const ctx2 = { ...ctx, messageId: 13, raw: { chat: { type: 'private' } } };
+
+      await (bot as any).handleMessage({ text: 'session a', files: [] }, ctx1);
+      await Promise.resolve();
+      await bot.handleCallback('sess:new', callbackCtx as any);
+      await (bot as any).handleMessage({ text: 'session b', files: [] }, ctx2);
+      await Promise.resolve();
+
+      expect(states).toHaveLength(2);
+      expect(states[0].sessionId).toBeTruthy();
+      expect(states[1].sessionId).toBeTruthy();
+      expect(states[0].sessionId).not.toBe(states[1].sessionId);
+      expect(bot.activeTasks.size).toBe(2);
+
+      first.resolve(claudeResult({
+        message: 'done a',
+        sessionId: `engine-${states[0].sessionId}`,
+        workspacePath: states[0].workspacePath,
+        elapsedS: 1,
+        inputTokens: 1,
+        outputTokens: 1,
+      }));
+      second.resolve(claudeResult({
+        message: 'done b',
+        sessionId: `engine-${states[1].sessionId}`,
+        workspacePath: states[1].workspacePath,
+        elapsedS: 1,
+        inputTokens: 1,
+        outputTokens: 1,
+      }));
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+
+    {
+      const { bot, ctx } = createBot();
+      let nextReplyId = 2000;
+      ctx.reply = vi.fn(async () => nextReplyId++);
+      ctx.raw = { chat: { type: 'private' } };
+
+      const first = deferred<StreamResult>();
+      const second = deferred<StreamResult>();
+      const states: any[] = [];
+      vi.spyOn(bot, 'runStream').mockImplementation(async (_prompt: string, state: any) => {
+        states.push(state);
+        if (states.length === 1) return first.promise;
+        return second.promise;
+      });
+
+      const ctx1 = { ...ctx, messageId: 21, raw: { chat: { type: 'private' } } };
+      await (bot as any).handleMessage({ text: 'first turn', files: [] }, ctx1);
+      await Promise.resolve();
+      expect(states).toHaveLength(1);
+
+      const firstPlaceholderId = 2000;
+      const ctx2 = {
+        ...ctx,
+        messageId: 22,
+        raw: {
+          chat: { type: 'private' },
+          reply_to_message: { message_id: firstPlaceholderId },
+        },
+      };
+      await (bot as any).handleMessage({ text: 'follow up', files: [] }, ctx2);
+      await Promise.resolve();
+
+      expect(states).toHaveLength(1);
+      expect(bot.activeTasks.size).toBe(2);
+
+      first.resolve(claudeResult({
+        message: 'done first',
+        sessionId: `engine-${states[0].sessionId}`,
+        workspacePath: states[0].workspacePath,
+        elapsedS: 1,
+        inputTokens: 1,
+        outputTokens: 1,
+      }));
+      await vi.waitFor(() => {
+        expect(states).toHaveLength(2);
+      });
+      expect(states[1].sessionId).toBe(states[0].sessionId);
+
+      second.resolve(claudeResult({
+        message: 'done second',
+        sessionId: `engine-${states[1].sessionId}`,
+        workspacePath: states[1].workspacePath,
+        elapsedS: 1,
+        inputTokens: 1,
+        outputTokens: 1,
+      }));
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+
+    const { bot, ctx } = createBot();
+    let nextReplyId = 3000;
+    ctx.reply = vi.fn(async () => nextReplyId++);
+    ctx.raw = { chat: { type: 'private' } };
+    bot.chat(ctx.chatId).agent = 'codex';
+
+    const originalWorkdir = bot.workdir;
+    const switchedWorkdir = makeTmpDir('bot-tg-reply-switched-');
+    const states: Array<{ agent: string; sessionId: string | null; workdir: string | null }> = [];
+
+    vi.spyOn(bot, 'runStream').mockImplementation(async (_prompt: string, state: any) => {
+      if (!state.sessionId || String(state.sessionId).startsWith('pending_')) {
+        const nextSessionId = 'sess-original';
+        const previousKey = state.key;
+        state.sessionId = nextSessionId;
+        state.key = (bot as any).sessionKey(state.agent, nextSessionId);
+        (bot as any).sessionStates.delete(previousKey);
+        (bot as any).sessionStates.set(state.key, state);
+        for (const [, chatState] of (bot as any).chats) {
+          if (chatState.activeSessionKey === previousKey) chatState.activeSessionKey = state.key;
+        }
+      }
+
+      states.push({
+        agent: state.agent,
+        sessionId: state.sessionId,
+        workdir: state.workdir ?? null,
+      });
+
+      return codexResult({
+        message: 'done',
+        sessionId: state.sessionId,
+        workspacePath: state.workspacePath,
+        elapsedS: 1,
+        inputTokens: 1,
+        outputTokens: 1,
+      });
+    });
+
+    const ctx1 = { ...ctx, messageId: 31, raw: { chat: { type: 'private' } } };
+    await (bot as any).handleMessage({ text: 'first turn', files: [] }, ctx1);
+    await vi.waitFor(() => {
+      expect(states).toHaveLength(1);
+    });
+
+    expect(states[0]).toMatchObject({
+      agent: 'codex',
+      sessionId: 'sess-original',
+      workdir: originalWorkdir,
+    });
+
+    const repliedMessageId = 3000;
+    bot.switchWorkdir(switchedWorkdir, { persist: false });
+    bot.switchAgentForChat(ctx.chatId, 'claude');
+
+    const ctx2 = {
+      ...ctx,
+      messageId: 32,
+      raw: {
+        chat: { type: 'private' },
+        reply_to_message: { message_id: repliedMessageId },
+      },
+    };
+    await (bot as any).handleMessage({ text: 'reply turn', files: [] }, ctx2);
+    await vi.waitFor(() => {
+      expect(states).toHaveLength(2);
+    });
+
+    expect(states[1]).toMatchObject({
+      agent: 'codex',
+      sessionId: 'sess-original',
+      workdir: originalWorkdir,
+    });
+    expect(bot.chat(ctx.chatId).agent).toBe('codex');
+
+    const ctx3 = { ...ctx, messageId: 33, raw: { chat: { type: 'private' } } };
+    await (bot as any).handleMessage({ text: 'plain follow up', files: [] }, ctx3);
+    await vi.waitFor(() => {
+      expect(states).toHaveLength(3);
+    });
+
+    expect(states[2]).toMatchObject({
+      agent: 'codex',
+      sessionId: 'sess-original',
+      workdir: originalWorkdir,
+    });
+  });
+});
