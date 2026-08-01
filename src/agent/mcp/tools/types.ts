@@ -31,3 +31,8 @@ export interface ToolContext {
 
 export function toolResult(text: string, isError = false): ToolResult {
   return { content: [{ type: 'text', text }], ...(isError ? { isError: true } : {}) };
+}
+
+export function toolLog(tool: string, msg: string) {
+  writeScopedLog(`tool:${tool}`, msg, { level: 'debug', stream: 'stderr' });
+}
