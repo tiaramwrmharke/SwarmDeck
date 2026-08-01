@@ -17,3 +17,22 @@ export interface TurnAuditEntry {
   incomplete: boolean;
   error: string | null;
   elapsedS?: number;
+  model?: string | null;
+  promptPreview?: string;
+}
+
+export function turnAuditPath(): string {
+  return path.join(path.dirname(getUserConfigPath()), 'logs', 'turn-audit.jsonl');
+}
+
+export function appendTurnAudit(entry: TurnAuditEntry): void {
+  try {
+    const file = turnAuditPath();
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    try {
+      // Single-slot rotation: cap the live file, keep exactly one predecessor.
+      if (fs.statSync(file).size > MAX_AUDIT_BYTES) fs.renameSync(file, `${file}.1`);
+    } catch { /* no file yet */ }
+    fs.appendFileSync(file, JSON.stringify({ ts: new Date().toISOString(), ...entry }) + '\n');
+  } catch { /* auditing is best-effort by design */ }
+}
