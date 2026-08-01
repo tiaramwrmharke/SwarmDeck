@@ -101,3 +101,214 @@ export const agentMeta: Record<string, AgentMeta> = {
     advantageKey: 'config.agentAdvantageGemini',
   },
   hermes: {
+    label: 'Hermes',
+    shortLabel: 'Hermes',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.12)',
+    letter: 'H',
+    glow: 'rgba(251,191,36,0.2)',
+    border: 'rgba(251,191,36,0.2)',
+    advantageKey: 'config.agentAdvantageHermes',
+  },
+};
+
+export function getAgentMeta(agent: string): AgentMeta {
+  return agentMeta[agent] || { ...defaultMeta, label: agent, shortLabel: agent };
+}
+
+export function foldUltraEffort(
+  agentId: string,
+  effort: string | null | undefined,
+  workflowEnabled: boolean | null | undefined,
+): string {
+  if (agentId === 'claude' && workflowEnabled) return 'ultra';
+  return effort || '';
+}
+
+export function shortenModel(model: string): string {
+  let s = model;
+  s = s.replace(/-\d{8,}$/, '');           // drop date suffixes (…-20251001)
+  s = s.replace(/-(preview|latest|exp)$/, '');
+  // Strip only the claude-/gemini- family prefix — what's left is still a recognizable name
+  // (opus-4-8, 3.1-pro). Do NOT strip gpt-: it would leave a bare ambiguous version ("5.5"),
+  // so codex models keep their original name (gpt-5.5).
+  s = s.replace(/^(claude-|gemini-)/, '');
+  return s;
+}
+
+export function isPendingSessionId(sessionId: string | null | undefined): boolean {
+  return typeof sessionId === 'string' && sessionId.startsWith('pending_');
+}
+
+export function resolveCanonicalSessionId(
+  promotions: Record<string, string> | null | undefined,
+  agent: string,
+  sessionId: string,
+): string {
+  if (!promotions || !sessionId) return sessionId;
+  let id = sessionId;
+  const seen = new Set<string>();
+  while (!seen.has(id)) {
+    seen.add(id);
+    const next = promotions[`${agent}:${id}`];
+    if (!next || next === id) break;
+    id = next;
+  }
+  return id;
+}
+
+export type SessionDisplayState = 'running' | 'completed' | 'incomplete' | 'waiting';
+export function sessionDisplayState(session: Pick<SessionInfo, 'running' | 'runState' | 'awaiting'>): SessionDisplayState {
+  if (session.running || session.runState === 'running') return 'running';
+  if (session.awaiting) return 'waiting';
+  return session.runState === 'incomplete' ? 'incomplete' : 'completed';
+}
+
+export interface LiveSessionState {
+  key: string;
+  resolvedKey: string;
+  phase: 'queued' | 'streaming' | 'done';
+  sessionId: string | null;
+  updatedAt: number;
+  incomplete: boolean;
+  error: string | null;
+}
+
+function parseSessionKey(sessionKey: string): { agent: string; sessionId: string } | null {
+  const separator = sessionKey.indexOf(':');
+  if (separator <= 0) return null;
+  const agent = sessionKey.slice(0, separator).trim();
+  const sessionId = sessionKey.slice(separator + 1).trim();
+  if (!agent || !sessionId) return null;
+  return { agent, sessionId };
+}
+
+export function normalizeLiveSessionState(sessionKey: string, snapshot: unknown): LiveSessionState | null {
+  if (!snapshot || typeof snapshot !== 'object') return null;
+  const rawPhase = typeof (snapshot as any).phase === 'string' ? (snapshot as any).phase.trim() : '';
+  if (rawPhase !== 'queued' && rawPhase !== 'streaming' && rawPhase !== 'done') return null;
+
+  const parsedKey = parseSessionKey(sessionKey);
+  if (!parsedKey) return null;
+
+  const sessionId = typeof (snapshot as any).sessionId === 'string' && (snapshot as any).sessionId.trim()
+    ? (snapshot as any).sessionId.trim()
+    : null;
+  const updatedAt = typeof (snapshot as any).updatedAt === 'number' && Number.isFinite((snapshot as any).updatedAt)
+    ? (snapshot as any).updatedAt
+    : Date.now();
+  const error = typeof (snapshot as any).error === 'string' && (snapshot as any).error.trim()
+    ? (snapshot as any).error.trim()
+    : null;
+  const resolvedKey = sessionId ? `${parsedKey.agent}:${sessionId}` : sessionKey;
+
+  return {
+    key: sessionKey,
+    resolvedKey,
+    phase: rawPhase,
+    sessionId,
+    updatedAt,
+    incomplete: !!(snapshot as any).incomplete || !!error,
+    error,
+  };
+}
+
+export function applyLiveSessionState(session: SessionInfo, liveState?: LiveSessionState | null): SessionInfo {
+  if (!liveState) return session;
+
+  if (liveState.phase === 'done' && (session.running || session.runState === 'running')) {
+    const serverUpdatedMs = session.runUpdatedAt ? Date.parse(session.runUpdatedAt) : NaN;
+    if (Number.isFinite(serverUpdatedMs) && liveState.updatedAt < serverUpdatedMs) {
+      return session;
+    }
+  }
+
+  const nextRunState: SessionDisplayState = liveState.phase === 'done'
+    ? (liveState.incomplete ? 'incomplete' : 'completed')
+    : 'running';
+
+  return {
+    ...session,
+    running: nextRunState === 'running',
+    runState: nextRunState,
+    runUpdatedAt: new Date(liveState.updatedAt).toISOString(),
+    runDetail: nextRunState === 'running'
+      ? null
+      : (liveState.error || session.runDetail || null),
+  };
+}
+
+export function sessionDisplayDetail(session: Pick<SessionInfo, 'runDetail'>): string | null {
+  const detail = String(session.runDetail || '').trim();
+  return detail || null;
+}
+
+export function getSessionRunFailureDetail(
+  session: Pick<SessionInfo, 'running' | 'runState' | 'runDetail' | 'awaiting'>,
+  opts: { streaming: boolean; hasLiveStream: boolean; streamPhase: string | null; queuedTaskCount: number },
+): string | null {
+  const detail = sessionDisplayDetail(session);
+  if (!detail) return null;
+  if (sessionDisplayState(session) !== 'incomplete') return null;
+  if (opts.streaming || opts.hasLiveStream || opts.streamPhase || opts.queuedTaskCount > 0) return null;
+  return detail;
+}
+
+const SESSION_PREVIEW_IGNORED_USER_PATTERNS = [
+  /^\[Request interrupted by user(?: for tool use)?\]$/i,
+];
+
+const SESSION_PREVIEW_IMAGE_PLACEHOLDER_RE = /\[Image:[^\]]+\]/gi;
+const SESSION_PREVIEW_FILE_PLACEHOLDER_RE = /\[Attached file:[^\]]+\]/gi;
+const CLAUDE_AT_MENTION_IMAGE_RE = /(^|\s)@(\/[^\s@\n]+\.(?:png|jpe?g|gif|webp|svg))(?=\s|$)/gi;
+
+function cleanSessionPreviewText(text?: string | null): string {
+  return String(text || '')
+    .replace(SESSION_PREVIEW_IMAGE_PLACEHOLDER_RE, ' ')
+    .replace(SESSION_PREVIEW_FILE_PLACEHOLDER_RE, ' ')
+    .replace(CLAUDE_AT_MENTION_IMAGE_RE, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function firstMeaningfulLine(text?: string | null): string {
+  for (const line of String(text || '').split('\n')) {
+    const cleaned = cleanSessionPreviewText(line)
+      .replace(/^[#>*\-\s`]+/, '')
+      .trim();
+    if (cleaned) return cleaned;
+  }
+  return '';
+}
+
+export function sanitizeSessionQuestionPreview(text?: string | null): string {
+  const cleaned = cleanSessionPreviewText(text);
+  if (!cleaned) return '';
+  if (SESSION_PREVIEW_IGNORED_USER_PATTERNS.some(pattern => pattern.test(cleaned))) return '';
+  return cleaned;
+}
+
+export function sessionListDisplayText(session: Pick<SessionInfo, 'lastQuestion' | 'title' | 'sessionId'>): string {
+  return cleanSessionPreviewText(session.title)
+    || sanitizeSessionQuestionPreview(session.lastQuestion)
+    || (isPendingSessionId(session.sessionId) ? '' : session.sessionId);
+}
+
+export function sessionListContextText(
+  session: Pick<SessionInfo, 'title' | 'lastAnswer' | 'classification' | 'runDetail' | 'sessionId'>,
+  primary: string,
+): string {
+  const title = cleanSessionPreviewText(session.title);
+  if (title && title !== primary) return title;
+
+  const summary = firstMeaningfulLine(session.classification?.summary);
+  if (summary && summary !== primary) return summary;
+
+  const answer = firstMeaningfulLine(session.lastAnswer);
+  if (answer && answer !== primary) return answer;
+
+  const detail = cleanSessionPreviewText(session.runDetail);
+  if (detail && !/interrupted by user/i.test(detail) && detail !== primary) return detail;
+
+  return '';
+}
