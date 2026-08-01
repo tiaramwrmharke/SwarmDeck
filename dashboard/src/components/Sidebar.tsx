@@ -35,3 +35,105 @@ export function Sidebar({
   onConnectionClick: () => void;
 }) {
   const theme = useStore(s => s.theme);
+  const setTheme = useStore(s => s.setTheme);
+  const locale = useStore(s => s.locale);
+  const setLocale = useStore(s => s.setLocale);
+  const t = useMemo(() => createT(locale), [locale]);
+
+  const tabs = getDashboardTabs(t);
+  const ep = getEndpoint();
+  const connLabel = !ep ? t('conn.local') : ep.mode === 'direct' ? (ep.host || t('conn.direct')) : t('conn.remote');
+  const connRemote = !!ep;
+
+  const busy = restartPhase === 'restarting' || restartPhase === 'reconnecting';
+  const confirming = restartPhase === 'confirm';
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-edge bg-[var(--th-sidebar)] backdrop-blur-[20px] [backdrop-filter:blur(20px)_saturate(1.2)]">
+      <div className="mx-auto flex min-h-13 max-w-[1180px] flex-wrap items-center gap-2.5 px-4 py-2">
+        <div className="mr-1.5 flex items-center gap-2.5 shrink-0">
+          <img src={theme === 'light' ? wordmarkLight : wordmark} alt="swarmdeck" className="h-[22px] w-auto shrink-0" />
+          <span className="rounded-md border border-[var(--edge-subtle)] bg-transparent px-1.5 py-0.5 text-[10px] font-mono text-fg-5">
+            v{version}
+          </span>
+        </div>
+
+        <nav className="order-3 w-full md:order-none md:w-auto">
+          <TabsList className="w-full overflow-x-auto md:w-auto">
+            {tabs.map(item => (
+              <NavLink
+                key={item.key}
+                to={TAB_ROUTES[item.key]}
+                end={TAB_ROUTES[item.key] === '/'}
+                className={({ isActive }) => cn(
+                  'relative inline-flex h-8 items-center justify-center rounded-md px-3 text-[13px] font-medium transition-colors duration-200',
+                  'focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_var(--brand-glow-a)]',
+                  isActive
+                    ? 'bg-[var(--surface-2)] text-fg'
+                    : 'text-fg-4 hover:text-fg-2 hover:bg-[var(--surface-2)]',
+                )}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </TabsList>
+        </nav>
+
+        <div className="flex-1 min-w-0" />
+
+        <div className="flex items-center gap-1 shrink-0">
+          <HeaderUsage t={t} />
+          {connRemote && (
+            <Button variant="outline" size="sm" onClick={onConnectionClick} title={t('conn.title')} className="gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--brand)]" />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              <span className="hidden md:inline max-w-[150px] truncate">{connLabel}</span>
+            </Button>
+          )}
+          <Button
+            variant={confirming ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={onRestartClick}
+            disabled={busy}
+            title={busy ? t('modal.restarting') : confirming ? t('modal.confirmRestart') : t('sidebar.restart')}
+            className={cn(
+              busy ? 'pointer-events-none opacity-70' : '',
+              confirming ? 'border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/10 hover:text-amber-100' : '',
+            )}
+          >
+            <svg
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className={busy ? 'animate-spin' : ''}
+              style={busy ? { animationDuration: '1s' } : undefined}
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+            <span className="hidden md:inline">
+              {busy ? t('modal.restarting') : confirming ? t('modal.confirmRestart') : t('sidebar.restart')}
+            </span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark' ? IconSun : IconMoon}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocale(locale === 'zh-CN' ? 'en' : 'zh-CN')}
+            className="font-mono font-semibold tracking-wider"
+          >
+            {locale === 'zh-CN' ? 'EN' : '\u4e2d'}
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
