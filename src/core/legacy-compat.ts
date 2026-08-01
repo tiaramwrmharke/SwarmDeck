@@ -18,3 +18,22 @@ export function hydrateLegacyEnv(): void {
     }
   }
 }
+
+export function migrateLegacyStateDir(): void {
+  try {
+    const home = os.homedir();
+    const next = path.join(home, STATE_DIR_NAME);
+    if (fs.existsSync(next)) return;
+    for (const legacy of LEGACY_STATE_DIR_NAMES) {
+      const prev = path.join(home, legacy);
+      if (!fs.existsSync(prev)) continue;
+      try {
+        fs.renameSync(prev, next);
+      } catch {
+        fs.cpSync(prev, next, { recursive: true });
+      }
+      return;
+    }
+  } catch {
+  }
+}
