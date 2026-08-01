@@ -67,3 +67,82 @@ let buf = '';
 let replied = false;
 process.stdin.on('data', (d) => {
   buf += d;
+  if (replied || !buf.includes('\\n')) return;
+  replied = true;
+  fs.writeFileSync(process.env.PIKI_STDIN_OUT, buf);
+  process.stdout.write(
+    JSON.stringify({ type: 'system', subtype: 'init', session_id: 'sess-fake' }) + '\\n'
+    + JSON.stringify({ type: 'result', subtype: 'success', result: 'ok' }) + '\\n',
+    () => process.exit(0),
+  );
+});
+`;
+
+function collectCtx(): { ctx: DriverContext; events: DriverEvent[] } {
+  const events: DriverEvent[] = [];
+  const ctx: DriverContext = {
+    signal: new AbortController().signal,
+    emit: (e) => events.push(e),
+    askUser: async () => ({}),
+    registerSteer: () => {},
+  };
+  return { ctx, events };
+}
+
+describe('ClaudeDriver.run attachments wiring', () => {
+  let tmp: string;
+  let bin: string;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-claude-run-'));
+    bin = path.join(tmp, 'fake-claude.js');
+    fs.writeFileSync(bin, FAKE_CLAUDE);
+    fs.chmodSync(bin, 0o755);
+  });
+  afterEach(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
+
+  it('switches to stream-json input and sends the image block when attachments are present', async () => {
+    const png = path.join(tmp, 'pic.png');
+    fs.writeFileSync(png, PNG_BYTES);
+    const argvOut = path.join(tmp, 'argv.json');
+    const stdinOut = path.join(tmp, 'stdin.txt');
+
+    const driver = new ClaudeDriver(bin);
+    const { ctx } = collectCtx();
+    const res = await driver.run(
+      { prompt: 'describe', workdir: tmp, attachments: [png], env: { PIKI_ARGV_OUT: argvOut, PIKI_STDIN_OUT: stdinOut } },
+      ctx,
+    );
+    expect(res.ok).toBe(true);
+
+    const argv: string[] = JSON.parse(fs.readFileSync(argvOut, 'utf8'));
+    const fmtIdx = argv.indexOf('--input-format');
+    expect(fmtIdx).toBeGreaterThanOrEqual(0);
+    expect(argv[fmtIdx + 1]).toBe('stream-json');
+    expect(argv).not.toContain('--replay-user-messages'); // attachments-only is a single turn, not steer
+
+    const sent = JSON.parse(fs.readFileSync(stdinOut, 'utf8').trim());
+    const img = sent.message.content.find((b: any) => b.type === 'image');
+    expect(img.source.data).toBe(PNG_BYTES.toString('base64'));
+    expect(sent.message.content.some((b: any) => b.type === 'text' && b.text === 'describe')).toBe(true);
+  }, 30_000);
+
+  // The driver ALWAYS drives Claude over stream-json stdin (kept open for the background
+  // wake-up hold): a plain prompt goes out as a single text content block.
+  it('uses stream-json input for a plain prompt too (no --replay-user-messages without steer)', async () => {
+    const argvOut = path.join(tmp, 'argv2.json');
+    const stdinOut = path.join(tmp, 'stdin2.txt');
+    const driver = new ClaudeDriver(bin);
+    const { ctx } = collectCtx();
+    await driver.run(
+      { prompt: 'just text', workdir: tmp, env: { PIKI_ARGV_OUT: argvOut, PIKI_STDIN_OUT: stdinOut } },
+      ctx,
+    );
+    const argv: string[] = JSON.parse(fs.readFileSync(argvOut, 'utf8'));
+    const fmtIdx = argv.indexOf('--input-format');
+    expect(fmtIdx).toBeGreaterThanOrEqual(0);
+    expect(argv[fmtIdx + 1]).toBe('stream-json');
+    expect(argv).not.toContain('--replay-user-messages');
+    const sent = JSON.parse(fs.readFileSync(stdinOut, 'utf8').trim());
+    expect(sent.message.content).toEqual([{ type: 'text', text: 'just text' }]);
+  }, 30_000);
+});
