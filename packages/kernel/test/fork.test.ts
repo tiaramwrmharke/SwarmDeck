@@ -104,3 +104,420 @@ describe('Hub.forkSession', () => {
   beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-fork-')); });
   afterEach(async () => { await loom?.stop(); fs.rmSync(tmp, { recursive: true, force: true }); });
 
+  async function seedParent(driver: ScriptedDriver): Promise<{ sessionKey: string; taskIds: string[] }> {
+    loom = createLoom({ drivers: [driver as AgentDriver], defaultAgent: driver.id, sessionStore: new FsSessionStore(tmp), workdir: tmp });
+    driver.nextNativeId = 'native-parent';
+    const first = await loom.io.prompt({ prompt: 'first question' });
+    await flushTurns();
+    const second = await loom.io.prompt({ prompt: 'second question', sessionKey: first.sessionKey });
+    await flushTurns();
+    return { sessionKey: first.sessionKey, taskIds: [first.taskId, second.taskId] };
+  }
+
+  /** …plus a third round the agent REFUSES outright: error, no output, no anchor — the shape an
+   *  over-long prompt or a failed pre-flight leaves behind. */
+  async function seedParentWithRefusedTail(driver: ScriptedDriver) {
+    const parent = await seedParent(driver);
+    driver.failNext = true;
+    const refused = await loom.io.prompt({ prompt: 'a prompt the agent refuses', sessionKey: parent.sessionKey });
+    await flushTurns();
+    return { ...parent, refusedTaskId: refused.taskId };
+  }
+
+  it('native mode: copies the kept prefix, pins the anchor, and fork-dispatches off the parent native id', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds } = await seedParent(driver);
+
+    // Fork at turn 1 (mid cut): the anchor comes from that turn's recorded DriverResult.anchor.
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+    expect(forkKey).not.toBe(sessionKey);
+
+    const forked = await loom.io.getHistory(forkKey);
+    expect(forked.map(t => t.prompt)).toEqual(['first question']);   // prefix copied, cut respected
+    expect(forked[0].taskId).toBe(taskIds[0]);
+
+    const store = new FsSessionStore(tmp);
+    const rec = (await store.get('forky', forkKey.split(':')[1]))!;
+    expect(rec.forkedFrom).toEqual({ sessionKey, taskId: taskIds[0] });
+    expect(rec.pendingFork).toEqual({ parentNativeSessionId: 'native-parent', anchor: 'native-parent/a1', mode: 'native' });
+    expect(rec.runState).toBe('completed');   // no live turn yet — must not read as running
+
+    // First dispatch consumes the fork: driver sees the PARENT native id + fork.anchor, clean prompt.
+    driver.nextNativeId = 'native-branch';
+    await loom.io.prompt({ prompt: 'branch question', sessionKey: forkKey });
+    await flushTurns();
+    const forkRun = driver.runs.at(-1)!;
+    expect(forkRun.sessionId).toBe('native-parent');
+    expect(forkRun.fork).toEqual({ anchor: 'native-parent/a1' });
+    expect(forkRun.prompt).toBe('branch question');                  // native mode: no seed prepend
+
+    // The branch materialized: pendingFork consumed, native id recorded, parent untouched.
+    const settled = (await store.get('forky', forkKey.split(':')[1]))!;
+    expect(settled.pendingFork).toBeNull();
+    expect(settled.nativeSessionId).toBe('native-branch');
+    const parent = (await store.get('forky', sessionKey.split(':')[1]))!;
+    expect(parent.nativeSessionId).toBe('native-parent');
+    expect(parent.forkedFrom ?? null).toBeNull();
+    expect((await loom.io.getHistory(sessionKey)).length).toBe(2);
+
+    // Follow-up turns on the branch resume IT normally — no fork flag anymore.
+    await loom.io.prompt({ prompt: 'follow-up', sessionKey: forkKey });
+    await flushTurns();
+    const next = driver.runs.at(-1)!;
+    expect(next.sessionId).toBe('native-branch');
+    expect(next.fork ?? null).toBeNull();
+  });
+
+  it('tail fork pins the parent tail anchor via resolveNativeAnchor', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey } = await seedParent(driver);
+    // Recorded turn anchors exist, so the kept-last-turn anchor wins and resolveNativeAnchor
+    // is NOT consulted; drop the recorded anchor by forking a session with bare history.
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey });
+    const store = new FsSessionStore(tmp);
+    const rec = (await store.get('forky', forkKey.split(':')[1]))!;
+    expect(rec.pendingFork!.anchor).toBe('native-parent/a1');   // from the recorded turn anchor
+    expect(driver.anchorCalls).toBe(0);
+  });
+
+  it('seed mode: a driver without capabilities.fork gets a fresh session with a replayed prefix', async () => {
+    const driver = new ScriptedDriver('plain', false);
+    const { sessionKey, taskIds } = await seedParent(driver);
+
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+    const store = new FsSessionStore(tmp);
+    const rec = (await store.get('plain', forkKey.split(':')[1]))!;
+    expect(rec.pendingFork!.mode).toBe('seed');
+
+    driver.nextNativeId = 'native-seeded';
+    await loom.io.prompt({ prompt: 'branch question', sessionKey: forkKey });
+    await flushTurns();
+    const forkRun = driver.runs.at(-1)!;
+    expect(forkRun.sessionId).toBeNull();                        // fresh native session
+    expect(forkRun.fork ?? null).toBeNull();
+    expect(forkRun.prompt).toContain('<fork-context turns=1>');  // replayed prefix rides the prompt
+    expect(forkRun.prompt).toContain('User: first question');
+    expect(forkRun.prompt).not.toContain('second question');     // cut respected
+    expect(forkRun.prompt.trim().endsWith('branch question')).toBe(true);
+
+    const settled = (await store.get('plain', forkKey.split(':')[1]))!;
+    expect(settled.pendingFork).toBeNull();
+    expect(settled.nativeSessionId).toBe('native-seeded');
+  });
+
+  it('a fork-capable driver still falls back to seed when a MID cut has no anchor', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds } = await seedParent(driver);
+    // Simulate pre-anchor-era turns: strip recorded anchors from the parent transcript.
+    const parentId = sessionKey.split(':')[1];
+    const turnsPath = path.join(tmp, 'forky', parentId, 'turns.jsonl');
+    const stripped = fs.readFileSync(turnsPath, 'utf8').split('\n').filter(Boolean)
+      .map(l => JSON.stringify({ ...JSON.parse(l), anchor: null })).join('\n') + '\n';
+    fs.writeFileSync(turnsPath, stripped);
+
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+    const store = new FsSessionStore(tmp);
+    expect((await store.get('forky', forkKey.split(':')[1]))!.pendingFork!.mode).toBe('seed');
+
+    // …while an explicit anchor override (e.g. resolved from the app's own native-transcript
+    // parse) restores native mode for the same cut.
+    const { sessionKey: forkKey2 } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0], anchor: 'app-resolved' });
+    const rec2 = (await store.get('forky', forkKey2.split(':')[1]))!;
+    expect(rec2.pendingFork).toEqual({ parentNativeSessionId: 'native-parent', anchor: 'app-resolved', mode: 'native' });
+  });
+
+  it('rejects an unknown fork point', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey } = await seedParent(driver);
+    await expect(loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: 'nope' })).rejects.toThrow(/fork point/);
+  });
+
+  it('drops an anchor the driver can no longer resolve: a mid cut seeds instead of dying', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds } = await seedParent(driver);
+    driver.unresolvableAnchors = new Set(['native-parent/a1']);   // e.g. behind a /compact boundary
+
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+    const store = new FsSessionStore(tmp);
+    const rec = (await store.get('forky', forkKey.split(':')[1]))!;
+    expect(rec.pendingFork).toEqual({ parentNativeSessionId: 'native-parent', anchor: null, mode: 'seed' });
+
+    // …and the branch actually runs: seeded, so the copied prefix rides the prompt.
+    driver.nextNativeId = 'native-seeded';
+    await loom.io.prompt({ prompt: 'branch question', sessionKey: forkKey });
+    await flushTurns();
+    expect(driver.runs.at(-1)!.prompt).toContain('User: first question');
+    expect((await store.get('forky', forkKey.split(':')[1]))!.nativeSessionId).toBe('native-seeded');
+  });
+
+  it('drops an unresolvable anchor on a TAIL cut and re-pins the parent tail instead', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey } = await seedParent(driver);
+    driver.unresolvableAnchors = new Set(['native-parent/a1']);
+
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey });
+    const rec = (await new FsSessionStore(tmp).get('forky', forkKey.split(':')[1]))!;
+    expect(rec.pendingFork).toEqual({ parentNativeSessionId: 'native-parent', anchor: 'tail-anchor', mode: 'native' });
+    expect(driver.anchorCalls).toBe(1);   // consulted only because the recorded anchor was dropped
+  });
+
+  it('re-checks the pinned anchor at DISPATCH and seeds when the parent compacted meanwhile', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds } = await seedParent(driver);
+    // Anchor resolves at fork time, so a native fork is pinned…
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+    const store = new FsSessionStore(tmp);
+    expect((await store.get('forky', forkKey.split(':')[1]))!.pendingFork!.mode).toBe('native');
+
+    // …then the parent compacts before the branch's first prompt: the pin is now dead. The
+    // dispatch must degrade to a seed instead of failing the whole run on every retry.
+    driver.unresolvableAnchors = new Set(['native-parent/a1']);
+    driver.nextNativeId = 'native-seeded';
+    await loom.io.prompt({ prompt: 'branch question', sessionKey: forkKey });
+    await flushTurns();
+
+    const run = driver.runs.at(-1)!;
+    expect(run.fork ?? null).toBeNull();                    // no doomed --resume-session-at
+    expect(run.sessionId ?? null).toBeNull();               // brand-new native session
+    expect(run.prompt).toContain('User: first question');   // …carrying the copied prefix
+    expect((await store.get('forky', forkKey.split(':')[1]))!.nativeSessionId).toBe('native-seeded');
+  });
+
+  it('a fork whose first turn dies without a native session keeps the intent and re-forks', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds } = await seedParent(driver);
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+    const forkId = forkKey.split(':')[1];
+    const store = new FsSessionStore(tmp);
+
+    // The agent rejects the run outright but still echoes back a session id it never created.
+    driver.nextNativeId = 'native-branch';
+    driver.missingNative.add('native-branch');
+    driver.failNext = true;
+    await loom.io.prompt({ prompt: 'branch question', sessionKey: forkKey });
+    await flushTurns();
+
+    const dead = (await store.get('forky', forkId))!;
+    expect(dead.nativeSessionId ?? null).toBeNull();     // never pin a phantom id…
+    expect(dead.pendingFork!.mode).toBe('native');       // …so the fork intent survives
+    expect(dead.runState).toBe('incomplete');
+
+    // The retry forks again off the parent — not a doomed resume of the phantom id.
+    driver.missingNative.delete('native-branch');
+    await loom.io.prompt({ prompt: 'try again', sessionKey: forkKey });
+    await flushTurns();
+    const retry = driver.runs.at(-1)!;
+    expect(retry.sessionId).toBe('native-parent');
+    expect(retry.fork).toEqual({ anchor: 'native-parent/a1' });
+    const settled = (await store.get('forky', forkId))!;
+    expect(settled.nativeSessionId).toBe('native-branch');
+    expect(settled.pendingFork).toBeNull();
+  });
+
+  it('a cut aimed at a refused round steps back to the last real boundary and says so', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds, refusedTaskId } = await seedParentWithRefusedTail(driver);
+    const parentTurns = await loom.io.getHistory(sessionKey);
+    expect(parentTurns.length).toBe(3);
+    expect(turnLanded(parentTurns[2])).toBe(false);      // the refused round IS on record…
+
+    const forked = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: refusedTaskId });
+    expect(forked.atTaskId).toBe(taskIds[1]);            // …but it can't be a cut point
+    expect(forked.droppedTaskIds).toEqual([refusedTaskId]);
+    // The real boundary has an anchor, so the branch keeps its NATIVE fork instead of falling
+    // back to replaying the whole conversation as a seed.
+    expect(forked.mode).toBe('native');
+    expect(forked.anchor).toBe('native-parent/a1');
+
+    const branch = await loom.io.getHistory(forked.sessionKey);
+    expect(branch.map(t => t.prompt)).toEqual(['first question', 'second question']);  // no dead round cloned
+    const rec = (await new FsSessionStore(tmp).get('forky', forked.sessionKey.split(':')[1]))!;
+    expect(rec.forkedFrom).toEqual({ sessionKey, taskId: taskIds[1] });                // lineage tells the truth
+    expect(rec.pendingFork).toEqual({ parentNativeSessionId: 'native-parent', anchor: 'native-parent/a1', mode: 'native' });
+  });
+
+  it('a TAIL fork trims trailing refused rounds and is still a tail cut', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds, refusedTaskId } = await seedParentWithRefusedTail(driver);
+
+    const forked = await loom.io.forkSession({ fromSessionKey: sessionKey });   // no atTaskId
+    expect(forked.atTaskId).toBe(taskIds[1]);
+    expect(forked.droppedTaskIds).toEqual([refusedTaskId]);
+    expect(forked.mode).toBe('native');
+    expect((await loom.io.getHistory(forked.sessionKey)).length).toBe(2);
+  });
+
+  it('the anchors map re-anchors the turn the cut stepped BACK to; a single-turn override does not', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds, refusedTaskId } = await seedParentWithRefusedTail(driver);
+    // Pre-anchor-era transcript: no recorded anchors, so only the caller's map can supply one.
+    const turnsPath = path.join(tmp, 'forky', sessionKey.split(':')[1], 'turns.jsonl');
+    fs.writeFileSync(turnsPath, fs.readFileSync(turnsPath, 'utf8').split('\n').filter(Boolean)
+      .map(l => JSON.stringify({ ...JSON.parse(l), anchor: null })).join('\n') + '\n');
+
+    const forked = await loom.io.forkSession({
+      fromSessionKey: sessionKey,
+      atTaskId: refusedTaskId,
+      anchor: 'names-the-refused-turn',            // an override names ONE turn — the cut moved, so drop it
+      anchors: { [taskIds[1]]: 'app-resolved-2' }, // …the per-turn map still answers for the new cut
+    });
+    expect(forked.atTaskId).toBe(taskIds[1]);
+    expect(forked.anchor).toBe('app-resolved-2');
+    expect(forked.mode).toBe('native');
+  });
+
+  it('a transcript whose rounds ALL died branches clean instead of resuming the parent natively', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    loom = createLoom({ drivers: [driver as AgentDriver], defaultAgent: driver.id, sessionStore: new FsSessionStore(tmp), workdir: tmp });
+    driver.failNext = true;
+    const first = await loom.io.prompt({ prompt: 'refused one' });
+    await flushTurns();
+    driver.failNext = true;
+    await loom.io.prompt({ prompt: 'refused two', sessionKey: first.sessionKey });
+    await flushTurns();
+
+    const forked = await loom.io.forkSession({ fromSessionKey: first.sessionKey });
+    expect(forked.atTaskId).toBeNull();                  // nothing landed, so nothing is kept
+    expect(forked.anchor).toBeNull();
+    expect(forked.mode).toBe('seed');                    // never a native resume of a session with no content
+    expect(forked.droppedTaskIds.length).toBe(2);
+    expect((await loom.io.getHistory(forked.sessionKey)).length).toBe(0);
+  });
+
+  it('a failed turn that DID create its native session still records the id', async () => {
+    const driver = new ScriptedDriver('forky', true);
+    const { sessionKey, taskIds } = await seedParent(driver);
+    const { sessionKey: forkKey } = await loom.io.forkSession({ fromSessionKey: sessionKey, atTaskId: taskIds[0] });
+
+    driver.nextNativeId = 'native-branch';   // present in the native store: the fork landed…
+    driver.failNext = true;                  // …and the turn failed afterwards
+    await loom.io.prompt({ prompt: 'branch question', sessionKey: forkKey });
+    await flushTurns();
+
+    const rec = (await new FsSessionStore(tmp).get('forky', forkKey.split(':')[1]))!;
+    expect(rec.nativeSessionId).toBe('native-branch');
+    expect(rec.pendingFork).toBeNull();      // the branch exists — a retry must resume it, not re-fork
+  });
+});
+
+describe('CodexDriver fork (hermetic fake app-server)', () => {
+  let tmp: string; let fake: string;
+  const FAKE = `#!/usr/bin/env node
+let buf = '';
+const reply = (id, result) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', id, result }) + '\\n');
+const notify = (method, params) => process.stdout.write(JSON.stringify({ jsonrpc:'2.0', method, params }) + '\\n');
+process.stdin.on('data', (d) => {
+  buf += d; const lines = buf.split('\\n'); buf = lines.pop() || '';
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    let m; try { m = JSON.parse(line); } catch { continue; }
+    if (m.method === 'initialize') reply(m.id, {});
+    else if (m.method === 'thread/fork') {
+      // Echo the fork params back through the answer so the test can pin them.
+      globalThis.FORKED = { from: m.params.threadId, lastTurnId: m.params.lastTurnId ?? null };
+      reply(m.id, { thread: { id: 'thread-branch', forkedFromId: m.params.threadId } });
+    }
+    else if (m.method === 'turn/start') {
+      reply(m.id, {});
+      notify('turn/started', { threadId: m.params.threadId, turn: { id: 'turn-9' } });
+      notify('item/agentMessage/delta', { threadId: m.params.threadId, itemId: 'm1', delta: 'forked:' + JSON.stringify(globalThis.FORKED) });
+      notify('turn/completed', { threadId: m.params.threadId, turn: { id: 'turn-9', status: 'completed' } });
+    }
+  }
+});
+`;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-codex-fork-'));
+    fake = path.join(tmp, 'fake-codex');
+    fs.writeFileSync(fake, FAKE, { mode: 0o755 });
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  it('fork dispatch goes through thread/fork with lastTurnId and adopts the branch thread id', async () => {
+    const driver = new CodexDriver(fake);
+    const events: DriverEvent[] = [];
+    const ctx: DriverContext = { signal: new AbortController().signal, emit: (e) => events.push(e), askUser: async () => ({}), registerSteer: () => {} };
+    const res = await driver.run({ prompt: 'branch it', workdir: tmp, sessionId: 'thread-parent', fork: { anchor: 'turn-1' } }, ctx);
+    expect(res.ok).toBe(true);
+    expect(res.sessionId).toBe('thread-branch');
+    expect(res.anchor).toBe('turn-9');
+    expect(res.text).toContain('"from":"thread-parent"');
+    expect(res.text).toContain('"lastTurnId":"turn-1"');
+    const session = events.find(e => e.type === 'session') as { sessionId: string };
+    expect(session.sessionId).toBe('thread-branch');
+  });
+});
+
+describe('native tail anchors', () => {
+  let home: string;
+  beforeEach(() => { home = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-anchor-')); });
+  afterEach(() => fs.rmSync(home, { recursive: true, force: true }));
+
+  it('claudeTranscriptTailAnchor returns the last user/assistant record uuid', () => {
+    const workdir = '/tmp/proj';
+    const dir = path.join(home, '.claude', 'projects', '-tmp-proj');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'sess-1.jsonl'), [
+      JSON.stringify({ type: 'user', uuid: 'u1', message: { role: 'user', content: 'q' } }),
+      JSON.stringify({ type: 'assistant', uuid: 'a1', message: { role: 'assistant', content: [] } }),
+      JSON.stringify({ type: 'last-prompt' }),
+    ].join('\n') + '\n');
+    expect(claudeTranscriptTailAnchor(workdir, 'sess-1', { home })).toBe('a1');
+    expect(claudeTranscriptTailAnchor(workdir, 'missing', { home })).toBeNull();
+  });
+
+  // The exact hydration rule claude's --resume-session-at enforces: active leaf chain only, and
+  // only back to the last /compact boundary (which re-roots the transcript with a parentless
+  // record). A pre-compaction uuid — even an assistant reply — fails the whole run.
+  it('claudeAnchorResolvable tracks the active chain back to the last compaction boundary', () => {
+    const workdir = '/tmp/proj';
+    const dir = path.join(home, '.claude', 'projects', '-tmp-proj');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'sess-1.jsonl'), [
+      JSON.stringify({ type: 'user', uuid: 'old-u', parentUuid: null }),
+      JSON.stringify({ type: 'assistant', uuid: 'old-a', parentUuid: 'old-u' }),
+      JSON.stringify({ type: 'system', subtype: 'compact_boundary', uuid: 'bnd', parentUuid: null, logicalParentUuid: 'old-a' }),
+      JSON.stringify({ type: 'user', uuid: 'sum', parentUuid: 'bnd', isCompactSummary: true }),
+      JSON.stringify({ type: 'assistant', uuid: 'new-a', parentUuid: 'sum' }),
+      JSON.stringify({ type: 'user', uuid: 'side', parentUuid: 'new-a', isSidechain: true }),
+    ].join('\n') + '\n');
+
+    expect(claudeAnchorResolvable(workdir, 'sess-1', 'new-a', { home })).toBe(true);
+    expect(claudeAnchorResolvable(workdir, 'sess-1', 'sum', { home })).toBe(true);
+    expect(claudeAnchorResolvable(workdir, 'sess-1', 'old-a', { home })).toBe(false);   // behind /compact
+    expect(claudeAnchorResolvable(workdir, 'sess-1', 'old-u', { home })).toBe(false);
+    expect(claudeAnchorResolvable(workdir, 'sess-1', 'nope', { home })).toBe(false);
+    // A sidechain (subagent) record is never the chain leaf, so the main chain still resolves.
+    expect(claudeAnchorResolvable(workdir, 'sess-1', 'side', { home })).toBe(false);
+    // Inconclusive reads must not downgrade a healthy fork.
+    expect(claudeAnchorResolvable(workdir, 'missing', 'new-a', { home })).toBe(true);
+  });
+
+  it('claudeAnchorResolvable walks a dead rewind branch off the ACTIVE leaf only', () => {
+    const workdir = '/tmp/proj';
+    const dir = path.join(home, '.claude', 'projects', '-tmp-proj');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'sess-2.jsonl'), [
+      JSON.stringify({ type: 'user', uuid: 'u1', parentUuid: null }),
+      JSON.stringify({ type: 'assistant', uuid: 'a1', parentUuid: 'u1' }),
+      JSON.stringify({ type: 'assistant', uuid: 'dead', parentUuid: 'a1' }),   // abandoned by a rewind
+      JSON.stringify({ type: 'user', uuid: 'u2', parentUuid: 'a1' }),          // regenerated branch
+      JSON.stringify({ type: 'assistant', uuid: 'a2', parentUuid: 'u2' }),
+    ].join('\n') + '\n');
+    expect(claudeAnchorResolvable(workdir, 'sess-2', 'a1', { home })).toBe(true);
+    expect(claudeAnchorResolvable(workdir, 'sess-2', 'dead', { home })).toBe(false);
+  });
+
+  it('codexRolloutTailAnchor returns the last turn id in the rollout', () => {
+    const dir = path.join(home, '.codex', 'sessions', '2026', '07', '12');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'rollout-2026-07-12T00-00-00-th-42.jsonl'), [
+      JSON.stringify({ type: 'session_meta', payload: { id: 'th-42', cwd: '/tmp' } }),
+      JSON.stringify({ type: 'event_msg', payload: { type: 'task_started', turn_id: 'turn-A' } }),
+      JSON.stringify({ type: 'event_msg', payload: { type: 'task_complete', turn_id: 'turn-A' } }),
+      JSON.stringify({ type: 'turn_context', payload: { turn_id: 'turn-B' } }),
+    ].join('\n') + '\n');
+    expect(codexRolloutTailAnchor('th-42', { home })).toBe('turn-B');
+    expect(codexRolloutTailAnchor('th-nope', { home })).toBeNull();
+  });
+});
