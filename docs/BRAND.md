@@ -28,3 +28,8 @@ Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
 - **Browser tab / favicon** (`dashboard/public/logo.png`, `web/public/logo.png`) → the knot
   recolored to deep cyan `#0e7490` (browser tabs are usually light, where bright cyan
   washes out).
+- **Social card** (`web/public/og.png`).
+
+The deep-cyan variants are produced by recoloring the cyan PNGs (deterministic canvas
+remap: cyan→`#0e7490`, edge→`#06333c`; the single-hue icon is a flat alpha-preserving
+recolor).
