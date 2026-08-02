@@ -98,3 +98,231 @@ export async function queueDashboardSessionTask(request: QueueSessionTaskRequest
   }
 
   let prompt = request.prompt;
+  const skillResult = prompt ? resolveSkillFromPrompt(request.workdir, prompt) : null;
+  if (skillResult) {
+    prompt = skillResult.resolvedPrompt;
+    runtime.debug(`[session-send] resolved skill: ${skillResult.skillName}`);
+  }
+
+  let sessionId = request.sessionId;
+  let attachments = request.attachments || [];
+
+  const isFreshSession = !sessionId || isPendingSessionId(sessionId);
+  const handoverFrom = isFreshSession ? resolveHandoverFrom(request, resolvedAgent) : null;
+
+  if (!sessionId || attachments.length) {
+    const staged = stageSessionFiles({
+      agent: resolvedAgent,
+      workdir: request.workdir,
+      files: attachments,
+      sessionId: sessionId || null,
+      title: request.prompt || 'New session',
+      threadId: null,
+      handoverFrom,
+    });
+    if (!sessionId) sessionId = staged.sessionId;
+    if (staged.importedFiles.length) {
+      attachments = staged.importedFiles.map(f => path.join(staged.workspacePath, f));
+    }
+  }
+
+  return bot.submitSessionTask({
+    workdir: request.workdir,
+    agent: resolvedAgent,
+    sessionId,
+    prompt: prompt || 'Please inspect the attached file(s).',
+    attachments,
+    ...(modelId ? { modelId } : {}),
+    ...(profileId !== undefined ? { profileId } : {}),
+    ...(thinkingEffort ? { thinkingEffort } : {}),
+    workflowEnabled,
+    ...(handoverFrom ? { handoverFrom } : {}),
+  });
+}
+
+async function runDashboardGoalSlash(
+  bot: NonNullable<ReturnType<typeof runtime.getBotRef>>,
+  agent: Agent,
+  request: QueueSessionTaskRequest,
+  cmd: { action: 'set' | 'clear' | 'pause' | 'resume' | 'status'; objective: string },
+  modelId: string,
+  thinkingEffort: string,
+) {
+  const opts = { chatId: 'dashboard' as const, modelId: modelId || undefined, thinkingEffort: thinkingEffort || undefined };
+  const sessionKey = `${agent}:${request.sessionId}`;
+  const taskId = `goal-${cmd.action}-${Date.now().toString(36)}`;
+  try {
+    if (cmd.action === 'status') {
+      const goal = await bot.getSessionGoal(request.workdir, agent, request.sessionId);
+      return { ok: true as const, taskId, sessionKey, queued: false, goal };
+    }
+    if (cmd.action === 'clear') {
+      await bot.clearSessionGoal(request.workdir, agent, request.sessionId, opts);
+      return { ok: true as const, taskId, sessionKey, queued: false };
+    }
+    if (cmd.action === 'pause') {
+      const goal = await bot.pauseSessionGoal(request.workdir, agent, request.sessionId);
+      return { ok: true as const, taskId, sessionKey, queued: false, goal };
+    }
+    if (cmd.action === 'resume') {
+      const goal = await bot.resumeSessionGoal(request.workdir, agent, request.sessionId, opts);
+      return { ok: true as const, taskId, sessionKey, queued: false, goal };
+    }
+    const goal = await bot.setSessionGoal(request.workdir, agent, request.sessionId, {
+      objective: cmd.objective,
+      ...opts,
+    });
+    return { ok: true as const, taskId, sessionKey, queued: true, goal };
+  } catch (e: any) {
+    return { ok: false as const, error: e?.message || String(e) };
+  }
+}
+
+export interface ForkSessionTaskRequest {
+  workdir: string;
+  agent: Agent | string;
+  parentSessionId: string;
+  atTurn: number;
+  prompt: string;
+  model?: string | null;
+  profileId?: string | null;
+  effort?: string | null;
+  attachments?: string[];
+}
+
+export function forkDashboardSessionTask(request: ForkSessionTaskRequest) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  if (!request.workdir || !request.parentSessionId || !request.prompt) {
+    return { ok: false as const, error: 'workdir, parentSessionId, and prompt are required' };
+  }
+
+  if (!KNOWN_AGENTS.has(request.agent as Agent)) {
+    return { ok: false as const, error: `Unknown agent: ${request.agent}` };
+  }
+  const agent = request.agent as Agent;
+  if (!getDriverCapabilities(agent).fork) {
+    return { ok: false as const, error: `Agent ${agent} does not support fork` };
+  }
+
+  const modelId = typeof request.model === 'string' ? request.model.trim() : '';
+  const profileId = resolveProfileIdOverride(request.profileId);
+  const { effort: splitEffort, workflow: ultraWorkflow } = splitEffortForAgent(
+    agent,
+    typeof request.effort === 'string' ? request.effort : '',
+  );
+  const thinkingEffort = agent === 'gemini' ? '' : splitEffort;
+
+  let prompt = request.prompt;
+  const skillResult = prompt ? resolveSkillFromPrompt(request.workdir, prompt) : null;
+  if (skillResult) prompt = skillResult.resolvedPrompt;
+
+  ensureManagedSession({
+    agent,
+    workdir: request.workdir,
+    sessionId: request.parentSessionId,
+  });
+
+  const staged = stageSessionFiles({
+    agent,
+    workdir: request.workdir,
+    files: request.attachments || [],
+    sessionId: null,
+    title: request.prompt || `Fork from ${request.parentSessionId.slice(0, 8)}`,
+    threadId: null,
+  });
+  const attachments = staged.importedFiles.length
+    ? staged.importedFiles.map(f => path.join(staged.workspacePath, f))
+    : [];
+
+  return bot.submitSessionTask({
+    workdir: request.workdir,
+    agent,
+    sessionId: staged.sessionId,
+    prompt: prompt || 'Please inspect the attached file(s).',
+    attachments,
+    forkOf: { parentSessionId: request.parentSessionId, atTurn: request.atTurn },
+    ...(modelId ? { modelId } : {}),
+    ...(profileId !== undefined ? { profileId } : {}),
+    ...(thinkingEffort ? { thinkingEffort } : {}),
+    ...(ultraWorkflow ? { workflowEnabled: true } : {}),
+  });
+}
+
+export function getSessionStreamState(agent: string, sessionId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: true as const, state: null };
+  return { ok: true as const, state: bot.getStreamSnapshot(`${agent}:${sessionId}`) };
+}
+
+export function cancelSessionTask(taskId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = bot.cancelTask(taskId);
+  return { ok: true as const, recalled: result.cancelled || result.interrupted };
+}
+
+export function stopSessionTasks(agent: string, sessionId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = bot.stopAllSessionTasks(`${agent}:${sessionId}`);
+  return { ok: true as const, ...result };
+}
+
+export async function steerSessionTask(taskId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = await bot.steerTask(taskId);
+  return { ok: true as const, steered: result.steered };
+}
+
+export function interactionSelectOption(promptId: string, optionValue: string, opts?: { requestFreeform?: boolean }) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = bot.interactionSelectOption(promptId, optionValue, opts);
+  if (!result) return { ok: false as const, error: 'Prompt not found or no longer active' };
+  return { ok: true as const, completed: result.completed, advanced: result.advanced };
+}
+
+export function interactionSubmitText(promptId: string, text: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = bot.interactionSubmitText(promptId, text);
+  if (!result) return { ok: false as const, error: 'Prompt not found or not awaiting text' };
+  return { ok: true as const, completed: result.completed, advanced: result.advanced };
+}
+
+export function interactionSkip(promptId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = bot.interactionSkip(promptId);
+  if (!result) return { ok: false as const, error: 'Prompt not found or no longer active' };
+  return { ok: true as const, completed: result.completed, advanced: result.advanced };
+}
+
+export function interactionCancel(promptId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const result = bot.interactionCancel(promptId);
+  if (!result) return { ok: false as const, error: 'Prompt not found or no longer active' };
+  return { ok: true as const };
+}
+
+export function getInteractionPrompt(promptId: string) {
+  const bot = runtime.getBotRef();
+  if (!bot) return { ok: false as const, error: 'Bot is not running' };
+  const prompt = bot.interactionPrompt(promptId);
+  if (!prompt) return { ok: true as const, prompt: null };
+  return {
+    ok: true as const,
+    prompt: {
+      promptId: prompt.promptId,
+      taskId: prompt.taskId,
+      title: prompt.title,
+      hint: prompt.hint,
+      questions: prompt.questions,
+      currentIndex: prompt.currentIndex,
+      answers: prompt.answers,
+    },
+  };
+}
