@@ -127,3 +127,305 @@ async function installAgentViaNpm(agent: Agent, log: (msg: string) => void): Pro
 function emptyUsage(agent: Agent, error: string): UsageResult {
   return { ok: false, agent, source: null, capturedAt: null, status: null, windows: [], error };
 }
+
+async function buildAgentStatusResponse(config = loadUserConfig(), agentOptions: AgentDetectOptions = {}) {
+  const setupState = runtime.getSetupState(config, { includeVersion: true, ...agentOptions });
+  const workdir = runtime.getRuntimeWorkdir(config);
+  const defaultAgent = runtime.getRuntimeDefaultAgent(config);
+  const agents = await Promise.all(setupState.agents.map(async (agentState) => {
+    const agentId = runtime.isAgent(agentState.agent) ? agentState.agent : null;
+    if (!agentId) {
+      return {
+        ...agentState,
+        selectedModel: null,
+        selectedEffort: null,
+        workflowEnabled: false,
+        isDefault: false,
+        models: [],
+        usage: null,
+      };
+    }
+
+    const runtimeSelectedModel = runtime.getRuntimeModel(agentId, config);
+    const runtimeSelectedEffort = runtime.getRuntimeEffort(agentId, config);
+    const activeProfile = getActiveProfile(agentId);
+    // runtimeSelectedModel is the model that will RUN (profile-aware): when a BYOK profile is
+    // bound it is the profile's third-party model. The NATIVE model list must not be seeded with
+    // it, else it shows under the "官方 / Native" group (it is surfaced separately via byokModels).
+    const nativeRuntimeModel = activeProfile ? '' : runtimeSelectedModel;
+    let models: { id: string; alias: string | null }[] = [];
+    let usage: UsageResult = emptyUsage(agentId, 'Agent not installed.');
+    let nativeConfig: ReturnType<NonNullable<ReturnType<typeof getDriver>['getNativeConfig']>> = null;
+
+    if (agentState.installed) {
+      try {
+        const driver = getDriver(agentId);
+        if (driver.getNativeConfig) {
+          try { nativeConfig = driver.getNativeConfig(); } catch {  }
+        }
+        const modelFallback = nativeRuntimeModel ? [{ id: nativeRuntimeModel, alias: null }] : [];
+        const cachedUsage = driver.getUsage({ agent: agentId, model: runtimeSelectedModel });
+        const [resolvedModels, resolvedUsage] = await Promise.all([
+          withTimeoutFallback(
+            driver.listModels({ workdir, currentModel: nativeRuntimeModel || undefined }).then(result => dedupeModels([
+              ...modelFallback,
+              ...result.models,
+            ])),
+            AGENT_STATUS_MODELS_TIMEOUT_MS,
+            modelFallback,
+          ),
+          driver.getUsageLive
+            ? withTimeoutFallback(
+              driver.getUsageLive({ agent: agentId, model: runtimeSelectedModel }),
+              AGENT_STATUS_USAGE_TIMEOUT_MS,
+              cachedUsage,
+            )
+            : Promise.resolve(cachedUsage),
+        ]);
+        models = resolvedModels;
+        usage = resolvedUsage;
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        usage = emptyUsage(agentId, detail || 'Usage query failed.');
+      }
+    }
+
+    const updateState = getAgentUpdateState(agentId);
+
+    const byokProvider = activeProfile ? getProvider(activeProfile.providerId) : null;
+    const byokProviderName = byokProvider?.name || null;
+    const byokProfileName = activeProfile
+      && activeProfile.name.trim().toLowerCase() !== activeProfile.modelId.trim().toLowerCase()
+      ? activeProfile.name
+      : null;
+
+    const nativeSelectedModel = nativeRuntimeModel || nativeConfig?.model || null;
+    const nativeSelectedEffort = runtimeSelectedEffort || nativeConfig?.effort || null;
+    const selectedModel = activeProfile?.modelId || nativeSelectedModel;
+    const selectedEffort = activeProfile?.effort || nativeSelectedEffort;
+
+    let byokModels: { id: string; alias: string | null }[] | null = null;
+    if (activeProfile && byokProvider) {
+      const cachedList = peekProviderModelList(byokProvider.id);
+      if (cachedList && cachedList.length) {
+        byokModels = cachedList.map(info => ({ id: info.id, alias: info.name || null }));
+      } else {
+        prefetchProviderModels(byokProvider.id);
+        byokModels = [{ id: activeProfile.modelId, alias: null }];
+      }
+    }
+
+    return {
+      ...agentState,
+      selectedModel,
+      selectedEffort,
+      effortOptions: effortOptionsFor(agentId, selectedModel, byokProvider?.kind ?? null),
+      nativeSelectedModel,
+      nativeSelectedEffort,
+      workflowEnabled: runtime.getRuntimeWorkflowEnabled(agentId, config),
+      claudeAccessMode: agentId === 'claude' ? runtime.getRuntimeClaudeAccessMode(config) : undefined,
+      isDefault: agentId === defaultAgent,
+      install: getAgentInstall(agentId),
+      models,
+      usage,
+      nativeConfig,
+      byokProviderName,
+      byokModels,
+      byokProfileName,
+      capabilities: getDriverCapabilities(agentId),
+      latestVersion: updateState?.latestVersion || null,
+      updateAvailable: updateState?.updateAvailable || false,
+      updateStatus: updateState?.status || null,
+      updateDetail: updateState?.detail || null,
+    };
+  }));
+
+  return { defaultAgent, workdir, agents };
+}
+
+type AgentStatusData = Awaited<ReturnType<typeof buildAgentStatusResponse>>;
+
+const statusCache: {
+  data: AgentStatusData | null;
+  expiresAt: number;
+  pending: Promise<AgentStatusData> | null;
+} = { data: null, expiresAt: 0, pending: null };
+
+function refreshStatusCache(config?: Partial<UserConfig>, opts?: AgentDetectOptions) {
+  if (!statusCache.pending) {
+    statusCache.pending = buildAgentStatusResponse(config, opts)
+      .then(result => { statusCache.data = result; statusCache.expiresAt = Date.now() + AGENT_STATUS_CACHE_TTL_MS; return result; })
+      .finally(() => { statusCache.pending = null; });
+  }
+  return statusCache.pending;
+}
+
+function getCachedAgentStatus() {
+  if (statusCache.data) {
+    if (Date.now() >= statusCache.expiresAt) void refreshStatusCache();
+    return Promise.resolve(statusCache.data);
+  }
+  return refreshStatusCache();
+}
+
+export function invalidateAgentStatus(config?: Partial<UserConfig>, opts?: AgentDetectOptions) {
+  statusCache.pending = null;
+  return refreshStatusCache(config, opts);
+}
+
+export function preloadAgentStatus() { void refreshStatusCache(); }
+
+const app = new Hono();
+
+app.get('/api/agent-status', async (c) => {
+  return c.json(await getCachedAgentStatus());
+});
+
+app.post('/api/agent-install', async (c) => {
+  const body = await c.req.json();
+  const agent = String(body?.agent || '').trim();
+  if (!runtime.isAgent(agent)) return c.json({ ok: false, error: 'Invalid agent' }, 400);
+  const installSpec = getAgentInstall(agent);
+  if (installSpec && installSpec.method !== 'npm') {
+    const docs = installSpec.docsUrl ? ` See ${installSpec.docsUrl}.` : '';
+    return c.json({
+      ok: false,
+      error: `${getAgentLabel(agent)} can't be installed automatically — run it yourself: ${installSpec.command}.${docs}`,
+    }, 400);
+  }
+  runtime.log(`[agents] install requested agent=${agent} command="${getAgentInstallCommand(agent) || '(unknown)'}"`);
+  try {
+    await installAgentViaNpm(agent, msg => runtime.log(`[agents] ${msg}`));
+    return c.json({ ok: true, ...(await invalidateAgentStatus(loadUserConfig(), { refresh: true })) });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    runtime.log(`[agents] install failed agent=${agent} error=${detail}`);
+    return c.json({ ok: false, error: detail }, 500);
+  }
+});
+
+app.get('/api/agents', (c) => {
+  return c.json({ agents: runtime.getSetupState(loadUserConfig(), { includeVersion: true }).agents });
+});
+
+app.post('/api/agent-check-update', async (c) => {
+  const body = await c.req.json();
+  const agent = String(body?.agent || '').trim();
+  if (!runtime.isAgent(agent)) return c.json({ ok: false, error: 'Invalid agent' }, 400);
+  runtime.log(`[agents] check-update requested agent=${agent}`);
+  try {
+    const config = loadUserConfig();
+    const setupState = runtime.getSetupState(config, { includeVersion: true });
+    const agentState = setupState.agents.find(a => a.agent === agent);
+    if (!agentState?.installed) return c.json({ ok: false, error: 'Agent not installed' }, 400);
+    const updateState = await checkAgentLatestVersion(agentState);
+    return c.json({ ok: true, ...updateState, ...(await invalidateAgentStatus(config)) });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    runtime.log(`[agents] check-update failed agent=${agent} error=${detail}`);
+    return c.json({ ok: false, error: detail }, 500);
+  }
+});
+
+app.post('/api/agent-update', async (c) => {
+  const body = await c.req.json();
+  const agent = String(body?.agent || '').trim();
+  if (!runtime.isAgent(agent)) return c.json({ ok: false, error: 'Invalid agent' }, 400);
+  runtime.log(`[agents] manual update requested agent=${agent}`);
+  try {
+    const config = loadUserConfig();
+    const setupState = runtime.getSetupState(config, { includeVersion: true });
+    const agentState = setupState.agents.find(a => a.agent === agent);
+    if (!agentState?.installed) return c.json({ ok: false, error: 'Agent not installed' }, 400);
+    const result = await manualAgentUpdate(agentState, msg => runtime.log(`[agents] ${msg}`));
+    if (!result.ok) return c.json({ ok: false, error: result.error }, 500);
+    return c.json({ ok: true, ...(await invalidateAgentStatus(loadUserConfig(), { refresh: true })) });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    runtime.log(`[agents] manual update failed agent=${agent} error=${detail}`);
+    return c.json({ ok: false, error: detail }, 500);
+  }
+});
+
+app.post('/api/runtime-agent', async (c) => {
+  const body = await c.req.json();
+  const config = loadUserConfig();
+  const nextConfig: Partial<UserConfig> = { ...config };
+  const defaultAgent = body?.defaultAgent;
+  const targetAgent = body?.agent;
+  const model = typeof body?.model === 'string' ? body.model.trim() : '';
+  const rawEffort = typeof body?.effort === 'string' ? body.effort.trim().toLowerCase() : '';
+  const hasEffort = rawEffort !== '';
+  const botRef = runtime.getBotRef();
+
+  if (defaultAgent != null) {
+    if (!runtime.isAgent(defaultAgent)) return c.json({ ok: false, error: 'Invalid defaultAgent' }, 400);
+    runtime.runtimePrefs.defaultAgent = defaultAgent;
+    process.env.DEFAULT_AGENT = defaultAgent;
+    nextConfig.defaultAgent = defaultAgent;
+    if (botRef) botRef.setDefaultAgent(defaultAgent);
+  }
+
+  if (model || hasEffort) {
+    if (!runtime.isAgent(targetAgent)) return c.json({ ok: false, error: 'Invalid agent' }, 400);
+    if (model) {
+      runtime.runtimePrefs.models[targetAgent] = model;
+      runtime.setModelEnv(targetAgent, model);
+      if (targetAgent === 'claude') nextConfig.claudeModel = model;
+      if (targetAgent === 'codex') nextConfig.codexModel = model;
+      if (targetAgent === 'gemini') nextConfig.geminiModel = model;
+      if (targetAgent === 'hermes') {
+        if (!setAgentBoundModelId('hermes', model)) nextConfig.hermesModel = model;
+      }
+      if (botRef) botRef.setModelForAgent(targetAgent, model);
+    }
+    if (hasEffort) {
+      // Codex keeps `max`/`ultra` as native reasoning levels; claude decomposes `ultra` into
+      // `max` effort + workflow. splitEffortForAgent reconciles both before we persist the default.
+      const { effort, workflow: effortWorkflow } = splitEffortForAgent(targetAgent, rawEffort);
+      runtime.runtimePrefs.efforts[targetAgent] = effort;
+      runtime.setEffortEnv(targetAgent, effort);
+      if (targetAgent === 'claude') nextConfig.claudeReasoningEffort = effort;
+      if (targetAgent === 'codex') nextConfig.codexReasoningEffort = effort;
+      if (targetAgent === 'gemini') nextConfig.geminiReasoningEffort = effort;
+      if (targetAgent === 'hermes') nextConfig.hermesReasoningEffort = effort;
+      if (botRef) botRef.setEffortForAgent(targetAgent, effort);
+      if (targetAgent === 'claude') {
+        runtime.runtimePrefs.workflow.claude = effortWorkflow;
+        runtime.setWorkflowEnv('claude', effortWorkflow);
+        nextConfig.claudeWorkflowEnabled = effortWorkflow;
+        if (botRef) botRef.setWorkflowEnabledForAgent('claude', effortWorkflow);
+      }
+    }
+  }
+
+  if (typeof body?.workflow === 'boolean') {
+    if (!runtime.isAgent(targetAgent)) return c.json({ ok: false, error: 'Invalid agent' }, 400);
+    if (!getDriverCapabilities(targetAgent).workflow) {
+      return c.json({ ok: false, error: `${targetAgent} does not support workflow orchestration` }, 400);
+    }
+    const enabled = body.workflow as boolean;
+    runtime.runtimePrefs.workflow[targetAgent] = enabled;
+    runtime.setWorkflowEnv(targetAgent, enabled);
+    if (targetAgent === 'claude') nextConfig.claudeWorkflowEnabled = enabled;
+    if (botRef) botRef.setWorkflowEnabledForAgent(targetAgent, enabled);
+  }
+
+  if (typeof body?.accessMode === 'string') {
+    if (targetAgent !== 'claude') return c.json({ ok: false, error: 'accessMode is only supported for claude' }, 400);
+    const mode = body.accessMode;
+    if (mode !== 'subscription' && mode !== 'api') {
+      return c.json({ ok: false, error: "accessMode must be 'subscription' or 'api'" }, 400);
+    }
+    runtime.runtimePrefs.accessMode.claude = mode;
+    runtime.setClaudeAccessModeEnv(mode);
+    nextConfig.claudeAccessMode = mode;
+    if (botRef) botRef.setClaudeAccessMode(mode);
+  }
+
+  saveUserConfig(nextConfig);
+  applyUserConfig(nextConfig);
+  return c.json({ ok: true, ...(await invalidateAgentStatus(nextConfig)) });
+});
+
+export default app;

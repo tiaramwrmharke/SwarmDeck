@@ -160,3 +160,510 @@ function escapeFeishuMarkdownText(text: string): string {
 
 function renderFeishuQuote(text: string): string {
   return text
+    .split('\n')
+    .map(line => `> ${escapeFeishuMarkdownText(line)}`)
+    .join('\n');
+}
+
+export function renderSessionTurnMarkdown(userText: string | null | undefined, assistantText: string | null | undefined): string {
+  const parts: string[] = [];
+  const user = String(userText || '').trim();
+  const assistant = String(assistantText || '').trim();
+  if (user || assistant) parts.push('**Recent Context**');
+  if (user) parts.push('**User**', renderFeishuQuote(user));
+  if (assistant) parts.push('**Assistant**', assistant);
+  return parts.join('\n\n');
+}
+
+export function buildHumanLoopPromptMarkdown(prompt: HumanLoopPromptState): string {
+  const question = currentHumanLoopQuestion(prompt);
+  const lines: string[] = [`**${prompt.title}**`];
+  if (prompt.detail) lines.push(`\`${prompt.detail}\``);
+  lines.push(`*${humanLoopAnsweredCount(prompt)}/${prompt.questions.length} answered*`);
+  if (!question) return lines.join('\n\n');
+
+  if (question.header.trim()) lines.push(`**${question.header}**`);
+  lines.push(question.prompt);
+
+  const options = question.options || [];
+  if (options.length) {
+    lines.push(options.map((option, index) => {
+      const detail = option.description ? `\n   ${option.description}` : '';
+      return `${index + 1}. ${option.label}${detail}`;
+    }).join('\n'));
+  }
+
+  if (isHumanLoopAwaitingText(prompt)) {
+    lines.push(`*${question.secret ? 'Reply in chat with the secret value.' : 'Reply in chat with text to answer.'}*`);
+  }
+
+  if (prompt.hint) lines.push(`*${prompt.hint}*`);
+
+  if (prompt.questions.length > 1) {
+    lines.push(prompt.questions.map((item, index) => {
+      const summary = summarizeHumanLoopAnswer(prompt, item);
+      const answered = isHumanLoopQuestionAnswered(prompt, index);
+      return `${answered ? '●' : '○'} ${item.header || item.prompt}: ${summary.display}`;
+    }).join('\n'));
+  }
+
+  return lines.join('\n\n');
+}
+
+export function buildAnsweredHumanLoopPromptMarkdown(prompt: HumanLoopPromptState, summary: ResolvedHumanLoopAnswers): string {
+  const symbol = summary.status === 'cancelled' ? '⊘' : '✓';
+  const lines = [`**${symbol} ${prompt.title}**`];
+  if (summary.status === 'cancelled') lines.push('*Cancelled.*');
+  for (const row of summary.rows) {
+    lines.push(`${row.label}: **${row.display}**`);
+  }
+  return lines.join('\n');
+}
+
+export function buildInitialPreviewMarkdown(agent: Agent, model?: string | null, effort?: string | null, waiting = false, queuePosition = 0): string {
+  const parts: string[] = [];
+  if (waiting) {
+    const queueLabel = queuePosition > 0
+      ? `Queued · ${queuePosition} ${queuePosition === 1 ? 'task' : 'tasks'} ahead`
+      : 'Waiting in queue...';
+    parts.push(queueLabel);
+  }
+  if (model) parts.push(model);
+  else parts.push(agent);
+  if (effort) parts.push(`${effort}`);
+  return parts.join(' · ');
+}
+
+function buildPreviewMarkdown(input: StreamPreviewRenderInput, options?: { includeFooter?: boolean }): string {
+  const data = extractStreamPreviewData(input);
+  const parts: string[] = [];
+
+  if (data.planDisplay) {
+    const text = stripCodeFences(data.planDisplay);
+    const nl = text.indexOf('\n');
+    parts.push(nl >= 0 ? `**${text.slice(0, nl)}**${text.slice(nl)}` : `**${text}**`);
+  }
+
+  if (data.activityDisplay) {
+    parts.push(`**Activity**\n${stripCodeFences(trimActivityForPreview(data.activityDisplay, data.maxActivity))}`);
+  }
+  if (data.subAgentsDisplay) {
+    parts.push(`**Sub-agent**\n${stripCodeFences(data.subAgentsDisplay)}`);
+  }
+
+  if (data.thinkDisplay && !data.display) {
+    parts.push(`**${data.label}**\n${stripCodeFences(data.thinkDisplay)}`);
+  } else if (data.display) {
+    if (data.rawThinking) {
+      parts.push(`**${data.label}**\n${stripCodeFences(data.thinkSnippet)}`);
+    }
+    parts.push(ensureBalancedCodeFences(data.preview));
+  } else if (data.thinkingProgressText) {
+    parts.push(`**${data.label}**`);
+  }
+
+  if (options?.includeFooter !== false) {
+    parts.push(formatPreviewFooter(input.agent, input.elapsedMs, input.meta ?? null, {
+      model: input.model,
+      effort: input.effort,
+    }));
+  }
+  return parts.join('\n\n');
+}
+
+export function buildStreamPreviewMarkdown(input: StreamPreviewRenderInput): string {
+  return buildPreviewMarkdown(input, { includeFooter: true });
+}
+
+export const feishuPreviewRenderer: LivePreviewRenderer = {
+  renderInitial: buildInitialPreviewMarkdown,
+  renderStream: buildStreamPreviewMarkdown,
+};
+
+export interface FeishuFinalReplyRender {
+  fullText: string;
+  headerText: string;
+  bodyText: string;
+  footerText: string;
+}
+
+export function buildFinalReplyRender(agent: Agent, result: StreamResult): FeishuFinalReplyRender {
+  const data = extractFinalReplyData(agent, result);
+  const footerText = `\n\n${formatFinalFooter(data.footerStatus, agent, data.elapsedMs, result.contextPercent ?? null, {
+    model: result.model,
+    effort: result.thinkingEffort,
+    provider: result.byokProviderName,
+    profileName: result.byokProfileName,
+  })}`;
+
+  let activityText = '';
+  let activityNoteText = '';
+  if (data.activityNarrative) {
+    activityText = `**Activity**\n${stripCodeFences(data.activityNarrative)}\n\n`;
+  }
+  if (data.activityCommandSummary) {
+    activityNoteText = `*${data.activityCommandSummary}*\n\n`;
+  }
+
+  let thinkingText = '';
+  if (data.thinkingDisplay) {
+    thinkingText = `**${data.thinkLabel}**\n${stripCodeFences(data.thinkingDisplay)}\n\n`;
+  }
+
+  let statusText = '';
+  if (data.statusLines) {
+    statusText = `**⚠ Incomplete Response**\n${data.statusLines.join('\n')}\n\n`;
+  }
+
+  const headerText = `${activityText}${activityNoteText}${statusText}${thinkingText}`;
+  const bodyText = ensureBalancedCodeFences(data.bodyMessage);
+  return {
+    fullText: `${headerText}${bodyText}${footerText}`,
+    headerText,
+    bodyText,
+    footerText,
+  };
+}
+
+export function renderStart(d: StartData): string {
+  const lines = [
+    `**${d.title}** v${d.version}`,
+    d.subtitle,
+    '',
+    `**Agent:** ${d.agent}`,
+    `**Workdir:** \`${d.workdir}\``,
+    '',
+    '**Agents**',
+    ...d.agentDetails.map(a => {
+      let line = `  **${a.agent}**: ${a.model}`;
+      if (a.effort) line += ` (effort: ${a.effort})`;
+      return line;
+    }),
+    '',
+    '**Commands**',
+    ...d.commands.map(c => `/${c.command} — ${c.description}`),
+  ];
+  return lines.join('\n');
+}
+
+export function renderSessionsPage(d: SessionsPageData): string {
+  const agentChips = Object.entries(d.agentTotals)
+    .sort((a, b) => b[1] - a[1])
+    .map(([agent, count]) => `${agent}:${count}`)
+    .join(' · ');
+  const header = d.workspaceName
+    ? (agentChips ? `${d.workspaceName} · ${agentChips}` : d.workspaceName)
+    : (agentChips || 'sessions');
+  const lines = [
+    `**${header}** (${d.total})  p${d.page + 1}/${d.totalPages}`,
+    '',
+  ];
+
+  if (!d.sessions.length) {
+    lines.push('*No sessions found.*');
+  } else {
+    for (let i = 0; i < d.sessions.length; i++) {
+      const s = d.sessions[i];
+      const icon = s.isRunning ? '🟢' : s.isCurrent ? '●' : '○';
+      lines.push(`${icon} **${i + 1}.** [${s.agent}] ${s.title}  ${s.time}${s.isCurrent ? ' ← current' : ''}`);
+    }
+    lines.push('');
+    lines.push('*Use the controls below to switch, or reply with session number / "new".*');
+  }
+
+  if (d.totalPages > 1) {
+    lines.push(`\nPage ${d.page + 1}/${d.totalPages}. Use the page controls below or reply "p2", "p3" etc. to navigate.`);
+  }
+  return lines.join('\n');
+}
+
+export function renderAgentsList(d: AgentsListData): string {
+  const lines = ['**Available Agents**', ''];
+  for (const a of d.agents) {
+    const status = !a.installed ? '❌' : a.isCurrent ? '●' : '○';
+    lines.push(`${status} **${a.agent}**${a.isCurrent ? ' (current)' : ''}`);
+    if (a.installed) {
+      if (a.version) lines.push(`   Version: \`${a.version}\``);
+    } else {
+      lines.push('   Not installed');
+    }
+  }
+  lines.push('');
+  lines.push('*Use the controls below to switch, or reply with agent name (e.g. "claude", "codex").*');
+  return lines.join('\n');
+}
+
+export function renderModelsList(d: ModelsListData): string {
+  const lines = [`**Models for ${d.agent}**`];
+  if (d.sources.length) lines.push(`*Source: ${d.sources.join(', ')}*`);
+  if (d.note) lines.push(`*${d.note}*`);
+  lines.push('');
+  if (!d.models.length) {
+    lines.push('*No discoverable models found.*');
+  } else {
+    for (let i = 0; i < d.models.length; i++) {
+      const m = d.models[i];
+      const status = m.isCurrent ? '●' : '○';
+      const display = m.alias ? `${m.alias} (${m.id})` : m.id;
+      lines.push(`${status} **${i + 1}.** \`${display}\`${m.isCurrent ? ' ← current' : ''}`);
+    }
+    lines.push('');
+    lines.push('*Use the controls below to switch, or reply with model number / ID.*');
+  }
+  if (d.effort) {
+    lines.push('');
+    lines.push(`**Thinking Effort:** \`${d.effort.current}\``);
+    lines.push(d.effort.levels.map(l => l.isCurrent ? `**[${l.label}]**` : l.label).join(' | '));
+  }
+  return lines.join('\n');
+}
+
+export function renderSkillsList(d: SkillsListData): string {
+  const lines = [`**Project Skills** (${d.skills.length})`, '', `**Agent:** ${d.agent}`, `**Workdir:** \`${d.workdir}\``];
+  if (!d.skills.length) {
+    lines.push('', '*No project skills found in `.swarmdeck/skills/` or `.claude/commands/`.*');
+    return lines.join('\n');
+  }
+
+  lines.push('');
+  for (const skill of d.skills) {
+    lines.push(`**/${skill.command}** — ${skill.label}`);
+    if (skill.description) lines.push(skill.description);
+  }
+  lines.push('', '*Tap a button below or send the command directly.*');
+  return lines.join('\n');
+}
+
+export function renderSessionsPageCard(d: SessionsPageData): FeishuCardView {
+  const sessionButtons = d.sessions.map(s => {
+    const prefix = s.isCurrent ? '● ' : s.isRunning ? '🟢 ' : '';
+    return cardButton(`${prefix}${s.title}`, `sess:${s.key}`, s.isCurrent);
+  });
+  const navButtons: FeishuCardActionItem[] = [];
+  if (d.page > 0) navButtons.push(cardButton(`◀ p${d.page}`, `sp:${d.page - 1}`));
+  navButtons.push(cardButton('+ New', 'sess:new'));
+  if (d.page < d.totalPages - 1) navButtons.push(cardButton(`p${d.page + 2} ▶`, `sp:${d.page + 1}`));
+
+  return {
+    markdown: renderSessionsPage(d),
+    rows: [
+      ...cardRows(sessionButtons),
+      ...(navButtons.length ? [{ actions: navButtons }] : []),
+    ],
+  };
+}
+
+export function renderAgentsListCard(d: AgentsListData): FeishuCardView {
+  const actions = d.agents
+    .filter(a => a.installed)
+    .map(a => cardButton(a.isCurrent ? `● ${a.agent}` : a.agent, `ag:${a.agent}`, a.isCurrent));
+
+  return {
+    markdown: renderAgentsList(d),
+    rows: cardRows(actions),
+  };
+}
+
+export function renderModelsListCard(d: ModelsListData): FeishuCardView {
+  const modelRows = cardRows(d.models.map(m =>
+    cardButton(m.isCurrent ? `● ${m.alias || m.id}` : (m.alias || m.id), `mod:${m.id}`, m.isCurrent),
+  ));
+  const effortRows = d.effort
+    ? cardRows(d.effort.levels.map(l => cardButton(l.isCurrent ? `● ${l.label}` : l.label, `eff:${l.id}`, l.isCurrent)))
+    : [];
+
+  return {
+    markdown: renderModelsList(d),
+    rows: [...modelRows, ...effortRows],
+  };
+}
+
+export function renderSkillsCard(d: SkillsListData): FeishuCardView {
+  return {
+    markdown: renderSkillsList(d),
+    rows: cardRows(d.skills.map(skill => cardButton(skill.label, `skill:${skill.command}`)), 2),
+  };
+}
+
+export function renderStatus(d: StatusData): string {
+  const gitLine = formatGitStatusLine(d.git);
+  const lines = [
+    `**swarmdeck** v${d.version}`,
+    '',
+    `**Uptime:** ${fmtUptime(d.uptime)}`,
+    `**Memory:** ${(d.memRss / 1024 / 1024).toFixed(0)}MB RSS / ${(d.memHeap / 1024 / 1024).toFixed(0)}MB heap`,
+    `**PID:** ${d.pid}`,
+    `**Workdir:** \`${d.workdir}\``,
+    ...(gitLine ? [`**Git:** ${gitLine}`] : []),
+    '',
+    `**Agent:** ${d.agent}`,
+    `**Model:** ${d.model}`,
+    `**Session:** ${d.sessionId ? `\`${d.sessionId.slice(0, 16)}\`` : '(new)'}`,
+    `**Active Tasks:** ${d.activeTasksCount}`,
+  ];
+  if (d.running) {
+    lines.push(`**Running:** ${fmtUptime(Date.now() - d.running.startedAt)} - ${summarizePromptForStatus(d.running.prompt)}`);
+  }
+  for (const line of buildUsageOverviewLines(d.usageOverview)) {
+    lines.push(line.bold && line.text ? `**${line.text}**` : line.text);
+  }
+  lines.push('', '**Bot Usage**', `  Turns: ${d.stats.totalTurns}`);
+  if (d.stats.totalInputTokens || d.stats.totalOutputTokens) {
+    lines.push(`  In: ${fmtTokens(d.stats.totalInputTokens)}  Out: ${fmtTokens(d.stats.totalOutputTokens)}`);
+    if (d.stats.totalCachedTokens) lines.push(`  Cached: ${fmtTokens(d.stats.totalCachedTokens)}`);
+  }
+  return lines.join('\n');
+}
+
+class PathRegistry {
+  private pathToId = new Map<string, number>();
+  private idToPath = new Map<number, string>();
+  private nextId = 1;
+
+  register(dirPath: string): number {
+    let id = this.pathToId.get(dirPath);
+    if (id != null) return id;
+    id = this.nextId++;
+    this.pathToId.set(dirPath, id);
+    this.idToPath.set(id, dirPath);
+    if (this.pathToId.size > 500) {
+      const oldest = [...this.pathToId.entries()].slice(0, 200);
+      for (const [oldPath, oldId] of oldest) {
+        this.pathToId.delete(oldPath);
+        this.idToPath.delete(oldId);
+      }
+    }
+    return id;
+  }
+
+  resolve(id: number): string | undefined {
+    return this.idToPath.get(id);
+  }
+}
+
+const feishuPathRegistry = new PathRegistry();
+const DIR_PAGE_SIZE = 8;
+
+export function resolveFeishuRegisteredPath(id: number): string | undefined {
+  return feishuPathRegistry.resolve(id);
+}
+
+export function buildSwitchWorkdirCard(
+  currentWorkdir: string,
+  browsePath: string,
+  page = 0,
+  opts: { savedWorkspaceCount?: number } = {},
+): FeishuCardView {
+  const dirs = listSubdirs(browsePath);
+  const totalPages = Math.max(1, Math.ceil(dirs.length / DIR_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(0, page), totalPages - 1);
+  const slice = dirs.slice(currentPage * DIR_PAGE_SIZE, (currentPage + 1) * DIR_PAGE_SIZE);
+
+  const lines = ['**Workdir**'];
+  lines.push(`● \`${currentWorkdir}\``);
+  if (browsePath !== currentWorkdir) lines.push(`○ \`${browsePath}\``);
+  if (opts.savedWorkspaceCount && opts.savedWorkspaceCount > 0) {
+    lines.push('', `_Tip: ${opts.savedWorkspaceCount} saved workspace${opts.savedWorkspaceCount === 1 ? '' : 's'} — use /workspaces for one-tap switching._`);
+  }
+
+  const dirRows: FeishuCardActionRow[] = [];
+  for (let i = 0; i < slice.length; i += 2) {
+    const rowActions: FeishuCardActionItem[] = [];
+    for (let j = i; j < Math.min(i + 2, slice.length); j++) {
+      const fullPath = path.join(browsePath, slice[j]);
+      const id = feishuPathRegistry.register(fullPath);
+      rowActions.push(cardButton(slice[j], `sw:n:${id}:0`));
+    }
+    dirRows.push({ actions: rowActions });
+  }
+
+  const navActions: FeishuCardActionItem[] = [];
+  const parent = path.dirname(browsePath);
+  if (parent !== browsePath) {
+    navActions.push(cardButton('⬆ ..', `sw:n:${feishuPathRegistry.register(parent)}:0`));
+  }
+  if (totalPages > 1) {
+    const browseId = feishuPathRegistry.register(browsePath);
+    if (currentPage > 0) navActions.push(cardButton(`◀ ${currentPage}/${totalPages}`, `sw:n:${browseId}:${currentPage - 1}`));
+    if (currentPage < totalPages - 1) navActions.push(cardButton(`${currentPage + 2}/${totalPages} ▶`, `sw:n:${browseId}:${currentPage + 1}`));
+  }
+
+  const selectActions: FeishuCardActionItem[] = [
+    cardButton('✓ Use This', `sw:s:${feishuPathRegistry.register(browsePath)}`, true),
+  ];
+
+  const rows = [
+    ...dirRows,
+    ...(navActions.length ? [{ actions: navActions }] : []),
+    { actions: selectActions },
+  ];
+
+  return { markdown: lines.join('\n'), rows };
+}
+
+const WORKSPACES_PAGE_SIZE = 10;
+
+export function buildWorkspacesCard(data: WorkspacesData, page = 0): FeishuCardView {
+  const { workspaces, currentWorkdir } = data;
+  const lines = ['**Workspaces**'];
+
+  if (workspaces.length === 0) {
+    lines.push(
+      '',
+      'No saved workspaces yet.',
+      '',
+      'Add workspaces from the Dashboard (Sessions → Add Workspace), then come back to switch with one tap.',
+      '',
+      'You can still browse the file system with /switch.',
+    );
+    return { markdown: lines.join('\n'), rows: [] };
+  }
+
+  lines.push(`● \`${currentWorkdir}\``);
+
+  const totalPages = Math.max(1, Math.ceil(workspaces.length / WORKSPACES_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(0, page), totalPages - 1);
+  const slice = workspaces.slice(currentPage * WORKSPACES_PAGE_SIZE, (currentPage + 1) * WORKSPACES_PAGE_SIZE);
+
+  const rows: FeishuCardActionRow[] = [];
+  for (const ws of slice) {
+    const marker = ws.isCurrent ? '✓ ' : ws.exists ? '' : '⚠ ';
+    const id = feishuPathRegistry.register(ws.path);
+    rows.push({ actions: [cardButton(`${marker}${ws.name}`, `wsp:s:${id}`, ws.isCurrent ? false : true)] });
+  }
+
+  if (totalPages > 1) {
+    const navActions: FeishuCardActionItem[] = [];
+    if (currentPage > 0) navActions.push(cardButton(`◀ ${currentPage}/${totalPages}`, `wsp:p:${currentPage - 1}`));
+    if (currentPage < totalPages - 1) navActions.push(cardButton(`${currentPage + 2}/${totalPages} ▶`, `wsp:p:${currentPage + 1}`));
+    if (navActions.length) rows.push({ actions: navActions });
+  }
+
+  lines.push('', `_Tap a workspace to switch. ${workspaces.length} saved._`);
+
+  return { markdown: lines.join('\n'), rows };
+}
+
+export function renderHost(d: HostData): string {
+  const lines = [
+    '**Host**',
+    '',
+    `**Name:** ${d.hostName}`,
+    `**CPU:** ${d.cpuModel} x${d.cpuCount}`,
+    d.cpuUsage
+      ? `**CPU Usage:** ${d.cpuUsage.usedPercent.toFixed(1)}% (${d.cpuUsage.userPercent.toFixed(1)}% user, ${d.cpuUsage.sysPercent.toFixed(1)}% sys, ${d.cpuUsage.idlePercent.toFixed(1)}% idle)`
+      : '**CPU Usage:** unavailable',
+    `**Memory:** ${fmtBytes(d.memoryUsed)} / ${fmtBytes(d.totalMem)} (${d.memoryPercent.toFixed(0)}%)`,
+    `**Available:** ${fmtBytes(d.memoryAvailable)}`,
+    `**Battery:** ${d.battery ? `${d.battery.percent} (${d.battery.state})` : 'unavailable'}`,
+  ];
+  if (d.disk) lines.push(`**Disk:** ${d.disk.used} used / ${d.disk.total} total (${d.disk.percent})`);
+  lines.push(`\n**Process:** PID ${d.selfPid} | RSS ${fmtBytes(d.selfRss)} | Heap ${fmtBytes(d.selfHeap)}`);
+  if (d.topProcs.length > 1) {
+    lines.push('\n**Top Processes**');
+    lines.push('```');
+    lines.push(...d.topProcs);
+    lines.push('```');
+  }
+  return lines.join('\n');
+}
