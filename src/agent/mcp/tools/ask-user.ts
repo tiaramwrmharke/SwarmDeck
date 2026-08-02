@@ -47,3 +47,70 @@ async function handleAskUser(args: Record<string, unknown>, ctx: ToolContext): P
   const header = typeof args?.header === 'string' ? args.header.trim() : '';
   const hint = typeof args?.hint === 'string' ? args.hint.trim() : '';
   const allowFreeform = args?.allow_freeform == null ? true : !!args.allow_freeform;
+  const rawOptions = Array.isArray(args?.options) ? (args.options as any[]) : [];
+  const options: AskUserOption[] = rawOptions
+    .map((o: any) => ({
+      label: typeof o?.label === 'string' ? o.label.trim() : '',
+      description: typeof o?.description === 'string' ? o.description.trim() : '',
+    }))
+    .filter(o => o.label);
+
+  if (!question) {
+    toolLog('im_ask_user', 'ERROR missing question');
+    return toolResult('Error: "question" is required', true);
+  }
+  if (!ctx.callbackUrl) {
+    toolLog('im_ask_user', 'ERROR no callback URL');
+    return toolResult('Error: MCP callback URL is not configured', true);
+  }
+
+  toolLog('im_ask_user', `question="${question.slice(0, 160)}" options=${options.length} freeform=${allowFreeform}`);
+
+  try {
+    const response = await callbackAskUser(ctx.callbackUrl, { question, header, hint, allowFreeform, options });
+    if (response.ok) {
+      const answer = (response.answer || '').trim();
+      toolLog('im_ask_user', `OK answer="${answer.slice(0, 160)}"`);
+      return toolResult(answer || '(no response)');
+    }
+    toolLog('im_ask_user', `FAILED ${response.error || 'unknown error'}`);
+    return toolResult(`Failed to get user response: ${response.error || 'unknown error'}`, true);
+  } catch (e: any) {
+    toolLog('im_ask_user', `ERROR ${e.message}`);
+    return toolResult(`Error asking user: ${e.message}`, true);
+  }
+}
+
+interface AskUserResponse { ok: boolean; answer?: string; error?: string }
+
+function callbackAskUser(
+  callbackUrl: string,
+  body: { question: string; header: string; hint: string; allowFreeform: boolean; options: AskUserOption[] },
+): Promise<AskUserResponse> {
+  const payload = JSON.stringify(body);
+  const url = new URL('/ask-user', callbackUrl);
+  return new Promise((resolve, reject) => {
+    const req = http.request(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+    }, res => {
+      let data = '';
+      res.on('data', (chunk: Buffer) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); } catch { resolve({ ok: false, error: 'invalid callback response' }); }
+      });
+    });
+    req.on('error', e => reject(e));
+    req.setTimeout(0);
+    req.write(payload);
+    req.end();
+  });
+}
+
+export const askUserTools: McpToolModule = {
+  tools,
+  handle(name, args, ctx) {
+    if (name === 'im_ask_user') return handleAskUser(args, ctx);
+    return toolResult(`Unknown ask-user tool: ${name}`, true);
+  },
+};
