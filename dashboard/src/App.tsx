@@ -65,3 +65,205 @@ function PageWrapper({ title, description, children }: { title: string; descript
     </div>
   );
 }
+
+function RouteFallback() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="flex items-center gap-2 text-sm text-fg-4">
+        <Spinner />
+        Loading...
+      </div>
+    </div>
+  );
+}
+
+export function App() {
+  const state = useStore(s => s.state);
+  const toasts = useStore(s => s.toasts);
+  const locale = useStore(s => s.locale);
+  const toast = useStore(s => s.toast);
+  const reload = useStore(s => s.reload);
+  const refreshAgentStatus = useStore(s => s.refreshAgentStatus);
+
+  const location = useLocation();
+  const tab = locationToTab(location.pathname);
+  const [sessionsTabReady, setSessionsTabReady] = useState(tab === 'sessions');
+
+  const t = useMemo(() => createT(locale), [locale]);
+  const [modal, setModal] = useState<ModalState>(null);
+  const closeModal = useCallback(() => setModal(null), []);
+
+  const version = state?.version || '...';
+
+  useEffect(() => {
+    if (tab === 'sessions') setSessionsTabReady(true);
+  }, [tab]);
+
+  useEffect(() => {
+    if (getEndpoint()) return;
+    let isClient = false;
+    try { isClient = new URL(window.location.href).searchParams.get('client') === '1'; } catch {  }
+    if (isClient) { setModal({ type: 'connection' }); return; }
+    fetch('/pikichannel/status').then(r => { if (!r.ok) setModal({ type: 'connection' }); }).catch(() => setModal({ type: 'connection' }));
+  }, []);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (!document.hidden) void refreshAgentStatus();
+    }, 60_000);
+    const onVisibility = () => {
+      if (!document.hidden) void refreshAgentStatus();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [refreshAgentStatus]);
+
+  const [restartPhase, setRestartPhase] = useState<RestartPhase>(null);
+
+  const onRestartClick = useCallback(() => {
+    if (restartPhase === 'restarting' || restartPhase === 'reconnecting') return;
+    if (restartPhase === 'confirm') {
+      setRestartPhase('restarting');
+      (async () => {
+        try {
+          const result = await api.restart();
+          if (!result.ok) {
+            const msg = result.activeTasks
+              ? t('modal.restartBlockedTasks').replace('{n}', String(result.activeTasks))
+              : (result.error || t('modal.restartFailed'));
+            toast(msg, false);
+            setRestartPhase(null);
+            return;
+          }
+          setRestartPhase('reconnecting');
+          let recovered = false;
+          for (let i = 0; i < 30; i++) {
+            await new Promise(r => setTimeout(r, 600));
+            try { await api.getState(); recovered = true; break; } catch {}
+          }
+          if (recovered) {
+            await reload();
+            toast(t('modal.restartSuccess'));
+          } else {
+            toast(t('modal.restartFailed'), false);
+          }
+        } catch {
+          toast(t('modal.restartFailed'), false);
+        }
+        setRestartPhase(null);
+      })();
+    } else {
+      setRestartPhase('confirm');
+      setTimeout(() => setRestartPhase(p => (p === 'confirm' ? null : p)), 3000);
+    }
+  }, [restartPhase, toast, t, reload]);
+
+  const tabMeta = getDashboardTabMeta(tab, t);
+
+  return (
+    <div className="noise-overlay">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ contain: 'strict' }}>
+        <div className="grid-bg absolute inset-0 opacity-50" />
+        <div className="absolute -top-36 right-0 h-[420px] w-[420px] rounded-full" style={{ background: 'radial-gradient(ellipse, var(--th-orb1), transparent 72%)', animation: 'drift 24s ease-in-out infinite', willChange: 'transform' }} />
+        <div className="absolute -bottom-40 -left-20 h-[360px] w-[360px] rounded-full" style={{ background: 'radial-gradient(ellipse, var(--th-orb2), transparent 74%)', animation: 'drift 28s ease-in-out infinite reverse', willChange: 'transform' }} />
+      </div>
+
+      <div className="relative h-screen flex flex-col overflow-hidden">
+        <Sidebar
+          version={version}
+          restartPhase={restartPhase}
+          onRestartClick={onRestartClick}
+          onConnectionClick={() => setModal({ type: 'connection' })}
+        />
+
+        <main className="flex-1 overflow-hidden">
+          {sessionsTabReady && (
+            <Suspense fallback={<RouteFallback />}>
+              <div
+                className={cn('h-full', tab !== 'sessions' && 'hidden')}
+                aria-hidden={tab !== 'sessions'}
+              >
+                <SessionsTab active={tab === 'sessions'} />
+              </div>
+            </Suspense>
+          )}
+
+          {tab !== 'sessions' && (
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/im" element={
+                  <PageWrapper title={tabMeta.title} description={tabMeta.description}>
+                    <IMAccessTab
+                      onOpenWeixin={() => setModal({ type: 'weixin' })}
+                      onOpenTelegram={() => setModal({ type: 'telegram' })}
+                      onOpenFeishu={() => setModal({ type: 'feishu' })}
+                      onOpenSlack={() => setModal({ type: 'slack' })}
+                      onOpenDiscord={() => setModal({ type: 'discord' })}
+                      onOpenDingtalk={() => setModal({ type: 'dingtalk' })}
+                      onOpenWeCom={() => setModal({ type: 'wecom' })}
+                    />
+                  </PageWrapper>
+                } />
+                <Route path="/agents" element={
+                  <PageWrapper title={tabMeta.title} description={tabMeta.description}>
+                    <AgentTab />
+                  </PageWrapper>
+                } />
+                <Route path="/permissions" element={<Navigate to="/system" replace />} />
+                <Route path="/extensions" element={
+                  <PageWrapper title={tabMeta.title} description={tabMeta.description}>
+                    <ExtensionsTab onOpenBrowserSetup={() => setModal({ type: 'browser-setup' })} />
+                  </PageWrapper>
+                } />
+                <Route path="/system" element={
+                  <PageWrapper title={tabMeta.title} description={tabMeta.description}>
+                    <SystemTab onOpenWorkdir={() => setModal({ type: 'workdir' })} />
+                  </PageWrapper>
+                } />
+              </Routes>
+            </Suspense>
+          )}
+        </main>
+      </div>
+
+      {modal && (
+        <Suspense fallback={null}>
+          {modal.type === 'weixin' && <WeixinModal open onClose={closeModal} />}
+          {modal.type === 'telegram' && <TelegramModal open onClose={closeModal} />}
+          {modal.type === 'feishu' && <FeishuModal open onClose={closeModal} />}
+          {modal.type === 'slack' && <SlackModal open onClose={closeModal} />}
+          {modal.type === 'discord' && <DiscordModal open onClose={closeModal} />}
+          {modal.type === 'dingtalk' && <DingtalkModal open onClose={closeModal} />}
+          {modal.type === 'wecom' && <WeComModal open onClose={closeModal} />}
+          {modal.type === 'browser-setup' && <BrowserSetupModal open onClose={closeModal} onSaved={() => reload()} />}
+          {modal.type === 'workdir' && <WorkdirModal open onClose={closeModal} />}
+          {modal.type === 'connection' && <ConnectionModal open onClose={closeModal} />}
+        </Suspense>
+      )}
+      <Toasts items={toasts} />
+
+      {(restartPhase === 'restarting' || restartPhase === 'reconnecting') && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--th-bg)]/80 backdrop-blur-sm animate-in">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative h-10 w-10">
+              <svg
+                width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+                className="animate-spin text-fg-2" style={{ animationDuration: '1.2s' }}
+              >
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-fg-3">
+              {restartPhase === 'restarting' ? t('modal.restarting') : t('modal.reconnecting')}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
