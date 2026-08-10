@@ -33,11 +33,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # The reusable core is published alongside swarmdeck on every release, for EXTERNAL
-      # reuse. swarmdeck itself bundles packages/kernel/dist in its own tarball, so this
-      # step failing (e.g. @swarmdeck scope missing / NPM_TOKEN lacks scope access) must NOT
-      # block the release — swarmdeck already published and works off the bundled copy.
-      - name: Publish @swarmdeck/kernel to npm
+      # The reusable core is published alongside helio on every release, for EXTERNAL
+      # reuse. helio itself bundles packages/kernel/dist in its own tarball, so this
+      # step failing (e.g. @helio scope missing / NPM_TOKEN lacks scope access) must NOT
+      # block the release — helio already published and works off the bundled copy.
+      - name: Publish @helio/kernel to npm
         continue-on-error: true
         run: |
           npx tsc -p packages/kernel/tsconfig.json

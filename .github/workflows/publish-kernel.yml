@@ -1,9 +1,9 @@
 name: Publish kernel
 
-# Manual, on-demand publish of @swarmdeck/kernel for external reuse, using the same
-# NPM_TOKEN as the release flow. swarmdeck does NOT depend on this — it bundles the
+# Manual, on-demand publish of @helio/kernel for external reuse, using the same
+# NPM_TOKEN as the release flow. helio does NOT depend on this — it bundles the
 # kernel in its own tarball. Use this when the kernel needs to go out without cutting
-# a full swarmdeck release (e.g. after the @swarmdeck org was first created).
+# a full helio release (e.g. after the @helio org was first created).
 on:
   workflow_dispatch:
 
@@ -28,10 +28,10 @@ jobs:
       - run: npm ci
       - run: npm run verify:toolchain
 
-      - name: Build @swarmdeck/kernel
+      - name: Build @helio/kernel
         run: npx tsc -p packages/kernel/tsconfig.json
 
-      - name: Publish @swarmdeck/kernel to npm
+      - name: Publish @helio/kernel to npm
         run: npm publish ./packages/kernel --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
