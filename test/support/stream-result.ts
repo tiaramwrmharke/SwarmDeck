@@ -26,3 +26,6 @@ export function makeStreamResult(
     stopReason: null,
     incomplete: false,
     activity: null,
+    ...overrides,
+  };
+}
