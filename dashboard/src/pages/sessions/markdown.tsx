@@ -59,3 +59,5 @@ export function isFileLocator(value: string): boolean {
   if (pathPart.includes('/')) {
     const firstSegment = pathPart.split('/')[0] || '';
     if (/^[A-Za-z0-9-]+\.[A-Za-z]{2,}$/.test(firstSegment)) return false;
+    return true;
+  }
