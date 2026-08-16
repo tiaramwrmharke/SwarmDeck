@@ -41,3 +41,27 @@ export function resolveAppStatusBadge(state: AppState | null, t: Translate): {
   if (state.ready) {
     return {
       badgeVariant: 'accent',
+      badgeContent: t('status.ready'),
+      dotVariant: 'ok',
+      dotPulse: false,
+    };
+  }
+
+  const withinStartupWindow = !!state.configExists && !!state.bot && state.bot.uptime < APP_STARTUP_LOADING_WINDOW_MS;
+  const pendingChannelValidation = hasPendingChannelValidation(state.setupState?.channels || null);
+  if (withinStartupWindow || pendingChannelValidation) {
+    return {
+      badgeVariant: 'muted',
+      badgeContent: t('status.loading'),
+      dotVariant: 'warn',
+      dotPulse: true,
+    };
+  }
+
+  return {
+    badgeVariant: 'warn',
+    badgeContent: t('status.needsConfig'),
+    dotVariant: 'warn',
+    dotPulse: true,
+  };
+}
