@@ -17,3 +17,13 @@ export {
 } from './store.js';
 
 export { validateProvider, type ProviderValidationResult } from './validation.js';
+
+export {
+  resolveAgentInjection, isAgentBoundToProfile, prewarmLocalModel,
+  type InjectedSpawnConfig,
+} from './injector.js';
+
+export {
+  getProviderModelList, invalidateProviderModels,
+  peekProviderModelList, peekProviderModelInfo, prefetchProviderModels,
+} from './provider-models.js';
