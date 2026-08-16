@@ -20,3 +20,19 @@ describe('agent install specs', () => {
   });
 
   it('hermes is a manual install, never npm (regression: "Unsupported agent: hermes")', () => {
+    expect(getAgentPackage('hermes')).toBeNull();
+
+    const spec = getAgentInstall('hermes');
+    expect(spec).not.toBeNull();
+    expect(spec!.method).toBe('manual');
+    expect(spec!.command).toMatch(/install\.sh/);
+    expect(spec!.docsUrl).toBeTruthy();
+    expect(spec!.note).toBeTruthy();
+    expect(getAgentInstallCommand('hermes')).toBe(spec!.command);
+  });
+
+  it('unknown agents have no install spec', () => {
+    expect(getAgentInstall('bogus')).toBeNull();
+    expect(getAgentInstallCommand('bogus')).toBeNull();
+  });
+});
