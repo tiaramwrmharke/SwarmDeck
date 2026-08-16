@@ -27,3 +27,6 @@ npm run dev    # starts swarmdeck in --no-daemon mode, logs to ~/.swarmdeck/dev/
 ```
 
 This gives you a live-reloading development server with the dashboard at `http://localhost:3939`.
+
+### Running tests
+
