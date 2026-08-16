@@ -31,3 +31,39 @@ describe('CommandAction codec', () => {
   ];
 
   it('round-trips every CommandAction kind', () => {
+    for (const action of samples) {
+      const encoded = encodeCommandAction(action);
+      const decoded = decodeCommandAction(encoded);
+      expect(decoded).toEqual(action);
+    }
+  });
+
+  it('rejects malformed payloads', () => {
+    expect(decodeCommandAction('')).toBeNull();
+    expect(decodeCommandAction('unknown:foo')).toBeNull();
+    expect(decodeCommandAction('sess:')).toBeNull();
+    expect(decodeCommandAction('ag:notAnAgent')).toBeNull();
+    expect(decodeCommandAction('agacc:claude')).toBeNull();        // missing :accountId separator
+    expect(decodeCommandAction('agacc:notAnAgent:x')).toBeNull();  // bad agent
+    expect(decodeCommandAction('sp:-1')).toBeNull();
+    expect(decodeCommandAction('sp:abc')).toBeNull();
+    expect(decodeCommandAction('wf:')).toBeNull();
+    expect(decodeCommandAction('wf:2')).toBeNull();
+  });
+
+  it('keeps typical encoded payloads short enough for IM button callbacks (<= 64 bytes)', () => {
+    for (const action of samples) {
+      expect(Buffer.byteLength(encodeCommandAction(action))).toBeLessThanOrEqual(64);
+    }
+  });
+
+  it('a realistic BYOK model pick overflows the raw codec (why the registry exists)', () => {
+    const action: CommandAction = {
+      kind: 'models.select.model',
+      modelId: 'deepseek/deepseek-chat-v3-0324',
+      profileId: '7f3c1a2b-9d4e-4f60-8a11-2c3d4e5f6a7b',
+    };
+    expect(Buffer.byteLength(encodeCommandAction(action))).toBeGreaterThan(64);
+    expect(decodeCommandAction(encodeCommandAction(action))).toEqual(action);
+  });
+});
