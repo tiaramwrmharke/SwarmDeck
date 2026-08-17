@@ -35,3 +35,50 @@ export class FeishuSurface implements Surface {
   async start(io: LoomIO): Promise<void> {
     this.io = io;
     this.unsub = io.subscribe((key, snap) => { void this.onSnapshot(key, snap); });
+    if (this.transport.connect) await this.transport.connect();
+    this.transport.onMessage(async (m) => {
+      const resume = this.sessionForChat(m.chatId);
+      const { sessionKey } = await io.prompt({ prompt: m.text, agent: this.opts.agent, sessionKey: resume });
+      if (!this.bySession.has(sessionKey)) this.bySession.set(sessionKey, { chatId: m.chatId, msgId: null, lastText: '', latest: null, busy: false });
+    });
+  }
+
+  async stop(): Promise<void> {
+    this.unsub?.();
+    this.transport.disconnect?.();
+  }
+
+  private sessionForChat(chatId: string): string | undefined {
+    for (const [key, b] of this.bySession) if (b.chatId === chatId) return key;
+    return undefined;
+  }
+
+  private async onSnapshot(sessionKey: string, snap: UniversalSnapshot): Promise<void> {
+    const b = this.bySession.get(sessionKey);
+    if (!b) return;
+    b.latest = snap;
+    if (b.busy) return;                 // an op is in flight — it will pick up b.latest (coalesced)
+    b.busy = true;
+    try {
+      while (b.latest) {
+        const s = b.latest; b.latest = null;
+        const text = renderFeishu(s);
+        if (text === b.lastText) continue;
+        b.lastText = text;
+        if (!b.msgId) b.msgId = await this.transport.send(b.chatId, text);  // exactly one create
+        else await this.transport.edit(b.msgId, text);                      // edit-in-place
+        if (s.phase === 'done') b.msgId = null; // next turn in this chat starts a fresh message
+      }
+    } finally {
+      b.busy = false;
+    }
+  }
+}
+
+export function renderFeishu(snap: UniversalSnapshot): string {
+  const body = snap.text || (snap.phase === 'streaming' ? '…' : '');
+  const err = snap.error ? `\n⚠️ ${snap.error}` : '';
+  const foot = snap.phase === 'done' && snap.usage?.outputTokens != null ? `\n— ${snap.usage.outputTokens} tok` : '';
+  const tail = snap.phase === 'streaming' ? ' ⏳' : '';
+  return `${body}${err}${foot}${tail}`;
+}

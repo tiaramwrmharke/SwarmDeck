@@ -21,3 +21,38 @@
     "websocket"
   ],
   "exports": {
+    ".": "./dist/index.js",
+    "./drivers": "./dist/drivers/index.js",
+    "./surfaces": "./dist/surfaces/index.js",
+    "./protocol": "./dist/protocol/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/",
+    "README.md",
+    "llms.txt"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "node-pty": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "typescript": "7.0.2",
+    "vitest": "^4.0.18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
