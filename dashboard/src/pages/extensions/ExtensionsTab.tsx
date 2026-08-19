@@ -580,7 +580,7 @@ function CustomSkillDialog({
 
 function openOAuthPopup(authUrl: string, expectedState: string): Promise<boolean> {
   return new Promise((resolve) => {
-    const popup = window.open(authUrl, 'swarmdeck_mcp_oauth', 'width=640,height=780,noopener=no');
+    const popup = window.open(authUrl, 'helio_mcp_oauth', 'width=640,height=780,noopener=no');
     if (!popup) { resolve(false); return; }
 
     let done = false;
@@ -937,8 +937,8 @@ function LocalSkillCard({
       <div className="relative mt-auto pt-3 flex items-center justify-between text-[10.5px] text-fg-5">
         <span>
           {skill.scope === 'global'
-            ? L(locale, '全局 · ~/.swarmdeck/skills', 'Global · ~/.swarmdeck/skills')
-            : L(locale, '项目 · .swarmdeck/skills', 'Project · .swarmdeck/skills')}
+            ? L(locale, '全局 · ~/.helio/skills', 'Global · ~/.helio/skills')
+            : L(locale, '项目 · .helio/skills', 'Project · .helio/skills')}
         </span>
         <Button
           variant="ghost"
@@ -1348,7 +1348,7 @@ function McpCatalogSection({
   onOpenBrowserSetup?: () => void;
 }) {
   const toast = useStore(s => s.toast);
-  const cacheKey = `swarmdeck.mcp.catalog.${scope}.${workdir || ''}`;
+  const cacheKey = `helio.mcp.catalog.${scope}.${workdir || ''}`;
   const { data, loading, refresh } = useCachedResource<McpCatalogItem[]>(
     cacheKey,
     async () => (await api.getMcpCatalog(workdir, scope)).items || [],
@@ -1509,7 +1509,7 @@ function McpCatalogSection({
             <div>
               <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-5">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--th-accent,#7c3aed)]"></span>
-                {L(locale, '内置（swarmdeck 优化）', 'Built-in (optimized by swarmdeck)')}
+                {L(locale, '内置（helio 优化）', 'Built-in (optimized by helio)')}
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {builtinItems.map((item, i) => (
@@ -1521,7 +1521,7 @@ function McpCatalogSection({
                       busy={busy === item.id}
                       index={i}
                       onPrimary={() => handleConnectedPrimary(item)}
-                      onReconfigure={item.id === 'swarmdeck-browser' ? onOpenBrowserSetup : undefined}
+                      onReconfigure={item.id === 'helio-browser' ? onOpenBrowserSetup : undefined}
                     />
                   ) : (
                     <AvailableCard
@@ -1662,7 +1662,7 @@ function SkillsCatalogSection({
   workdir?: string;
   locale: string;
 }) {
-  const cacheKey = `swarmdeck.skills.catalog.${scope}.${workdir || ''}`;
+  const cacheKey = `helio.skills.catalog.${scope}.${workdir || ''}`;
   const { data, loading, refresh } = useCachedResource<{ items: SkillCatalogItem[]; installed: SkillInfo[] }>(
     cacheKey,
     async () => {
@@ -2584,7 +2584,7 @@ function CliCatalogSection({
   scope: 'global' | 'workspace';
 }) {
   const { data, loading, refresh } = useCachedResource<CliCatalogItem[]>(
-    `swarmdeck:cli:catalog`,
+    `helio:cli:catalog`,
     async () => {
       const r = await api.getCliCatalog();
       if (!r.ok) throw new Error(r.error || 'failed');
@@ -2789,13 +2789,13 @@ export function ExtensionsTab({
   const workdir = state?.config?.workdir || '';
   const [tab, setTab] = useState<ExtensionTab>(() => {
     try {
-      const saved = localStorage.getItem('swarmdeck:extensions:tab');
+      const saved = localStorage.getItem('helio:extensions:tab');
       return (saved === 'mcp' || saved === 'cli' || saved === 'skill') ? saved : 'mcp';
     } catch { return 'mcp'; }
   });
   const switchTab = useCallback((next: ExtensionTab) => {
     setTab(next);
-    try { localStorage.setItem('swarmdeck:extensions:tab', next); } catch {  }
+    try { localStorage.setItem('helio:extensions:tab', next); } catch {  }
   }, []);
 
   return (
@@ -2829,13 +2829,13 @@ export function WorkspaceExtensionsBody({ workdir }: { workdir: string }) {
   const locale = useStore(s => s.locale);
   const [tab, setTab] = useState<ExtensionTab>(() => {
     try {
-      const saved = localStorage.getItem('swarmdeck:extensions-ws:tab');
+      const saved = localStorage.getItem('helio:extensions-ws:tab');
       return (saved === 'mcp' || saved === 'cli' || saved === 'skill') ? saved : 'mcp';
     } catch { return 'mcp'; }
   });
   const switchTab = useCallback((next: ExtensionTab) => {
     setTab(next);
-    try { localStorage.setItem('swarmdeck:extensions-ws:tab', next); } catch {  }
+    try { localStorage.setItem('helio:extensions-ws:tab', next); } catch {  }
   }, []);
   return (
     <div className="space-y-6">
