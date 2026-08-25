@@ -25,3 +25,5 @@ function StepIcon({ status }: { status: StreamPlan['steps'][number]['status'] })
   }
   if (status === 'inProgress') {
     return <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />;
+  }
+  return <span className="h-1.5 w-1.5 rounded-full bg-fg-5/25" />;
