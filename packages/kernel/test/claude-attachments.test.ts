@@ -61,3 +61,6 @@ describe('claudeUserMessage (kernel)', () => {
 // The driver keeps stdin OPEN for the whole turn (background wake-up hold), so reply on the
 // first full stdin line rather than waiting for an 'end' that never comes.
 const FAKE_CLAUDE = `#!/usr/bin/env node
+const fs = require('fs');
+fs.writeFileSync(process.env.PIKI_ARGV_OUT, JSON.stringify(process.argv.slice(2)));
+let buf = '';
