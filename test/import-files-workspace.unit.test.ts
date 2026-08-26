@@ -17,3 +17,5 @@ describe('importFilesIntoWorkspace', () => {
     const ws = path.join(realRoot, 'workspace');
     fs.mkdirSync(ws);
     fs.writeFileSync(path.join(ws, 'pic.png'), 'imgdata');
+
+    const linkRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'imp-link-'));
