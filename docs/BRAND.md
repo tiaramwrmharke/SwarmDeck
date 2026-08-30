@@ -1,35 +1,39 @@
-# swarmdeck — brand marks & colors
+# helio — brand marks & colors
 
-8-bit pixel mosaic of a woven knot (piki + **loom** = weaving). Cyan brand color, with a
-deep-cyan variant for light backgrounds.
+The mark is a sun: a filled disc with an orbit ring, cut at 45 degrees. Helio is the
+assistant layer on helius.dev, so the mark leans warm against the otherwise cold
+infrastructure palette.
+
+Assets are placeholders until the set is redrawn — the geometry and file names are fixed,
+the pixels are not.
 
 ## Assets (`docs/`)
 
 | File | What | Size |
 |------|------|------|
-| `logo.png` | icon — the knot | 502×512 |
-| `logo-wordmark.png` | knot + `swarmdeck` | 1000×229 |
-| `logo-word.png` | `swarmdeck` word only | 792×187 |
+| `logo.png` | icon — the disc | 512×512 |
+| `logo-wordmark.png` | disc + `helio` | 1000×229 |
+| `logo-word.png` | `helio` word only | 792×187 |
 
-Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
+Transparent background. Single accent hue, no gradients, no shadow.
 
 ## Color by background
 
-| Background | fill | edge |
+| Background | fill | ring |
 |-----------|------|------|
-| dark | `#45e0f5` (cyan) | `#144349` |
-| light / white | `#0e7490` (deep cyan) | `#06333c` |
+| dark | `#f5b544` | `#7a5218` |
+| light / white | `#a16207` | `#4a2f06` |
 
 ## Where used
 
-- **Dashboard header** (`dashboard/src/components/Sidebar.tsx`) → wordmark, swapped by
-  theme: cyan PNG on dark, deep-cyan `logo-wordmark-light.png` on light.
-- **Web landing nav** (`web/src/sections/Nav.tsx`) → cyan wordmark PNG (page is always dark).
-- **Browser tab / favicon** (`dashboard/public/logo.png`, `web/public/logo.png`) → the knot
-  recolored to deep cyan `#0e7490` (browser tabs are usually light, where bright cyan
-  washes out).
+- **Dashboard header** (`dashboard/src/components/Sidebar.tsx`) → wordmark, swapped by theme.
+- **Web landing nav** (`web/src/sections/Nav.tsx`) → wordmark, dark page only.
+- **Favicon** (`dashboard/public/logo.png`, `web/public/logo.png`) → disc, deep variant.
 - **Social card** (`web/public/og.png`).
 
-The deep-cyan variants are produced by recoloring the cyan PNGs (deterministic canvas
-remap: cyan→`#0e7490`, edge→`#06333c`; the single-hue icon is a flat alpha-preserving
-recolor).
+## Rules
+
+- The word is always lowercase `helio`, never `Helio` in the mark, always `Helio` in prose.
+- Minimum clear space is the height of the disc on all sides.
+- Never place the mark on a photograph without a scrim.
+- Never recolor the disc outside the two pairs above.
