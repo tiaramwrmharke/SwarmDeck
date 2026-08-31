@@ -40,3 +40,7 @@ export class SessionRunner {
   }
 
   async run(driver: AgentDriver, input: AgentTurnInput, prompt: string, model: string | null, effort: string | null): Promise<DriverResult> {
+    this.snapshot.phase = 'streaming';
+    this.snapshot.prompt = prompt;
+    this.snapshot.model = model;
+    this.snapshot.effort = effort;
