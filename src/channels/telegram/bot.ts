@@ -393,3 +393,6 @@ export class TelegramBot extends Bot {
 
   private buildStopKeyboard(actionId: string | null, opts?: { queued?: boolean }) {
     if (!actionId) return undefined;
+    if (opts?.queued) {
+      return {
+        inline_keyboard: [[
