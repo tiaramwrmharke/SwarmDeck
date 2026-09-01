@@ -28,3 +28,4 @@ function positiveIntEnv(name: string, fallback: number): number {
   if (!raw) return fallback;
   const value = Number.parseInt(raw, 10);
   return Number.isFinite(value) && value > 0 ? value : fallback;
+}
