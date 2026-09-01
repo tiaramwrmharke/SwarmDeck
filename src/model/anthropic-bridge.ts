@@ -99,3 +99,5 @@ async function handleMessages(
 
   let upstreamResp: Response;
   try {
+    upstreamResp = await fetch(upstreamUrl, {
+      method: 'POST',
