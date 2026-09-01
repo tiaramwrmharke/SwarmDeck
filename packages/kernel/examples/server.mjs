@@ -22,3 +22,5 @@ const server = http.createServer((req, res) => {
     res.end(html);
     return;
   }
+  res.writeHead(404); res.end('not found');
+});
