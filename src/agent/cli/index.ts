@@ -6,3 +6,4 @@ export {
 
 export {
   detectCli, getCachedCliStatus, invalidateCliStatus, currentPlatform,
+  type CliState, type CliStatus,

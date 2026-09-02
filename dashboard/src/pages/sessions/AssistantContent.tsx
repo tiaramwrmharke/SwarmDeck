@@ -77,3 +77,4 @@ export function SystemNoticeSection({ blocks, t }: { blocks: MessageBlock[]; t: 
       <div className="min-w-0">
         <div className="text-[11px] font-mono uppercase tracking-wide text-amber-300/80">{t('hub.systemNotice') || 'Agent notice'}</div>
         <div className="mt-0.5 break-words whitespace-pre-wrap">{text}</div>
+      </div>
