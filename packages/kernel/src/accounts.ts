@@ -9,7 +9,7 @@
 // what actually isolates an account. codex has no equivalent token, so it is not supported
 // here yet (single account only).
 //
-// Dependency-free (no imports) so any @swarmdeck/kernel consumer inherits account switching.
+// Dependency-free (no imports) so any @helio/kernel consumer inherits account switching.
 
 const ACCOUNT_TOKEN_ENV: Record<string, string> = {
   claude: 'CLAUDE_CODE_OAUTH_TOKEN',

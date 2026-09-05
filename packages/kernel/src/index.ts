@@ -1,4 +1,4 @@
-// @swarmdeck/kernel — heterogeneous coding agents -> an interaction-friendly,
+// @helio/kernel — heterogeneous coding agents -> an interaction-friendly,
 // accumulating session snapshot + control handle, over pluggable surfaces.
 //
 //   const loom = createLoom({
@@ -7,7 +7,7 @@
 //   })
 //   await loom.start()
 //
-// swarmdeck itself is just a consumer of this package.
+// helio itself is just a consumer of this package.
 //
 // This barrel IS the public API (pinned by test/api-surface.test.ts). Driver-internal
 // parser/settle helpers are exported by their modules for white-box tests but are

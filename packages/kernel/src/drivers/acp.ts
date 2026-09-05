@@ -24,7 +24,7 @@ import { attachedFileNote, contextPercent, imageMimeForFile, wireAbort } from '.
 // the Claude/Codex/Gemini drivers, so it plugs into createLoom({ drivers }) / registerDriver.
 
 export interface AcpDriverConfig {
-  id: string;                                          // swarmdeck agent id (e.g. 'opencode', 'hermes')
+  id: string;                                          // helio agent id (e.g. 'opencode', 'hermes')
   command: string;                                     // binary to spawn
   args?: string[];                                     // subcommand/flags (default ['acp'])
   env?: Record<string, string>;                        // static env, merged UNDER input.env (BYOK wins)
@@ -35,7 +35,7 @@ export interface AcpDriverConfig {
   capabilities?: AgentDriver['capabilities'];
 }
 
-// ── swarmdeck McpServerSpec[] -> ACP mcpServers[] ───────────────────────────────
+// ── helio McpServerSpec[] -> ACP mcpServers[] ───────────────────────────────
 export function toAcpMcpServers(servers?: McpServerSpec[]): any[] {
   if (!servers || !servers.length) return [];
   const out: any[] = [];

@@ -1,17 +1,17 @@
-# @swarmdeck/kernel
+# @helio/kernel
 
 Turn heterogeneous coding agents (**Claude Code · Codex · Gemini · ACP/Hermes**) into one
 **uniform, accumulating session snapshot + a small set of control verbs**, exposed over
 **pluggable surfaces** (IM, Web, tunnel, raw terminal). Environmental concerns (storage,
 credentials, tools, prompts) are **injected ports** with working defaults.
 
-This is the reusable core that [swarmdeck](https://github.com/xiaotonng/swarmdeck) itself is
-built on. Drop it into any project and stand up a "swarmdeck-like" backend in a few lines —
+This is the reusable core that [helio](https://github.com/expumpemployee/helio) itself is
+built on. Drop it into any project and stand up a "helio-like" backend in a few lines —
 **you never parse a CLI's output or learn each agent's wire format**; you read one
 `UniversalSnapshot` and call `prompt / stop / steer / interact`.
 
 ```bash
-npm i @swarmdeck/kernel
+npm i @helio/kernel
 ```
 
 - Runtime dep: `ws`. Optional: `node-pty` (only for raw-TUI passthrough). Node ≥ 20, ESM-only.
@@ -24,7 +24,7 @@ npm i @swarmdeck/kernel
 ```
 上层 (you write):   IM bindings · Web UI · Plugins         ── implement Surface / Plugin
                           ▲ createLoom({ surfaces, plugins, ...ports })
-@swarmdeck/kernel:   contracts/  Driver · Surface · LoomIO · Ports
+@helio/kernel:   contracts/  Driver · Surface · LoomIO · Ports
   (one import,      runtime/    SessionRunner · Hub (multi-session) · snapshot accumulation · control verbs
    modular inside)  drivers/    Claude / Codex / Gemini / Hermes / Echo  ← the agent axis (下层)
                     surfaces/   WebSurface (ws host) · CliSurface
@@ -41,7 +41,7 @@ npm i @swarmdeck/kernel
 | Rail | Driver method | Output | Use for |
 |------|---------------|--------|---------|
 | **Structured** | `driver.run(input, ctx)` | streamed `UniversalSnapshot` (text, reasoning, tool activity, plan, usage) | IM, Web dashboards, any UI that renders structured turns |
-| **Raw PTY** | `driver.tui(input)` | a real full-screen interactive process passed through a PTY | a local terminal app (`swarmdeck code`-style); needs `node-pty` |
+| **Raw PTY** | `driver.tui(input)` | a real full-screen interactive process passed through a PTY | a local terminal app (`helio code`-style); needs `node-pty` |
 
 ---
 
@@ -53,7 +53,7 @@ The smallest unit. No persistence, no multi-session — just run a turn and get 
 snapshot + final result. This is exactly what an existing app maps onto its own UI.
 
 ```ts
-import { runTurn, ClaudeDriver } from '@swarmdeck/kernel';
+import { runTurn, ClaudeDriver } from '@helio/kernel';
 
 const { result, snapshot } = await runTurn(
   new ClaudeDriver(),
@@ -81,7 +81,7 @@ Adds persistence, a session hub, per-session queueing, discovery, and surfaces. 
 has a default, so this runs with zero wiring.
 
 ```ts
-import { createLoom, ClaudeDriver, CodexDriver, WebSurface } from '@swarmdeck/kernel';
+import { createLoom, ClaudeDriver, CodexDriver, WebSurface } from '@helio/kernel';
 
 const loom = createLoom({
   drivers: [new ClaudeDriver(), new CodexDriver()],   // 下层 (unchanged binaries)
@@ -279,12 +279,12 @@ plugins are the composable per-capability layer on top.)
 ## Workspace: unified directory + session / skill / mcp management
 
 One explicitly-configurable **top-level directory** (`createLoom({ stateDirName })`, default
-`'swarmdeck'` → `.swarmdeck`) gives a consuming app the same "everything under one folder" model
-swarmdeck uses, resolved in two scopes — global (`~/.swarmdeck`) and per-workspace
-(`<workdir>/.swarmdeck`). It's exposed off the `Loom`:
+`'helio'` → `.helio`) gives a consuming app the same "everything under one folder" model
+helio uses, resolved in two scopes — global (`~/.helio`) and per-workspace
+(`<workdir>/.helio`). It's exposed off the `Loom`:
 
 ```ts
-const loom = createLoom({ drivers: [new ClaudeDriver(), new CodexDriver()], stateDirName: 'swarmdeck' });
+const loom = createLoom({ drivers: [new ClaudeDriver(), new CodexDriver()], stateDirName: 'helio' });
 
 // Unified, searchable session list — the kernel's MANAGED sessions (scoped per workspace by the
 // cwd they ran in) MERGED with each agent's OWN native sessions (claude/codex read their on-disk
@@ -294,7 +294,7 @@ await loom.sessions.list({ scope: 'global' });               // every workspace'
 await loom.sessions.search({ query: 'deploy', workdir });
 
 // Skills registry: one canonical dir, symlinked into every agent's skills dir.
-loom.skills.ensureLinks('workspace', workdir);   // <wd>/.claude/skills + .agents/skills → <wd>/.swarmdeck/skills
+loom.skills.ensureLinks('workspace', workdir);   // <wd>/.claude/skills + .agents/skills → <wd>/.helio/skills
 loom.skills.list({ workdir });                   // installed skills (workspace + global)
 await loom.skills.search('pdf');                 // installable skills (npm)
 
@@ -302,7 +302,7 @@ await loom.skills.search('pdf');                 // installable skills (npm)
 loom.mcp.recommended();                           // curated catalog
 await loom.mcp.search('postgres');                // MCP registry → npm
 
-loom.paths.skillsDir('global');                   // ~/.swarmdeck/skills, etc.
+loom.paths.skillsDir('global');                   // ~/.helio/skills, etc.
 ```
 
 A driver opts into native discovery by implementing
@@ -312,8 +312,8 @@ node-builtins-only and additive — every existing port/default is unchanged.
 
 ## Exports
 
-Main entry `@swarmdeck/kernel` is the public API, pinned by `test/api-surface.test.ts`.
-Subpaths: `@swarmdeck/kernel/drivers`, `@swarmdeck/kernel/surfaces`, `@swarmdeck/kernel/protocol`.
+Main entry `@helio/kernel` is the public API, pinned by `test/api-surface.test.ts`.
+Subpaths: `@helio/kernel/drivers`, `@helio/kernel/surfaces`, `@helio/kernel/protocol`.
 Driver-internal parser/settle helpers are exported only from their modules (for white-box
 tests) and are NOT part of the public surface.
 

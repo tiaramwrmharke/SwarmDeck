@@ -20,15 +20,15 @@ beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-ws-')); }
 afterEach(() => { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* ignore */ } });
 
 describe('workspace/paths — the top-level directory', () => {
-  it('defaults to .swarmdeck and resolves global + workspace roots', () => {
+  it('defaults to .helio and resolves global + workspace roots', () => {
     const p = resolveLoomPaths({ home: '/home/u' });
-    expect(p.stateDirName).toBe('swarmdeck');
-    expect(p.dirName).toBe('.swarmdeck');
-    expect(p.globalRoot).toBe(path.join('/home/u', '.swarmdeck'));
-    expect(p.workspaceRoot('/work/proj')).toBe(path.join('/work/proj', '.swarmdeck'));
-    expect(p.sessionsDir('global')).toBe(path.join('/home/u', '.swarmdeck', 'sessions'));
-    expect(p.skillsDir('workspace', '/work/proj')).toBe(path.join('/work/proj', '.swarmdeck', 'skills'));
-    expect(p.mcpConfigPath('global')).toBe(path.join('/home/u', '.swarmdeck', 'mcp.json'));
+    expect(p.stateDirName).toBe('helio');
+    expect(p.dirName).toBe('.helio');
+    expect(p.globalRoot).toBe(path.join('/home/u', '.helio'));
+    expect(p.workspaceRoot('/work/proj')).toBe(path.join('/work/proj', '.helio'));
+    expect(p.sessionsDir('global')).toBe(path.join('/home/u', '.helio', 'sessions'));
+    expect(p.skillsDir('workspace', '/work/proj')).toBe(path.join('/work/proj', '.helio', 'skills'));
+    expect(p.mcpConfigPath('global')).toBe(path.join('/home/u', '.helio', 'mcp.json'));
     expect(p.agentHome('global')).toBe('/home/u');
     expect(p.agentHome('workspace', '/work/proj')).toBe('/work/proj');
   });
@@ -38,9 +38,9 @@ describe('workspace/paths — the top-level directory', () => {
     expect(resolveLoomPaths({ stateDirName: '.apodex', home: '/h' }).dirName).toBe('.apodex');
   });
 
-  it('createLoom exposes paths (default swarmdeck)', () => {
+  it('createLoom exposes paths (default helio)', () => {
     const loom = createLoom({ drivers: [new EchoDriver()] });
-    expect(loom.paths.stateDirName).toBe('swarmdeck');
+    expect(loom.paths.stateDirName).toBe('helio');
     const custom = createLoom({ drivers: [new EchoDriver()], stateDirName: 'apodex' });
     expect(custom.paths.dirName).toBe('.apodex');
   });
@@ -219,7 +219,7 @@ describe('workspace/sessions — unified managed + native list', () => {
 describe('workspace/skills — canonical registry + agent symlinks', () => {
   it('lists skills and symlinks agent dirs to the canonical dir', () => {
     const workdir = path.join(tmp, 'proj');
-    const paths = resolveLoomPaths({ stateDirName: 'swarmdeck', home: tmp });
+    const paths = resolveLoomPaths({ stateDirName: 'helio', home: tmp });
     const skills = new SkillsManager({ paths });
     const canonical = skills.canonicalDir('workspace', workdir);
     fs.mkdirSync(path.join(canonical, 'deploy'), { recursive: true });

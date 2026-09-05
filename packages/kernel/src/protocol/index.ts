@@ -1,6 +1,6 @@
 // The wire vocabulary shared by the kernel runtime and every transport/terminal.
 // This is the SSOT shape: a driver-agnostic, accumulating snapshot of one session,
-// plus a small set of control verbs. Ported from swarmdeck's pikichannel protocol.
+// plus a small set of control verbs. Ported from helio's pikichannel protocol.
 
 export const PROTOCOL_VERSION = 1 as const;
 
