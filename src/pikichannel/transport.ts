@@ -38,3 +38,12 @@ export abstract class BaseConnection implements ChannelConnection {
 
   protected emitClose(): void {
     if (this.closed) return;
+    this.closed = true;
+    if (this.closeCb) this.closeCb();
+  }
+
+  isOpen(): boolean { return !this.closed; }
+
+  abstract send(frame: string): void;
+  abstract close(): void;
+}
