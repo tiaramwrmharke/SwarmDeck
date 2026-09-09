@@ -9,3 +9,8 @@ if [[ "${CURRENT_NPM}" != "${EXPECTED_NPM}" ]]; then
   echo "▸ npm ${CURRENT_NPM} → ${EXPECTED_NPM}"
   # Run outside the repository so an older npm can upgrade itself before the
   # root package's strict devEngines contract is evaluated.
+  (cd "${TMPDIR:-/tmp}" && npm install --global --no-audit --no-fund "npm@${EXPECTED_NPM}")
+  hash -r
+fi
+
+node "${ROOT}/scripts/verify-toolchain.mjs" --runtime-only

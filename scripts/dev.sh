@@ -55,3 +55,125 @@ import subprocess
 import sys
 
 script, log_file, workdir, *args = sys.argv[1:]
+env = os.environ.copy()
+env["PIKILOOM_DEV_DETACHED"] = "1"
+with open(os.devnull, "rb") as stdin, open(log_file, "ab", buffering=0) as log:
+    proc = subprocess.Popen(
+        ["bash", script, *args],
+        cwd=workdir,
+        env=env,
+        stdin=stdin,
+        stdout=log,
+        stderr=subprocess.STDOUT,
+        close_fds=True,
+        start_new_session=True,
+    )
+print(proc.pid)
+PY
+)
+    if [[ ! "${_bg_pid}" =~ ^[0-9]+$ ]]; then
+      _bg_pid="(spawned)"
+    fi
+  else
+    nohup env PIKILOOM_DEV_DETACHED=1 bash "$0" "$@" </dev/null >>"${LOG_FILE}" 2>&1 &
+    _bg_pid=$!
+    disown "$_bg_pid" 2>/dev/null || true
+  fi
+  cat <<EOF
+[dev.sh] detached worker spawned (pid=${_bg_pid}); restart proceeds outside caller's process tree
+[dev.sh]   log:  ${LOG_FILE}     (tail -f to follow)
+[dev.sh]   stop: pkill -f 'tsx src/cli/main.ts --no-daemon'
+[dev.sh]   force foreground next time: PIKILOOM_DEV_FOREGROUND=1 npm run dev
+EOF
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# Below runs either as the TTY foreground process, or as the detached worker.
+# Both are now safe to kill the running swarmdeck runtime — neither shares a
+# stdio/process-group dependency with the agent that invoked us.
+# ---------------------------------------------------------------------------
+
+# Kill any previous dev processes (npm -> bash -> tsx -> node tree)
+_killed=0
+# 1) Kill by "tsx src/cli.ts --no-daemon" pattern (the actual node worker)
+if pkill -f 'tsx src/cli/main.ts --no-daemon' 2>/dev/null; then
+  _killed=1
+fi
+# 2) Kill whatever is listening on the dev dashboard port
+_port_pid=$(lsof -ti "tcp:${DEV_PORT}" 2>/dev/null || true)
+if [[ -n "$_port_pid" ]]; then
+  echo "$_port_pid" | xargs kill 2>/dev/null || true
+  _killed=1
+fi
+if (( _killed )); then
+  echo "[dev.sh] killed previous dev process(es), waiting for port ${DEV_PORT} to free..."
+  # Bounded wait for the port to actually release, so we always rebind ${DEV_PORT}
+  # rather than letting the server drift to ${DEV_PORT}+1 on EADDRINUSE.
+  for _i in $(seq 1 20); do
+    _port_pid=$(lsof -ti "tcp:${DEV_PORT}" 2>/dev/null || true)
+    [[ -z "$_port_pid" ]] && break
+    sleep 0.1
+  done
+  # Last resort: force-kill anything still holding the port.
+  if [[ -n "${_port_pid:-}" ]]; then
+    echo "$_port_pid" | xargs kill -9 2>/dev/null || true
+    sleep 0.2
+  fi
+fi
+rm -f "${DEV_DIR}/dev.pid"
+
+# Remember whether this invocation is the detached worker, BEFORE the env
+# scrub below wipes PIKILOOM_DEV_DETACHED along with the rest of PIKILOOM_*.
+# The flag controls whether we truncate the log (the worker must not — its
+# parent already did, and the worker's own stdout/stderr is being appended
+# to that file).
+_is_detached_worker=0
+[[ "${PIKILOOM_DEV_DETACHED:-0}" == "1" ]] && _is_detached_worker=1
+
+# Dev isolates setting.json only. The managed browser profile intentionally
+# stays at ~/.swarmdeck/browser/chrome-profile so dev and the main runtime reuse
+# the same browser login state.
+#
+# Clean inherited env vars that leak when launched from inside a running swarmdeck
+# or Claude Code session. Without this, the dev process inherits agent permissions,
+# channel credentials, daemon flags, workdir overrides, etc. from the parent.
+# Use pattern-based unset to catch everything rather than maintaining an explicit list.
+#
+# Whitelist: user-set runtime switches for the Claude driver must survive the
+# scrub so the child runtime can see them. `PIKILOOM_CLAUDE_PRINT=1` forces
+# print mode (the new opt-out, since TUI is the default), `PIKILOOM_CLAUDE_TUI*`
+# covers the legacy on/off plus the `_DEBUG` / `_KEEP_API_KEY` sub-flags.
+while IFS= read -r _var; do
+  unset "$_var"
+done < <(env | grep -oE '^(PIKILOOM_|CLAUDECODE|CLAUDE_CODE_|CLAUDE_MODEL|CLAUDE_PERMISSION_|CODEX_|GEMINI_|DEFAULT_AGENT|FEISHU_|TELEGRAM_|WEIXIN_)[^=]*' \
+  | grep -vE '^PIKILOOM_CLAUDE_(TUI|PRINT)' || true)
+
+# Set dev-specific env AFTER the cleanup so they are not wiped.
+export PIKILOOM_CONFIG="${DEV_DIR}/setting.json"
+export PIKILOOM_LOG_LEVEL="${PIKILOOM_LOG_LEVEL:-debug}"
+
+echo $$ > "${DEV_DIR}/dev.pid"
+trap 'rm -f "${DEV_DIR}/dev.pid"' EXIT
+
+# TTY mode truncates here. The detached worker inherits an already-truncated
+# log from its parent (see early-detach branch above) AND has been writing its
+# own stdout/stderr to that file since spawn, so re-truncating would wipe its
+# own startup chatter.
+if (( ! _is_detached_worker )); then
+  : > "${LOG_FILE}"
+fi
+
+if (( _is_detached_worker )); then
+  {
+    npm run build:kernel
+    npm run build:dashboard
+    npx tsx src/cli/main.ts --no-daemon --dashboard-port "${DEV_PORT}" "$@"
+  } >>"${LOG_FILE}" 2>&1
+else
+  {
+    npm run build:kernel
+    npm run build:dashboard
+    npx tsx src/cli/main.ts --no-daemon --dashboard-port "${DEV_PORT}" "$@"
+  } 2>&1 | node scripts/retained-tee.mjs "${LOG_FILE}"
+fi
