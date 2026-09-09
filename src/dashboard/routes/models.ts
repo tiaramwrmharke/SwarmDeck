@@ -50,3 +50,213 @@ router.get('/api/models/catalog', async c => {
     });
   } catch (e: any) {
     return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.get('/api/models/catalog/:providerId', async c => {
+  const id = c.req.param('providerId');
+  try {
+    const cat = await getModelsDevCatalog();
+    const provider = cat[id];
+    if (!provider) return c.json({ ok: false, error: 'Catalog provider not found' }, 404);
+    const models = Object.values(provider.models || {}).map(m => ({
+      id: m.id,
+      name: m.name || m.id,
+      reasoning: !!m.reasoning,
+      tool_call: !!m.tool_call,
+      context: m.limit?.context || null,
+      output: m.limit?.output || null,
+      cost: m.cost || null,
+      release_date: m.release_date || null,
+    }));
+    return c.json({
+      ok: true,
+      provider: {
+        id: provider.id,
+        name: provider.name,
+        api: provider.api,
+        doc: provider.doc,
+        env: provider.env || [],
+      },
+      models,
+    });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.get('/api/models/providers', c => {
+  return c.json({ ok: true, providers: listProviders().map(publicProvider) });
+});
+
+router.post('/api/models/providers', async c => {
+  let body: any;
+  try { body = await c.req.json(); } catch { body = {}; }
+  const kind = body.kind as ProviderKind;
+  const name = String(body.name || '').trim();
+  const baseURL = String(body.baseURL || '').trim();
+  const apiKey = typeof body.apiKey === 'string' ? body.apiKey : '';
+  const credentialRef = isCredentialRef(body.credentialRef) ? body.credentialRef as CredentialRef : undefined;
+  const extraHeaders = body.extraHeaders && typeof body.extraHeaders === 'object' ? body.extraHeaders : undefined;
+  if (!VALID_KINDS.includes(kind)) return c.json({ ok: false, error: `Invalid kind. Use one of: ${VALID_KINDS.join(', ')}` }, 400);
+  if (!name) return c.json({ ok: false, error: 'name is required' }, 400);
+  if (!baseURL) return c.json({ ok: false, error: 'baseURL is required' }, 400);
+  if (!apiKey && !credentialRef) return c.json({ ok: false, error: 'apiKey or credentialRef is required' }, 400);
+  try {
+    const provider = await addProvider({ kind, name, baseURL, apiKey: apiKey || undefined, credentialRef, extraHeaders });
+    return c.json({ ok: true, provider: publicProvider(provider) });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.patch('/api/models/providers/:id', async c => {
+  const id = c.req.param('id');
+  if (!getProvider(id)) return c.json({ ok: false, error: 'Provider not found' }, 404);
+  let body: any;
+  try { body = await c.req.json(); } catch { body = {}; }
+  try {
+    const provider = await updateProvider(id, {
+      name: typeof body.name === 'string' ? body.name : undefined,
+      baseURL: typeof body.baseURL === 'string' ? body.baseURL : undefined,
+      apiKey: typeof body.apiKey === 'string' && body.apiKey.length > 0 ? body.apiKey : undefined,
+      credentialRef: isCredentialRef(body.credentialRef) ? body.credentialRef as CredentialRef : undefined,
+      extraHeaders: body.extraHeaders === null ? null : (body.extraHeaders && typeof body.extraHeaders === 'object' ? body.extraHeaders : undefined),
+    });
+    invalidateProviderModels(id);
+    return c.json({ ok: true, provider: publicProvider(provider) });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.delete('/api/models/providers/:id', async c => {
+  const id = c.req.param('id');
+  const removed = await removeProvider(id);
+  if (!removed) return c.json({ ok: false, error: 'Provider not found' }, 404);
+  invalidateProviderModels(id);
+  return c.json({ ok: true });
+});
+
+router.get('/api/models/providers/:id/models', async c => {
+  const id = c.req.param('id');
+  const refresh = c.req.query('refresh') === '1';
+  try {
+    const result = await getProviderModelList(id, { forceRefresh: refresh });
+    if (!result) return c.json({ ok: false, error: 'Provider not found' }, 404);
+    return c.json({
+      ok: true,
+      models: result.models,
+      modelInfos: result.modelInfos,
+      fetchedAt: new Date(result.fetchedAt).toISOString(),
+      fromCache: result.fromCache,
+    });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.post('/api/models/providers/:id/validate', async c => {
+  const id = c.req.param('id');
+  const provider = getProvider(id);
+  if (!provider) return c.json({ ok: false, error: 'Provider not found' }, 404);
+  try {
+    const result = await validateProvider(provider);
+    setProviderValidation(id, result.status);
+    return c.json({ ok: true, validation: result.status, models: result.models });
+  } catch (e: any) {
+    const status = {
+      state: 'error' as const,
+      detail: e?.message || String(e),
+      checkedAt: new Date().toISOString(),
+    };
+    setProviderValidation(id, status);
+    return c.json({ ok: true, validation: status, models: [] });
+  }
+});
+
+router.get('/api/models/profiles', c => {
+  return c.json({ ok: true, profiles: listProfiles() });
+});
+
+router.post('/api/models/profiles', async c => {
+  let body: any;
+  try { body = await c.req.json(); } catch { body = {}; }
+  const providerId = String(body.providerId || '').trim();
+  const modelId = String(body.modelId || '').trim();
+  if (!providerId) return c.json({ ok: false, error: 'providerId is required' }, 400);
+  if (!modelId) return c.json({ ok: false, error: 'modelId is required' }, 400);
+  if (!getProvider(providerId)) return c.json({ ok: false, error: `Provider not found: ${providerId}` }, 404);
+  try {
+    const profile = addProfile({
+      name: typeof body.name === 'string' ? body.name : undefined,
+      providerId,
+      modelId,
+      effort: body.effort || null,
+      maxOutputTokens: typeof body.maxOutputTokens === 'number' ? body.maxOutputTokens : null,
+      extras: body.extras && typeof body.extras === 'object' ? body.extras : undefined,
+    });
+    return c.json({ ok: true, profile });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.patch('/api/models/profiles/:id', async c => {
+  const id = c.req.param('id');
+  if (!getProfile(id)) return c.json({ ok: false, error: 'Profile not found' }, 404);
+  let body: any;
+  try { body = await c.req.json(); } catch { body = {}; }
+  try {
+    const profile = updateProfile(id, {
+      name: typeof body.name === 'string' ? body.name : undefined,
+      modelId: typeof body.modelId === 'string' ? body.modelId : undefined,
+      effort: 'effort' in body ? body.effort : undefined,
+      maxOutputTokens: 'maxOutputTokens' in body ? body.maxOutputTokens : undefined,
+      extras: 'extras' in body ? body.extras : undefined,
+    });
+    return c.json({ ok: true, profile });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 500);
+  }
+});
+
+router.delete('/api/models/profiles/:id', c => {
+  const id = c.req.param('id');
+  const removed = removeProfile(id);
+  if (!removed) return c.json({ ok: false, error: 'Profile not found' }, 404);
+  return c.json({ ok: true });
+});
+
+router.get('/api/models/agents', c => {
+  const agents = allDriverIds();
+  return c.json({
+    ok: true,
+    bindings: agents.map(agent => ({
+      agent,
+      activeProfileId: getActiveProfileId(agent),
+    })),
+  });
+});
+
+router.post('/api/models/agents/:agent/active', async c => {
+  const agent = c.req.param('agent');
+  if (!allDriverIds().includes(agent)) return c.json({ ok: false, error: `Unknown agent: ${agent}` }, 400);
+  let body: any;
+  try { body = await c.req.json(); } catch { body = {}; }
+  const profileId = body.profileId === null ? null : (typeof body.profileId === 'string' ? body.profileId : undefined);
+  if (profileId === undefined) return c.json({ ok: false, error: 'profileId (string|null) is required' }, 400);
+  try {
+    setActiveProfile(agent, profileId);
+    if (profileId) {
+      const profile = getProfile(profileId);
+      const provider = profile ? getProvider(profile.providerId) : null;
+      if (profile && provider) prewarmLocalModel(provider, profile.modelId);
+    }
+    return c.json({ ok: true, agent, activeProfileId: profileId });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || String(e) }, 400);
+  }
+});
+
+export default router;
