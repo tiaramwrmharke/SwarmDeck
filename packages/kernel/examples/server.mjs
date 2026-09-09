@@ -24,3 +24,17 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(404); res.end('not found');
 });
+
+const web = new WebSurface({ server, name: 'swarmdeck-kernel' });
+const loom = createLoom({
+  appNamespace: 'loom-console',
+  drivers: [useReal ? new ClaudeDriver() : new EchoDriver()],
+  defaultAgent: useReal ? 'claude' : 'echo',
+  surfaces: [web],
+  log: (m) => console.log(m),
+});
+
+await loom.start();
+server.listen(port, () => {
+  console.log(`[kernel-console] http + ws on http://localhost:${port}  (agent=${loom.status().agents.join(',')}, real=${useReal})`);
+});
