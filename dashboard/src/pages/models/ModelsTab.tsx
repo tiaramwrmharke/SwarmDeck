@@ -261,3 +261,582 @@ function getCopy(locale: Locale): Copy {
     fieldKind: 'API kind',
     fieldBaseURL: 'Base URL',
     fieldCredentialSource: 'Credential source',
+    fieldApiKey: 'API key',
+    fieldApiKeyHint: 'Stored in the OS keychain via @napi-rs/keyring; setting.json keeps only a reference.',
+    fieldEnvVar: 'Environment variable name',
+    fieldCommand: 'Command (stdout becomes the key)',
+    fieldModelId: 'Model ID',
+    fieldEffort: 'Reasoning effort',
+    fieldEffortHelp: 'Available values depend on the chosen model; leave blank to use the default.',
+    effortHermesNote: 'Hermes currently reads reasoning_effort from ~/.hermes/config.yaml; Profile.effort is recorded only for now.',
+    credPaste: 'Paste API key (recommended — stored in OS keychain)',
+    credEnv: 'Read from environment variable',
+    credCommand: 'Run a command (1Password / pass / gh, …)',
+    effortDefault: '(default)',
+    cancel: 'Cancel',
+    save: 'Save',
+    saving: 'Saving',
+    validationReady: 'Ready',
+    validationInvalid: 'Invalid',
+    validationError: 'Error',
+    validationUnvalidated: 'Not validated',
+    providerOnlyHint: 'After saving, head back to an agent card and click "BYOK" to choose the model and effort.',
+    credentialLabel: 'Credential',
+    modelsAvailable: count => `${count} models available`,
+  };
+}
+
+const KIND_LABEL: Record<ProviderKind, { zh: string; en: string }> = {
+  'anthropic': { zh: 'Anthropic 原生', en: 'Anthropic native' },
+  'openai': { zh: 'OpenAI 原生', en: 'OpenAI native' },
+  'openai-compatible': { zh: 'OpenAI 兼容', en: 'OpenAI-compatible' },
+  'google': { zh: 'Google AI Studio', en: 'Google AI Studio' },
+};
+
+function kindLabel(kind: ProviderKind, locale: Locale): string {
+  return locale === 'zh-CN' ? KIND_LABEL[kind].zh : KIND_LABEL[kind].en;
+}
+
+const EFFORT_CHOICES = ['', 'low', 'medium', 'high', 'xhigh', 'max'];
+
+async function get<T>(url: string): Promise<T> {
+  const r = await fetch(url);
+  return r.json() as Promise<T>;
+}
+async function send<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const r = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return r.json() as Promise<T>;
+}
+
+function brandIdForProvider(p: { kind: ProviderKind; baseURL: string }): string {
+  const url = (() => { try { return new URL(p.baseURL); } catch { return null; } })();
+  const host = url?.host.toLowerCase() ?? '';
+  const port = url?.port ?? '';
+  if ((host.startsWith('127.0.0.1') || host.startsWith('localhost')) && port === '11434') return 'ollama';
+  if ((host.startsWith('127.0.0.1') || host.startsWith('localhost')) && port === '8080') return 'mlx';
+  if (host.includes('openrouter')) return 'openrouter';
+  if (host.includes('anthropic')) return 'anthropic';
+  if (host.includes('deepseek')) return 'deepseek';
+  if (host.includes('googleapis') || host.includes('vertex')) return 'google';
+  if (host.includes('openai.com')) return 'openai';
+  if (host.includes('dashscope') || host.includes('qwen') || host.includes('aliyun')) return 'qwen';
+  if (host.includes('volces') || host.includes('volcengine') || host.includes('doubao')) return 'doubao';
+  if (host.includes('bigmodel') || host.includes('zhipu') || host.includes('z.ai')) return 'glm';
+  if (host.includes('minimax')) return 'minimax';
+  if (p.kind === 'anthropic') return 'anthropic';
+  if (p.kind === 'google') return 'google';
+  if (p.kind === 'openai') return 'openai';
+  return 'custom';
+}
+
+function ValidationBadge({ v, copy }: { v: ValidationStatus | null; copy: Copy }) {
+  if (!v || v.state === 'unknown') return <Badge variant="muted">{copy.validationUnvalidated}</Badge>;
+  if (v.state === 'ready') {
+    const suffix = v.modelCount ? ` · ${copy.modelsAvailable(v.modelCount)}` : '';
+    return <Badge variant="ok">{copy.validationReady}{suffix}</Badge>;
+  }
+  if (v.state === 'invalid') return <Badge variant="err">{copy.validationInvalid}</Badge>;
+  return <Badge variant="warn">{copy.validationError}</Badge>;
+}
+
+interface TileDescriptor {
+  provider?: ProviderRow;
+  template?: ProviderTemplate;
+}
+
+function ProviderTile({
+  desc,
+  copy,
+  locale,
+  onPick,
+}: {
+  desc: TileDescriptor;
+  copy: Copy;
+  locale: Locale;
+  onPick: (desc: TileDescriptor) => void;
+}) {
+  const { provider, template } = desc;
+  const isBound = !!provider;
+  const brand = provider ? brandIdForProvider(provider) : (template?.id ?? 'custom');
+  const name = provider?.name
+    ?? (template ? (locale === 'zh-CN' ? template.name.zh : template.name.en) : '');
+  const blurb = template ? (locale === 'zh-CN' ? template.blurb.zh : template.blurb.en) : '';
+
+  const validationState = provider?.validation?.state ?? null;
+  const modelCount = provider?.validation?.modelCount;
+
+  let dotClass: string | null = null;
+  let statusTitle = '';
+  if (provider) {
+    if (validationState === 'ready') {
+      dotClass = 'bg-emerald-500';
+      statusTitle = modelCount != null ? copy.modelsAvailable(modelCount) : copy.validationReady;
+    } else if (validationState === 'invalid') {
+      dotClass = 'bg-rose-500';
+      statusTitle = copy.validationInvalid;
+    } else if (validationState === 'error') {
+      dotClass = 'bg-amber-500';
+      statusTitle = copy.validationError;
+    } else {
+      dotClass = 'bg-fg-6';
+      statusTitle = copy.validationUnvalidated;
+    }
+  }
+
+  const subtitle = isBound && provider!.validation?.detail && validationState !== 'ready'
+    ? provider!.validation.detail
+    : blurb;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(desc)}
+      className="group relative flex h-[68px] items-center gap-2.5 rounded-lg border border-edge bg-panel-alt px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-edge-strong hover:bg-panel hover:shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
+    >
+      <BrandIcon brand={brand} size={26} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          {dotClass && (
+            <span
+              className={cn('inline-block h-[6px] w-[6px] shrink-0 rounded-full', dotClass)}
+              title={statusTitle}
+            />
+          )}
+          <span className="truncate text-[13px] font-semibold tracking-tight text-fg">{name}</span>
+        </div>
+        {subtitle && (
+          <div className="truncate text-[11px] leading-snug text-fg-5" title={subtitle}>{subtitle}</div>
+        )}
+      </div>
+      {validationState === 'ready' && modelCount != null && (
+        <span
+          className="shrink-0 font-mono text-[11px] text-fg-5"
+          title={copy.modelsAvailable(modelCount)}
+        >
+          {modelCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+interface ConfigDraft {
+  name: string;
+  kind: ProviderKind;
+  baseURL: string;
+  credMode: 'paste' | 'env' | 'command';
+  apiKey: string;
+  envVar: string;
+  cmdLine: string;
+}
+
+function draftFromTemplate(tpl: ProviderTemplate, locale: Locale): ConfigDraft {
+  return {
+    name: locale === 'zh-CN' ? `${tpl.name.zh}` : `${tpl.name.en}`,
+    kind: tpl.kind,
+    baseURL: tpl.baseURL,
+    credMode: 'paste',
+    apiKey: '',
+    envVar: tpl.envVar || 'API_KEY',
+    cmdLine: 'op read op://Personal/Provider/key',
+  };
+}
+
+function ConfigModal({
+  open,
+  copy,
+  locale,
+  initial,
+  initialTemplateName,
+  existingProvider,
+  onClose,
+  onSaved,
+  onRemove,
+}: {
+  open: boolean;
+  copy: Copy;
+  locale: Locale;
+  initial: ConfigDraft | null;
+  initialTemplateName?: string | null;
+  existingProvider?: ProviderRow;
+  onClose: () => void;
+  onSaved: () => void;
+  onRemove?: () => void | Promise<void>;
+}) {
+  const [draft, setDraft] = useState<ConfigDraft>(() => initial || draftFromTemplate(TEMPLATES[0], locale));
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createdId, setCreatedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setDraft(initial || draftFromTemplate(TEMPLATES[0], locale));
+    setError(null);
+    setCreatedId(null);
+  }, [open, initial, locale]);
+
+  const isEdit = !!existingProvider;
+  const kindLocked = !!initialTemplateName || isEdit;
+
+  const submit = useCallback(async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const credentialRef = draft.credMode === 'env'
+        ? { source: 'env', varName: draft.envVar.trim() }
+        : draft.credMode === 'command'
+          ? { source: 'command', argv: draft.cmdLine.trim().split(/\s+/).filter(Boolean) }
+          : null;
+
+      const editTargetId = existingProvider?.id ?? createdId;
+      let providerId: string;
+      if (editTargetId) {
+        const providerPatch: any = {
+          name: draft.name.trim() || existingProvider?.name || `${kindLabel(draft.kind, locale)}`,
+          baseURL: draft.baseURL.trim(),
+        };
+        if (draft.credMode === 'paste' && draft.apiKey) providerPatch.apiKey = draft.apiKey;
+        else if (credentialRef) providerPatch.credentialRef = credentialRef;
+        const provRes = await send<{ ok: boolean; error?: string }>('PATCH', `/api/models/providers/${editTargetId}`, providerPatch);
+        if (!provRes.ok) { setError(provRes.error || 'Failed to update provider'); return; }
+        providerId = editTargetId;
+      } else {
+        const providerBody: any = {
+          kind: draft.kind,
+          name: draft.name.trim() || `${kindLabel(draft.kind, locale)}`,
+          baseURL: draft.baseURL.trim(),
+        };
+        if (draft.credMode === 'paste') providerBody.apiKey = draft.apiKey;
+        else if (credentialRef) providerBody.credentialRef = credentialRef;
+        const provRes = await send<{ ok: boolean; provider?: ProviderRow; error?: string }>('POST', '/api/models/providers', providerBody);
+        if (!provRes.ok || !provRes.provider) { setError(provRes.error || 'Failed to create provider'); return; }
+        providerId = provRes.provider.id;
+        setCreatedId(providerId);
+      }
+
+      const valRes = await send<{ ok: boolean; validation?: ValidationStatus; error?: string }>(
+        'POST', `/api/models/providers/${providerId}/validate`,
+      );
+      onSaved();
+      if (valRes.validation && valRes.validation.state !== 'ready') {
+        setError(`${copy.validationInvalid}: ${valRes.validation.detail}`);
+        return;
+      }
+      onClose();
+    } catch (e: any) {
+      setError(e?.message || String(e));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [draft, isEdit, existingProvider, createdId, locale, onSaved, onClose, copy.validationInvalid]);
+
+  const canSave = !submitting
+    && draft.name.trim().length > 0
+    && draft.baseURL.trim().length > 0
+    && (draft.credMode !== 'paste' || (isEdit || createdId ? true : draft.apiKey.length > 0))
+    && (draft.credMode !== 'env' || draft.envVar.trim().length > 0)
+    && (draft.credMode !== 'command' || draft.cmdLine.trim().length > 0);
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <ModalHeader
+        title={isEdit ? copy.modalEditTitle : copy.modalAddTitle}
+        description={isEdit ? copy.modalEditHint : copy.modalAddHint(initialTemplateName || null)}
+        onClose={onClose}
+      />
+      <div className="space-y-4">
+        <div>
+          <Label>{copy.fieldName}</Label>
+          <Input
+            value={draft.name}
+            onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+            placeholder={copy.fieldNamePlaceholder}
+          />
+        </div>
+        {kindLocked ? (
+          <div>
+            <Label>{copy.fieldBaseURL}</Label>
+            <Input
+              value={draft.baseURL}
+              onChange={e => setDraft(d => ({ ...d, baseURL: e.target.value }))}
+              placeholder="https://…"
+            />
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>{copy.fieldKind}</Label>
+              <Select
+                value={draft.kind}
+                options={(Object.keys(KIND_LABEL) as ProviderKind[]).map(k => ({ value: k, label: kindLabel(k, locale) }))}
+                onChange={v => setDraft(d => ({ ...d, kind: v as ProviderKind }))}
+              />
+            </div>
+            <div>
+              <Label>{copy.fieldBaseURL}</Label>
+              <Input
+                value={draft.baseURL}
+                onChange={e => setDraft(d => ({ ...d, baseURL: e.target.value }))}
+                placeholder="https://…"
+              />
+            </div>
+          </div>
+        )}
+        <div>
+          <Label>{copy.fieldCredentialSource}</Label>
+          <Select
+            value={draft.credMode}
+            options={[
+              { value: 'paste', label: copy.credPaste },
+              { value: 'env', label: copy.credEnv },
+              { value: 'command', label: copy.credCommand },
+            ]}
+            onChange={v => setDraft(d => ({ ...d, credMode: v as ConfigDraft['credMode'] }))}
+          />
+        </div>
+        {draft.credMode === 'paste' && (
+          <div>
+            <Label>{copy.fieldApiKey}</Label>
+            <Input
+              type="password"
+              value={draft.apiKey}
+              onChange={e => setDraft(d => ({ ...d, apiKey: e.target.value }))}
+              placeholder={isEdit ? '••••••••' : 'sk-…'}
+            />
+            <div className="mt-1 text-[11px] leading-relaxed text-fg-5">{copy.fieldApiKeyHint}</div>
+          </div>
+        )}
+        {draft.credMode === 'env' && (
+          <div>
+            <Label>{copy.fieldEnvVar}</Label>
+            <Input
+              value={draft.envVar}
+              onChange={e => setDraft(d => ({ ...d, envVar: e.target.value }))}
+              placeholder="OPENROUTER_API_KEY"
+            />
+          </div>
+        )}
+        {draft.credMode === 'command' && (
+          <div>
+            <Label>{copy.fieldCommand}</Label>
+            <Input
+              value={draft.cmdLine}
+              onChange={e => setDraft(d => ({ ...d, cmdLine: e.target.value }))}
+              placeholder="op read op://Personal/OpenRouter/key"
+            />
+          </div>
+        )}
+        {error && (
+          <div className="rounded-md border border-rose-700/40 bg-rose-900/20 px-3 py-2 text-xs text-rose-200">{error}</div>
+        )}
+      </div>
+      <div className="mt-6 flex items-center justify-between gap-2 border-t border-edge pt-4">
+        <div>
+          {isEdit && onRemove && (
+            <button
+              type="button"
+              onClick={() => void onRemove()}
+              className="text-[12px] text-fg-5 transition hover:text-[var(--th-err)]"
+            >
+              {copy.remove}
+            </button>
+          )}
+        </div>
+        <ActionBar
+          primary={{ label: submitting ? copy.saving : copy.save, onClick: submit, disabled: !canSave }}
+          secondary={{ label: copy.cancel, onClick: onClose }}
+        />
+      </div>
+    </Modal>
+  );
+}
+
+export interface ModelLayerSnapshot {
+  providers: ProviderRow[];
+  profiles: ProfileRow[];
+  bindings: Record<string, string | null>;
+  reload: () => Promise<void>;
+  setActiveProfile: (agent: string, profileId: string | null) => Promise<void>;
+}
+
+export function useModelLayer(): ModelLayerSnapshot {
+  const [providers, setProviders] = useState<ProviderRow[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [bindings, setBindings] = useState<Record<string, string | null>>({});
+
+  const reload = useCallback(async () => {
+    const [p, prof, agents] = await Promise.all([
+      get<{ providers: ProviderRow[] }>('/api/models/providers'),
+      get<{ profiles: ProfileRow[] }>('/api/models/profiles'),
+      get<{ bindings: Array<{ agent: string; activeProfileId: string | null }> }>('/api/models/agents'),
+    ]);
+    setProviders(p.providers || []);
+    setProfiles(prof.profiles || []);
+    const map: Record<string, string | null> = {};
+    for (const b of agents.bindings || []) map[b.agent] = b.activeProfileId;
+    setBindings(map);
+    // Push into the shared store so open session composers reflect edits without re-fetching.
+    useStore.getState().setModelLayer({
+      providers: (p.providers || []).map(x => ({ id: x.id, name: x.name, kind: x.kind, baseURL: x.baseURL })),
+      profiles: (prof.profiles || []).map(x => ({ id: x.id, name: x.name, providerId: x.providerId, modelId: x.modelId, effort: x.effort ?? null })),
+      activeProfiles: map,
+    });
+  }, []);
+
+  const setActiveProfile = useCallback(async (agent: string, profileId: string | null) => {
+    await send('POST', `/api/models/agents/${agent}/active`, { profileId });
+    await reload();
+  }, [reload]);
+
+  useEffect(() => { void reload(); }, [reload]);
+
+  return { providers, profiles, bindings, reload, setActiveProfile };
+}
+
+function normalizeProviderBaseURL(raw: string): string {
+  return raw
+    .replace(/\/+$/, '')
+    .replace(/^http:\/\/localhost(?=[:/]|$)/i, 'http://127.0.0.1')
+    .replace(/^https:\/\/localhost(?=[:/]|$)/i, 'https://127.0.0.1');
+}
+
+function providerMatchesLocalBackend(
+  provider: ProviderRow,
+  localBackends: LocalBackendStatus[],
+): boolean {
+  const target = normalizeProviderBaseURL(provider.baseURL);
+  return localBackends.some(b => normalizeProviderBaseURL(b.openAIBaseURL) === target);
+}
+
+export default function ModelsSection({
+  snapshot,
+  localBackends,
+}: {
+  snapshot?: ModelLayerSnapshot;
+  localBackends?: LocalBackendStatus[];
+} = {}) {
+  const localState = useModelLayer();
+  const layer = snapshot ?? localState;
+  const { providers, reload } = layer;
+  const backendsForLookup = localBackends ?? [];
+
+  const locale = useStore(s => s.locale);
+  const copy = useMemo(() => getCopy(locale), [locale]);
+  const toast = useStore(s => s.toast);
+
+  const [modal, setModal] = useState<
+    | { kind: 'add'; template: ProviderTemplate }
+    | { kind: 'edit'; provider: ProviderRow }
+    | null
+  >(null);
+
+  const remove = useCallback(async (provider: ProviderRow) => {
+    if (!confirm(copy.removeConfirm)) return;
+    await send('DELETE', `/api/models/providers/${provider.id}`);
+    await reload();
+  }, [copy, reload]);
+
+  const editDraft: ConfigDraft | null = useMemo(() => {
+    if (!modal || modal.kind !== 'edit') return null;
+    const { provider } = modal;
+    return {
+      name: provider.name,
+      kind: provider.kind,
+      baseURL: provider.baseURL,
+      credMode: 'paste',
+      apiKey: '',
+      envVar: TEMPLATES.find(t => t.kind === provider.kind)?.envVar || 'API_KEY',
+      cmdLine: 'op read op://Personal/Provider/key',
+    };
+  }, [modal]);
+
+  const addDraft: ConfigDraft | null = useMemo(() => {
+    if (!modal || modal.kind !== 'add') return null;
+    return draftFromTemplate(modal.template, locale);
+  }, [modal, locale]);
+
+  const addTemplateName = modal && modal.kind === 'add' && modal.template.id !== 'custom'
+    ? (locale === 'zh-CN' ? modal.template.name.zh : modal.template.name.en)
+    : null;
+
+  const providerByTemplateId = useMemo(() => {
+    const m = new Map<string, ProviderRow>();
+    for (const p of providers) {
+      const brand = brandIdForProvider(p);
+      if (!m.has(brand)) m.set(brand, p);
+    }
+    return m;
+  }, [providers]);
+
+  const tiles = useMemo<TileDescriptor[]>(() => {
+    const visibleProviders = providers.filter(p => !providerMatchesLocalBackend(p, backendsForLookup));
+    const claimedProviderIds = new Set<string>();
+    const out: TileDescriptor[] = [];
+    for (const tpl of TEMPLATES) {
+      if (tpl.id === 'custom') continue;
+      const provider = providerByTemplateId.get(tpl.id);
+      if (provider && !providerMatchesLocalBackend(provider, backendsForLookup)) {
+        claimedProviderIds.add(provider.id);
+        out.push({ template: tpl, provider });
+      } else {
+        out.push({ template: tpl });
+      }
+    }
+    for (const provider of visibleProviders) {
+      if (claimedProviderIds.has(provider.id)) continue;
+      out.push({ provider });
+    }
+    const customTpl = TEMPLATES.find(t => t.id === 'custom');
+    if (customTpl) out.push({ template: customTpl });
+    return out;
+  }, [providers, providerByTemplateId, backendsForLookup]);
+
+  const pickTile = useCallback((desc: TileDescriptor) => {
+    if (desc.provider) {
+      setModal({ kind: 'edit', provider: desc.provider });
+      return;
+    }
+    if (desc.template) {
+      setModal({ kind: 'add', template: desc.template });
+    }
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        {tiles.map((desc, idx) => (
+          <ProviderTile
+            key={desc.provider?.id ?? `tpl-${desc.template?.id ?? idx}`}
+            desc={desc}
+            copy={copy}
+            locale={locale}
+            onPick={pickTile}
+          />
+        ))}
+      </div>
+
+      {modal && (
+        <ConfigModal
+          open
+          copy={copy}
+          locale={locale}
+          initial={modal.kind === 'edit' ? editDraft : addDraft}
+          initialTemplateName={addTemplateName}
+          existingProvider={modal.kind === 'edit' ? modal.provider : undefined}
+          onClose={() => setModal(null)}
+          onSaved={reload}
+          onRemove={modal.kind === 'edit'
+            ? async () => {
+                await remove(modal.provider);
+                setModal(null);
+              }
+            : undefined}
+        />
+      )}
+    </div>
+  );
+}
