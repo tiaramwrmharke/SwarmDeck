@@ -242,3 +242,529 @@ export async function run(
   const abortStream = () => {
     if (interrupted || proc.killed) return;
     interrupted = true;
+    s.stopReason = 'interrupted';
+    agentLog(`[abort] user interrupt, killing process tree pid=${proc.pid}`);
+    terminateProcessTree(proc, { signal: 'SIGTERM', forceSignal: 'SIGKILL', forceAfterMs: 5000 });
+  };
+  if (opts.abortSignal?.aborted) abortStream();
+  opts.abortSignal?.addEventListener('abort', abortStream, { once: true });
+  try { proc.stdin!.write(opts._stdinOverride ?? opts.prompt); proc.stdin!.end(); } catch {}
+  let stderrLineBuf = '';
+  proc.stderr?.on('data', (c: Buffer) => {
+    const chunk = c.toString();
+    stderr += chunk;
+    agentLog(`[stderr] ${chunk.trim().slice(0, 200)}`);
+    if (!parseStderrLine) return;
+    stderrLineBuf += chunk;
+    const lines = stderrLineBuf.split(/\r?\n/);
+    stderrLineBuf = lines.pop() || '';
+    let touched = false;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try { parseStderrLine(trimmed, s); touched = true; } catch {}
+    }
+    if (touched) {
+      try { opts.onText(s.text, s.thinking, s.activity, buildStreamPreviewMeta(s), null); } catch {}
+    }
+  });
+
+  const rl = createInterface({ input: proc.stdout!, crlfDelay: Infinity });
+  rl.on('line', raw => {
+    if (Date.now() > deadline) {
+      timedOut = true;
+      s.stopReason = 'timeout';
+      agentWarn('[timeout] deadline exceeded, killing process tree');
+      terminateProcessTree(proc, { signal: 'SIGKILL' });
+      return;
+    }
+    const line = raw.trim();
+    if (!line || line[0] !== '{') return;
+    lineCount++;
+    const browserFailure = _detectBrowserMcpFailure(line);
+    if (browserFailure) {
+      agentWarn(`[mcp-browser] failure observed (${browserFailure}); requesting browser restart`);
+      void restartManagedBrowser(browserFailure);
+    }
+    try {
+      const ev = JSON.parse(line);
+      const evType = ev.type || '?';
+      if (evType === 'system' || evType === 'result' || evType === 'assistant' || evType === 'thread.started' || evType === 'turn.completed' || evType === 'item.completed') {
+        agentLog(`[event] type=${evType} session=${ev.session_id || s.sessionId || '?'} model=${ev.model || s.model || '?'}`);
+      }
+      if (evType === 'stream_event') {
+        const inner = ev.event || {};
+        if (inner.type === 'message_start' || inner.type === 'message_delta') agentLog(`[event] stream_event/${inner.type} session=${ev.session_id || '?'}`);
+      }
+      parseLine(ev, s);
+      opts.onText(s.text, s.thinking, s.activity, buildStreamPreviewMeta(s), null);
+    } catch {}
+  });
+
+  const hardTimer = setTimeout(() => {
+    timedOut = true; s.stopReason = 'timeout';
+    agentWarn(`[timeout] hard deadline reached (${opts.timeout}s), killing process tree pid=${proc.pid}`);
+    terminateProcessTree(proc, { signal: 'SIGTERM', forceSignal: 'SIGKILL', forceAfterMs: 5000 });
+  }, opts.timeout * 1000 + AGENT_STREAM_HARD_KILL_GRACE_MS);
+
+  const [procOk, code] = await new Promise<[boolean, number | null]>(resolve => {
+    proc.on('close', code => { clearTimeout(hardTimer); agentLog(`[exit] code=${code} lines_parsed=${lineCount}`); resolve([code === 0, code]); });
+    proc.on('error', e => { clearTimeout(hardTimer); agentError(`[error] ${e.message}`); stderr += e.message; resolve([false, -1]); });
+  });
+  opts.abortSignal?.removeEventListener('abort', abortStream);
+
+  if (!s.text.trim() && s.msgs.length) s.text = s.msgs.join('\n\n');
+  if (!s.thinking.trim() && s.thinkParts.length) s.thinking = s.thinkParts.join('\n\n');
+
+  const errorText = joinErrorMessages(s.errors);
+  const ok = procOk && !s.errors && !timedOut && !interrupted;
+  const error = errorText
+    || (interrupted ? 'Interrupted by user.' : null)
+    || (timedOut ? `Timed out after ${opts.timeout}s before the agent reported completion.` : null)
+    || (!procOk ? (stderr.trim() || `Failed (exit=${code}).`) : null);
+  const incomplete = !ok || s.stopReason === 'max_tokens' || s.stopReason === 'timeout';
+  const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+  agentLog(`[result] ok=${ok && !s.errors} elapsed=${elapsed}s text=${s.text.length}chars thinking=${s.thinking.length}chars session=${s.sessionId || '?'}`);
+  if (errorText) agentWarn(`[result] errors: ${errorText}`);
+  if (s.stopReason) agentLog(`[result] stop_reason=${s.stopReason}`);
+  if (stderr.trim() && !procOk) agentWarn(`[result] stderr: ${stderr.trim().slice(0, 300)}`);
+
+  return {
+    ok, sessionId: s.sessionId, workspacePath: null,
+    model: s.model, thinkingEffort: s.thinkingEffort,
+    message: s.text.trim() || errorText || (procOk ? '(no textual response)' : `Failed (exit=${code}).\n\n${stderr.trim() || '(no output)'}`),
+    thinking: s.thinking.trim() || null,
+    elapsedS: (Date.now() - start) / 1000,
+    inputTokens: s.inputTokens, outputTokens: s.outputTokens, cachedInputTokens: s.cachedInputTokens,
+    cacheCreationInputTokens: s.cacheCreationInputTokens, contextWindow: s.contextWindow,
+    ...computeContext(s), codexCumulative: s.codexCumulative, error, stopReason: s.stopReason,
+    incomplete, activity: s.activity.trim() || null,
+    assistantBlocks: s.imageBlocks.length ? [...s.imageBlocks] : undefined,
+  };
+}
+
+function prepareStreamOpts(opts: StreamOpts): { prepared: StreamOpts; session: SessionWorkspaceInfo; attachments: string[]; stagedFiles: string[] } {
+  const displayPrompt = collapseSkillPrompt(opts.prompt) ?? opts.prompt;
+  const resolvedInboundSessionId = opts.sessionId
+    ? resolveCanonicalSessionId(opts.workdir, opts.agent, opts.sessionId)
+    : opts.sessionId;
+  const session = ensureSessionWorkspace({ agent: opts.agent, workdir: opts.workdir, sessionId: resolvedInboundSessionId, title: displayPrompt });
+  const importedFiles = importFilesIntoWorkspace(session.workspacePath, opts.attachments || []);
+  const attachmentRelPaths = dedupeStrings([...session.record.stagedFiles, ...importedFiles]);
+  const stagedFiles = [...session.record.stagedFiles];
+  session.record.stagedFiles = [];
+  session.record.lastUserAttachments = [...attachmentRelPaths];
+  if (!session.record.title) session.record.title = summarizePromptTitle(displayPrompt) || null;
+  session.record.lastQuestion = trimSessionText(displayPrompt);
+  session.record.lastMessageText = shortValue(displayPrompt, 500);
+  setSessionRunState(session.record, 'running', null);
+  if (session.sessionId) clearAwaitResume(opts.workdir, opts.agent, session.sessionId);
+  saveSessionRecord(opts.workdir, session.record);
+
+  const attachmentPaths = attachmentRelPaths.map(relPath => path.join(session.workspacePath, relPath));
+
+  const effectiveSessionId = isPendingSessionId(session.sessionId) ? null : session.sessionId;
+
+  return {
+    session,
+    attachments: attachmentPaths,
+    stagedFiles,
+    prepared: {
+      ...opts,
+      sessionId: effectiveSessionId,
+      attachments: attachmentPaths.length ? attachmentPaths : undefined,
+      onSessionId: (nativeSessionId: string) => {
+        if (syncManagedSessionIdentity(session, opts.workdir, nativeSessionId)) {
+          saveSessionRecord(opts.workdir, session.record);
+        }
+        try {
+          opts.onSessionId?.(nativeSessionId);
+        } catch (error: any) {
+          agentWarn(`[session] onSessionId callback failed: ${error?.message || error}`);
+        }
+      },
+    },
+  };
+}
+
+function finalizeStreamResult(result: StreamResult, workdir: string, prompt: string, session: SessionWorkspaceInfo, workflowEnabled?: boolean, profileIdOverride?: string | null): StreamResult {
+  if (result.sessionId) syncManagedSessionIdentity(session, workdir, result.sessionId);
+  session.record.model = result.model || session.record.model;
+  if (result.thinkingEffort) session.record.thinkingEffort = result.thinkingEffort;
+  if (workflowEnabled !== undefined) session.record.workflowEnabled = workflowEnabled;
+  try {
+    session.record.profileId = profileIdOverride !== undefined
+      ? (profileIdOverride || null)
+      : getActiveProfileId(session.record.agent);
+  } catch {
+  }
+  const displayPrompt = collapseSkillPrompt(prompt) ?? prompt;
+  if (!session.record.title) session.record.title = summarizePromptTitle(displayPrompt);
+  session.record.lastQuestion = trimSessionText(displayPrompt);
+  session.record.lastAnswer = shortValue(result.message, 500);
+  session.record.lastMessageText = shortValue(result.message, 500) || shortValue(displayPrompt, 500);
+  session.record.lastThinking = trimSessionText(result.thinking);
+  session.record.lastPlan = normalizeStreamPreviewPlan(result.plan);
+  applySessionRunResult(session.record, result);
+  saveSessionRecord(workdir, session.record);
+  return { ...result, sessionId: session.sessionId, workspacePath: session.workspacePath };
+}
+
+interface SessionWorkspaceInfo {
+  sessionId: string;
+  workspacePath: string;
+  record: import('./types.js').ManagedSessionRecord;
+}
+
+function requestedModelForAgent(opts: StreamOpts): string {
+  switch (opts.agent) {
+    case 'claude': return (opts.claudeModel || opts.model || '').trim();
+    case 'codex': return (opts.codexModel || opts.model || '').trim();
+    case 'gemini': return (opts.geminiModel || opts.model || '').trim();
+    case 'hermes': return (opts.hermesModel || opts.model || '').trim();
+  }
+  return (opts.model || '').trim();
+}
+
+// When a session carries a third-party model id but its profile binding was lost
+// (stale/deleted profileId, or a model selected without a binding), resolveAgentInjection
+// returns null and the agent silently falls back to its native account — e.g. Codex on a
+// ChatGPT login rejects "deepseek-v4-pro". If exactly one configured profile (for a provider
+// kind this agent accepts) declares that model id, the intent is unambiguous: recover it.
+export function recoverProfileIdForModel(agent: Agent, modelId: string): string | null {
+  const model = modelId.trim();
+  if (!model) return null;
+  const accepted = new Set(getAcceptedProviderKinds(agent));
+  if (accepted.size === 0) return null;
+  const matches = listProfiles().filter(profile => {
+    if (profile.modelId !== model) return false;
+    const provider = getProvider(profile.providerId);
+    return !!provider && accepted.has(provider.kind);
+  });
+  return matches.length === 1 ? matches[0].id : null;
+}
+
+export async function doStream(opts: StreamOpts): Promise<StreamResult> {
+  let session: SessionWorkspaceInfo;
+  let prepared: StreamOpts;
+  let stagedFiles: string[];
+  try {
+    const prep = prepareStreamOpts(opts);
+    session = prep.session;
+    prepared = prep.prepared;
+    stagedFiles = prep.stagedFiles;
+  } catch (e: any) {
+    const message = e?.message || String(e);
+    return {
+      ok: false, message, thinking: null,
+      sessionId: opts.sessionId, workspacePath: null, model: opts.model, thinkingEffort: opts.thinkingEffort,
+      elapsedS: 0, inputTokens: null, outputTokens: null, cachedInputTokens: null,
+      cacheCreationInputTokens: null, contextWindow: null, contextUsedTokens: null, contextPercent: null,
+      codexCumulative: null, error: message, stopReason: null, incomplete: true, activity: null, plan: null,
+    };
+  }
+
+  let bridge: import('./mcp/bridge.js').McpBridgeHandle | null = null;
+  try {
+    const { startMcpBridge, redactMcpConfigForLog } = await import('./mcp/bridge.js');
+    const sessionDir = path.dirname(session.workspacePath);
+    bridge = await startMcpBridge({
+      sessionDir,
+      workspacePath: session.workspacePath,
+      workdir: opts.workdir,
+      stagedFiles,
+      sendFile: opts.mcpSendFile,
+      onInteraction: opts.onInteraction,
+      agent: opts.agent,
+      onLog: (message: string) => agentLog(`[mcp] ${message}`),
+    });
+    if (bridge) {
+      prepared.mcpConfigPath = bridge.configPath;
+      if (bridge.mcpServers) prepared.mcpServers = bridge.mcpServers;
+      if (bridge.extraEnv) prepared.extraEnv = { ...(prepared.extraEnv || {}), ...bridge.extraEnv };
+      if (bridge.configPath) agentLog(`[mcp] bridge started on ${bridge.configPath}`);
+      else if (bridge.mcpServers) agentLog(`[mcp] bridge registered with ${Object.keys(bridge.mcpServers).length} server(s)`);
+      else agentLog('[mcp] bridge registered with codex');
+      try { if (bridge.configPath) agentLog(`[mcp] config content:\n${redactMcpConfigForLog(bridge.configPath)}`); } catch {};
+    }
+  } catch (e: any) {
+    agentWarn(`[mcp] bridge start failed: ${e.message} — proceeding without MCP`);
+  }
+
+  try {
+    let injection = await resolveAgentInjection(prepared.agent, prepared.profileId);
+    if (!injection) {
+      const requestedModel = requestedModelForAgent(prepared);
+      const recoveredProfileId = recoverProfileIdForModel(prepared.agent, requestedModel);
+      if (recoveredProfileId) {
+        injection = await resolveAgentInjection(prepared.agent, recoveredProfileId);
+        if (injection) {
+          prepared.profileId = recoveredProfileId;
+          agentLog(`[byok] recovered lost provider binding: agent=${prepared.agent} model=${requestedModel} → profile=${recoveredProfileId}`);
+        }
+      }
+    }
+    if (injection) {
+      prepared.extraEnv = { ...(prepared.extraEnv || {}), ...injection.env };
+      if (injection.modelOverride) {
+        if (prepared.agent === 'claude') prepared.claudeModel = injection.modelOverride;
+        else if (prepared.agent === 'codex') prepared.codexModel = injection.modelOverride;
+        else if (prepared.agent === 'gemini') prepared.geminiModel = injection.modelOverride;
+        else if (prepared.agent === 'hermes') prepared.hermesModel = injection.modelOverride;
+        prepared.model = injection.modelOverride;
+      }
+      if (injection.argvAppend?.length) {
+        prepared.byokArgvAppend = injection.argvAppend;
+      }
+      if (injection.codexConfigOverrides?.length) {
+        const flags = injection.codexConfigOverrides.flatMap(o => ['-c', o]);
+        prepared.codexExtraArgs = [...(prepared.codexExtraArgs || []), ...flags];
+      }
+      if (injection.contextWindow && injection.contextWindow > 0) {
+        prepared.byokContextWindow = injection.contextWindow;
+      }
+      if (injection.providerName) {
+        prepared.byokProviderName = injection.providerName;
+      }
+      agentLog(`[byok] ${injection.detail}`);
+    }
+    const activeProfile = prepared.profileId === undefined
+      ? getActiveProfile(prepared.agent)
+      : (prepared.profileId ? getProfile(prepared.profileId) : null);
+    if (activeProfile) {
+      if (activeProfile.effort) prepared.thinkingEffort = activeProfile.effort;
+      const profileLabel = activeProfile.name?.trim();
+      if (profileLabel && profileLabel !== activeProfile.modelId) {
+        prepared.byokProfileName = profileLabel;
+      }
+    }
+  } catch (e: any) {
+    agentWarn(`[byok] failed to apply Profile injection: ${e?.message || e}`);
+  }
+
+  // Multi-account (native subscription): when NO BYOK profile is bound, route the turn
+  // through the agent's active local account by injecting its isolated config dir
+  // (CLAUDE_CONFIG_DIR / CODEX_HOME). A BYOK profile owns the credential, so it takes over
+  // and account injection is skipped — the two axes are mutually exclusive per turn.
+  try {
+    if (accountAgentSupported(prepared.agent)) {
+      const profileBound = prepared.profileId === undefined
+        ? !!getActiveProfile(prepared.agent)
+        : !!(prepared.profileId && getProfile(prepared.profileId));
+      if (!profileBound) {
+        const resolved = await resolveAccountEnv(prepared.agent, prepared.accountId);
+        if (resolved) {
+          prepared.extraEnv = { ...(prepared.extraEnv || {}), ...resolved.env };
+          prepared.accountId = resolved.accountId;
+          agentLog(`[account] ${prepared.agent} turn → account=${resolved.accountId} (${Object.keys(resolved.env).join('+')})`);
+          void updateAccount(prepared.agent, resolved.accountId, { lastUsedAt: new Date().toISOString() }).catch(() => {});
+        }
+      }
+    }
+  } catch (e: any) {
+    agentWarn(`[account] injection failed: ${e?.message || e}`);
+  }
+
+  try {
+    if (prepared.thinkingEffort) {
+      session.record.thinkingEffort = prepared.thinkingEffort.trim().toLowerCase() || session.record.thinkingEffort;
+    }
+    if (opts.claudeWorkflowEnabled !== undefined) {
+      session.record.workflowEnabled = opts.claudeWorkflowEnabled;
+    }
+    const turnModel = prepared.model
+      || (prepared.agent === 'claude' ? prepared.claudeModel
+        : prepared.agent === 'codex' ? prepared.codexModel
+        : prepared.agent === 'gemini' ? prepared.geminiModel
+        : prepared.agent === 'hermes' ? prepared.hermesModel
+        : null);
+    if (turnModel) session.record.model = turnModel;
+    if (prepared.profileId !== undefined) session.record.profileId = prepared.profileId || null;
+    if (prepared.accountId !== undefined) session.record.accountId = prepared.accountId || null;
+    saveSessionRecord(opts.workdir, session.record);
+  } catch (e: any) {
+    agentWarn(`[session] turn-start metadata stamp failed: ${e?.message || e}`);
+  }
+
+  try {
+    const driver = getDriver(prepared.agent);
+    if (opts.forkOf && !driver.capabilities?.fork) {
+      throw new Error(`Agent ${prepared.agent} does not support fork`);
+    }
+    await awaitAgentUpdateIdle(prepared.agent, AGENT_UPDATE_TIMEOUTS.spawnWait);
+    // Cutover seam: when enabled (default ON for claude/codex/gemini/hermes), route the
+    // agent turn through @swarmdeck/kernel. kernelStream throws ONLY if the kernel package
+    // can't be loaded (missing dist) — every in-turn error is returned as a result. So a
+    // throw here means "kernel unavailable": fall back to the legacy driver rather than
+    // failing the turn. See agent/kernel-bridge.ts.
+    let result: StreamResult;
+    if (shouldUseKernelPipeline(prepared.agent)) {
+      try {
+        result = await kernelStream(prepared);
+      } catch (kernelErr: any) {
+        agentWarn(`[kernel-bridge] kernel unavailable, falling back to legacy driver: ${kernelErr?.message || kernelErr}`);
+        result = await driver.doStream(prepared);
+      }
+    } else {
+      result = await driver.doStream(prepared);
+    }
+    const finalized = finalizeStreamResult(result, opts.workdir, opts.prompt, session, opts.claudeWorkflowEnabled, opts.profileId);
+    finalized.byokProviderName = prepared.byokProviderName ?? null;
+    finalized.byokProfileName = prepared.byokProfileName ?? null;
+    if (opts.forkOf && finalized.sessionId) {
+      try {
+        recordFork(opts.workdir, {
+          parent: { agent: opts.agent, sessionId: opts.forkOf.parentSessionId },
+          child: { agent: opts.agent, sessionId: finalized.sessionId },
+          atTurn: opts.forkOf.atTurn,
+        });
+      } catch (e: any) {
+        agentWarn(`[fork] recordFork failed: ${e?.message || e}`);
+      }
+    }
+    return finalized;
+  } catch (error: any) {
+    const failedResult: StreamResult = {
+      ok: false,
+      message: normalizeErrorMessage(error) || 'Agent stream failed.',
+      thinking: null,
+      sessionId: session.sessionId,
+      workspacePath: session.workspacePath,
+      model: session.record.model,
+      thinkingEffort: prepared.thinkingEffort,
+      elapsedS: 0,
+      inputTokens: null,
+      outputTokens: null,
+      cachedInputTokens: null,
+      cacheCreationInputTokens: null,
+      contextWindow: null,
+      contextUsedTokens: null,
+      contextPercent: null,
+      codexCumulative: null,
+      error: normalizeErrorMessage(error) || 'Agent stream failed.',
+      stopReason: null,
+      incomplete: true,
+      activity: null,
+      plan: null,
+      byokProviderName: prepared.byokProviderName ?? null,
+      byokProfileName: prepared.byokProfileName ?? null,
+    };
+    const failureDisplayPrompt = collapseSkillPrompt(opts.prompt) ?? opts.prompt;
+    session.record.lastQuestion = trimSessionText(failureDisplayPrompt);
+    session.record.lastAnswer = shortValue(failedResult.message, 500);
+    session.record.lastMessageText = shortValue(failedResult.message, 500) || shortValue(failureDisplayPrompt, 500);
+    session.record.lastThinking = null;
+    session.record.lastPlan = null;
+    applySessionRunResult(session.record, failedResult);
+    saveSessionRecord(opts.workdir, session.record);
+    throw error;
+  } finally {
+    if (bridge) {
+      await bridge.stop().catch(() => {});
+      if (bridge.hadActivity()) agentLog('[mcp] bridge stopped');
+    }
+  }
+}
+
+export function getSessions(opts: SessionListOpts): Promise<SessionListResult> {
+  const workdir = path.resolve(opts.workdir);
+  agentLog(`[sessions] request agent=${opts.agent} workdir=${workdir} limit=${opts.limit ?? 'all'}`);
+  return getDriver(opts.agent).getSessions(workdir, opts.limit).then(result => {
+    agentLog(`[sessions] result agent=${opts.agent} ok=${result.ok} count=${result.sessions.length} error=${result.error || '(none)'}`);
+    return result;
+  });
+}
+
+export function getSessionTail(opts: SessionTailOpts): Promise<SessionTailResult> {
+  return getDriver(opts.agent).getSessionTail(opts);
+}
+
+export function getSessionMessages(opts: SessionMessagesOpts & { agent: Agent }): Promise<SessionMessagesResult> {
+  return getDriver(opts.agent).getSessionMessages(opts);
+}
+
+export function listModels(agent: Agent, opts: ModelListOpts = {}): Promise<ModelListResult> {
+  return getDriver(agent).listModels(opts);
+}
+
+function isLocalProviderBaseURL(baseURL: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::|\/|$)/i.test(baseURL);
+}
+
+// A model surfaced as a BYOK profile must NOT also appear under the native group. Drivers seed
+// their native list with the active model (via opts.currentModel) so it stays visible — but when
+// a BYOK profile is active that "current model" is the profile's third-party model (e.g. a 豆包 /
+// deepseek id), which then wrongly shows up as an "official / 官方 / Native" model. The profile row
+// already represents it, so drop any native entry shadowed by a profile id.
+export function dropNativeShadowedByProfiles(native: ModelInfo[], profileRows: ModelInfo[]): ModelInfo[] {
+  if (!profileRows.length) return native;
+  const shadowed = new Set(profileRows.map(m => m.id.trim().toLowerCase()).filter(Boolean));
+  return native.filter(m => !shadowed.has(m.id.trim().toLowerCase()));
+}
+
+export async function resolveAgentModels(agent: Agent, opts: ModelListOpts = {}): Promise<ModelListResult> {
+  const driver = getDriver(agent);
+
+  let nativeResult: ModelListResult;
+  try {
+    nativeResult = await driver.listModels(opts);
+  } catch {
+    nativeResult = { agent, models: [], sources: [], note: null };
+  }
+  const nativeRaw: ModelInfo[] = nativeResult.models.map(m => ({
+    id: m.id,
+    alias: m.alias,
+    group: 'native',
+  }));
+
+  const acceptedKinds = new Set(getAcceptedProviderKinds(agent));
+  const cloud: ModelInfo[] = [];
+  const local: ModelInfo[] = [];
+  if (acceptedKinds.size > 0) {
+    for (const profile of listProfiles()) {
+      const provider = getProvider(profile.providerId);
+      if (!provider) continue;
+      if (!acceptedKinds.has(provider.kind)) continue;
+      const isLocal = isLocalProviderBaseURL(provider.baseURL);
+      const entry: ModelInfo = {
+        id: profile.modelId,
+        alias: profile.name,
+        group: isLocal ? 'local' : 'cloud',
+        profileId: profile.id,
+        providerName: provider.name,
+      };
+      (isLocal ? local : cloud).push(entry);
+    }
+  }
+
+  const native = dropNativeShadowedByProfiles(nativeRaw, [...cloud, ...local]);
+
+  const sources = [...nativeResult.sources];
+  if (cloud.length) sources.push(`${cloud.length} cloud profile${cloud.length === 1 ? '' : 's'}`);
+  if (local.length) sources.push(`${local.length} local profile${local.length === 1 ? '' : 's'}`);
+
+  return {
+    agent,
+    models: [...native, ...cloud, ...local],
+    sources,
+    note: nativeResult.note ?? null,
+  };
+}
+
+export function getUsage(opts: UsageOpts): UsageResult {
+  return getDriver(opts.agent).getUsage(opts);
+}
+
+export function getAgentBoundModelId(agent: Agent): string | null {
+  const profile = getActiveProfile(agent);
+  return profile?.modelId ?? null;
+}
+
+export function setAgentBoundModelId(agent: Agent, modelId: string): boolean {
+  const profile = getActiveProfile(agent);
+  if (!profile) return false;
+  const trimmed = modelId.trim();
+  if (!trimmed || trimmed === profile.modelId) return true;
+  updateProfile(profile.id, { modelId: trimmed });
+  return true;
+}

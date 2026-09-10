@@ -41,3 +41,31 @@ export function buildDefaultMenuCommands(agentCount: number, skills: SkillInfo[]
     { command: 'digest', description: 'Recent session digest' },
   ];
 
+  if (agentCount > 1) {
+    commands.push({ command: 'agents', description: 'Switch agents' });
+  }
+
+  commands.push(
+    { command: 'switch', description: 'Change workdir' },
+    { command: 'workspaces', description: 'Pick saved workspace' },
+    { command: 'models', description: 'Switch models' },
+    { command: 'mode', description: 'Toggle plan mode' },
+    { command: 'goal', description: 'Set/inspect a persistent goal' },
+    { command: 'stop', description: 'Stop current session' },
+    { command: 'status', description: 'Show status' },
+    { command: 'host', description: 'Host info' },
+  );
+
+  if (skills.length) {
+    commands.push({ command: 'skills', description: 'Browse skills' });
+  }
+
+  commands.push({ command: 'ext', description: 'Extensions overview' });
+
+  if (agentCount === 1) {
+    commands.push({ command: 'agents', description: 'Switch agents' });
+  }
+
+  commands.push({ command: 'restart', description: 'Restart bot' });
+  return commands;
+}
