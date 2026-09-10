@@ -284,3 +284,948 @@ function loadSessionIndex(workdir: string): SessionIndexData {
   const data: SessionIndexData = {
     version: 1,
     sessions: sessions
+      .map((entry: any) => normalizeSessionRecord(entry, workdir))
+      .filter((entry: ManagedSessionRecord | null): entry is ManagedSessionRecord => !!entry)
+      .filter((entry: ManagedSessionRecord) => !isPendingSessionId(entry.sessionId) || fs.existsSync(sessionRootFromWorkspacePath(entry.workspacePath))),
+    promotions,
+  };
+  if (stat) sessionIndexCache.set(filePath, { mtimeMs: stat.mtimeMs, size: stat.size, data });
+  return data;
+}
+
+function writeSessionIndex(
+  workdir: string,
+  sessions: ManagedSessionRecord[],
+  promotionsOverride?: Record<string, string>,
+) {
+  const filePath = sessionIndexPath(workdir);
+  const promotions = promotionsOverride ?? loadSessionIndex(workdir).promotions;
+  const payload: { version: number; sessions: ManagedSessionRecord[]; promotions?: Record<string, string> } = { version: 1, sessions };
+  if (promotions && Object.keys(promotions).length) payload.promotions = promotions;
+  writeJsonFile(filePath, payload);
+  sessionIndexCache.delete(filePath);
+}
+
+function prunePromotionsForDeletedSession(
+  promotions: Record<string, string>,
+  agent: Agent,
+  deletedId: string,
+): Record<string, string> | null {
+  if (!promotions) return null;
+  const out: Record<string, string> = {};
+  let changed = false;
+  for (const [key, val] of Object.entries(promotions)) {
+    const ci = key.indexOf(':');
+    const kAgent = ci > 0 ? key.slice(0, ci) : '';
+    const kOld = ci > 0 ? key.slice(ci + 1) : '';
+    if (kAgent === agent && (val === deletedId || kOld === deletedId)) { changed = true; continue; }
+    out[key] = val;
+  }
+  return changed ? out : null;
+}
+
+export function resolveCanonicalSessionId(workdir: string, agent: Agent, sessionId: string): string {
+  if (!sessionId) return sessionId;
+  const resolvedWorkdir = path.resolve(workdir);
+  const promotions = loadSessionIndex(resolvedWorkdir).promotions;
+  let id = sessionId;
+  const seen = new Set<string>();
+  while (!seen.has(id)) {
+    seen.add(id);
+    let next = promotions?.[`${agent}:${id}`];
+    if (!next && isPendingSessionId(id)) {
+      const aliased = readSessionDirAliasTarget(resolvedWorkdir, agent, id);
+      if (aliased) {
+        recordSessionPromotion(resolvedWorkdir, agent, id, aliased);
+        next = aliased;
+      }
+    }
+    if (!next || next === id) break;
+    id = next;
+  }
+  return id;
+}
+
+function readSessionDirAliasTarget(workdir: string, agent: Agent, sessionId: string): string | null {
+  try {
+    const dir = sessionDirPath(workdir, agent, sessionId);
+    if (!fs.lstatSync(dir).isSymbolicLink()) return null;
+    const native = path.basename(fs.readlinkSync(dir).replace(/[/\\]+$/, ''));
+    return native && native !== sessionId && !isPendingSessionId(native) ? native : null;
+  } catch { return null; }
+}
+
+export function getSessionPromotions(workdir: string): Record<string, string> {
+  return { ...loadSessionIndex(path.resolve(workdir)).promotions };
+}
+
+function recordSessionPromotion(workdir: string, agent: Agent, oldId: string, newId: string): void {
+  if (!oldId || !newId || oldId === newId) return;
+  const resolvedWorkdir = path.resolve(workdir);
+  const index = loadSessionIndex(resolvedWorkdir);
+  const promotions = { ...index.promotions };
+  for (const k of Object.keys(promotions)) {
+    if (promotions[k] === oldId && k.startsWith(`${agent}:`)) promotions[k] = newId;
+  }
+  promotions[`${agent}:${oldId}`] = newId;
+  writeSessionIndex(resolvedWorkdir, index.sessions, promotions);
+}
+
+function writeSessionMeta(record: ManagedSessionRecord) {
+  writeJsonFile(sessionMetaPath(record.workspacePath), {
+    sessionId: record.sessionId, agent: record.agent, workdir: record.workdir,
+    workspacePath: record.workspacePath,
+    threadId: record.threadId,
+    createdAt: record.createdAt, updatedAt: record.updatedAt,
+    title: record.title, model: record.model, thinkingEffort: record.thinkingEffort, workflowEnabled: record.workflowEnabled, profileId: record.profileId, accountId: record.accountId ?? null, stagedFiles: record.stagedFiles,
+    runState: record.runState, runDetail: record.runDetail, runUpdatedAt: record.runUpdatedAt,
+    runPid: record.runPid,
+    classification: record.classification,
+    userStatus: record.userStatus,
+    userNote: record.userNote,
+    lastQuestion: record.lastQuestion,
+    lastAnswer: record.lastAnswer,
+    lastMessageText: record.lastMessageText,
+    lastThinking: record.lastThinking,
+    lastPlan: record.lastPlan,
+    migratedFrom: record.migratedFrom,
+    migratedTo: record.migratedTo,
+    linkedSessions: record.linkedSessions,
+    handoverFrom: record.handoverFrom ?? null,
+  });
+}
+
+function copyPath(sourcePath: string, targetPath: string) {
+  const stat = fs.statSync(sourcePath);
+  if (stat.isDirectory()) { fs.cpSync(sourcePath, targetPath, { recursive: true, force: true }); return; }
+  ensureDir(path.dirname(targetPath));
+  fs.copyFileSync(sourcePath, targetPath);
+}
+
+function createSessionDirAlias(aliasPath: string, targetPath: string) {
+  if (fs.existsSync(aliasPath) || !fs.existsSync(targetPath)) return;
+  try {
+    ensureDir(path.dirname(aliasPath));
+    const relativeTarget = path.relative(path.dirname(aliasPath), targetPath) || '.';
+    fs.symlinkSync(relativeTarget, aliasPath, process.platform === 'win32' ? 'junction' : 'dir');
+  } catch {}
+}
+
+function migrateSessionLayout(workdir: string, record: ManagedSessionRecord): ManagedSessionRecord {
+  const targetSessionDir = sessionDirPath(workdir, record.agent, record.sessionId);
+  const targetWorkspacePath = sessionWorkspacePath(workdir, record.agent, record.sessionId);
+  const currentWorkspacePath = path.resolve(record.workspacePath || targetWorkspacePath);
+  const legacyWp = path.resolve(legacySessionWorkspacePath(workdir, record.agent, record.sessionId));
+
+  ensureDir(targetSessionDir);
+  ensureDir(targetWorkspacePath);
+
+  for (const sourceWorkspacePath of dedupeStrings([currentWorkspacePath, legacyWp])) {
+    if (sourceWorkspacePath === targetWorkspacePath || !fs.existsSync(sourceWorkspacePath)) continue;
+    if (!fs.statSync(sourceWorkspacePath).isDirectory()) continue;
+    for (const entry of fs.readdirSync(sourceWorkspacePath)) {
+      if (entry === PIKILOOM_DIR) continue;
+      copyPath(path.join(sourceWorkspacePath, entry), path.join(targetWorkspacePath, entry));
+    }
+    if (sourceWorkspacePath === legacyWp) fs.rmSync(sourceWorkspacePath, { recursive: true, force: true });
+  }
+  record.workspacePath = path.resolve(targetWorkspacePath);
+  return record;
+}
+
+export function saveSessionRecord(workdir: string, record: ManagedSessionRecord): ManagedSessionRecord {
+  record = migrateSessionLayout(workdir, record);
+  ensureDir(sessionDirPath(workdir, record.agent, record.sessionId));
+  ensureDir(record.workspacePath);
+  const index = loadSessionIndex(workdir);
+  record.threadId = normalizeThreadId(record.threadId) || legacyThreadId(record.agent, record.sessionId);
+  record.updatedAt = new Date().toISOString();
+  const pos = index.sessions.findIndex(entry => entry.agent === record.agent && entry.sessionId === record.sessionId);
+  if (pos >= 0) index.sessions[pos] = record;
+  else index.sessions.unshift(record);
+  sortByUpdatedAtDesc(index.sessions);
+  writeSessionIndex(workdir, index.sessions);
+  writeSessionMeta(record);
+  return record;
+}
+
+export function updateSessionMeta(
+  workdir: string,
+  agent: Agent,
+  sessionId: string,
+  patch: Partial<Pick<ManagedSessionRecord, 'userStatus' | 'userNote' | 'classification' | 'migratedFrom' | 'migratedTo'>> & {
+    addLink?: { agent: Agent; sessionId: string };
+  },
+): boolean {
+  const resolvedWorkdir = path.resolve(workdir);
+  const index = loadSessionIndex(resolvedWorkdir);
+  const record = index.sessions.find(s => s.sessionId === sessionId && s.agent === agent);
+  if (!record) return false;
+
+  if (patch.userStatus !== undefined) record.userStatus = patch.userStatus;
+  if (patch.userNote !== undefined) record.userNote = patch.userNote;
+  if (patch.classification !== undefined) record.classification = patch.classification;
+  if (patch.migratedFrom !== undefined) record.migratedFrom = patch.migratedFrom;
+  if (patch.migratedTo !== undefined) record.migratedTo = patch.migratedTo;
+  if (patch.addLink) {
+    if (!record.linkedSessions) record.linkedSessions = [];
+    const exists = record.linkedSessions.some(
+      l => l.agent === patch.addLink!.agent && l.sessionId === patch.addLink!.sessionId,
+    );
+    if (!exists) record.linkedSessions.push(patch.addLink);
+  }
+
+  record.updatedAt = new Date().toISOString();
+  writeSessionIndex(resolvedWorkdir, index.sessions);
+  writeSessionMeta(record);
+  return true;
+}
+
+export function promoteSessionId(workdir: string, agent: Agent, pendingId: string, nativeId: string): void {
+  if (!isPendingSessionId(pendingId) || !nativeId.trim()) return;
+  const resolvedWorkdir = path.resolve(workdir);
+  const index = loadSessionIndex(resolvedWorkdir);
+  const record = index.sessions.find(entry => entry.sessionId === pendingId && entry.agent === agent);
+  if (!record) return;
+
+  const oldDir = sessionDirPath(resolvedWorkdir, agent, pendingId);
+  const newDir = sessionDirPath(resolvedWorkdir, agent, nativeId);
+
+  if (fs.existsSync(oldDir) && !fs.existsSync(newDir)) {
+    try { fs.renameSync(oldDir, newDir); } catch {  try { fs.cpSync(oldDir, newDir, { recursive: true }); fs.rmSync(oldDir, { recursive: true, force: true }); } catch {} }
+    createSessionDirAlias(oldDir, newDir);
+  }
+
+  writeSessionIndex(
+    resolvedWorkdir,
+    index.sessions.filter(entry => entry.agent !== agent || (entry.sessionId !== pendingId && entry.sessionId !== nativeId)),
+  );
+  record.sessionId = nativeId;
+  record.workspacePath = sessionWorkspacePath(resolvedWorkdir, agent, nativeId);
+  saveSessionRecord(resolvedWorkdir, record);
+}
+
+export function recordFork(workdir: string, opts: {
+  parent: { agent: Agent; sessionId: string };
+  child: { agent: Agent; sessionId: string };
+  atTurn: number;
+}): void {
+  const resolvedWorkdir = path.resolve(workdir);
+  const index = loadSessionIndex(resolvedWorkdir);
+  const parent = index.sessions.find(e => e.agent === opts.parent.agent && e.sessionId === opts.parent.sessionId);
+  const child = index.sessions.find(e => e.agent === opts.child.agent && e.sessionId === opts.child.sessionId);
+  if (!parent || !child) return;
+
+  child.migratedFrom = {
+    agent: parent.agent,
+    sessionId: parent.sessionId,
+    kind: 'fork',
+    forkedAtTurn: opts.atTurn,
+  };
+  if (!parent.linkedSessions) parent.linkedSessions = [];
+  const childRef = { agent: child.agent, sessionId: child.sessionId, kind: 'fork' as const, forkedAtTurn: opts.atTurn };
+  if (!parent.linkedSessions.some(l => l.agent === child.agent && l.sessionId === child.sessionId)) {
+    parent.linkedSessions.push(childRef);
+  }
+
+  child.updatedAt = new Date().toISOString();
+  parent.updatedAt = new Date().toISOString();
+  writeSessionIndex(resolvedWorkdir, index.sessions);
+  writeSessionMeta(parent);
+  writeSessionMeta(child);
+}
+
+export function syncManagedSessionIdentity(session: SessionWorkspaceInfo, workdir: string, nativeId: string): boolean {
+  const resolvedId = nativeId.trim();
+  if (!resolvedId || session.sessionId === resolvedId) return false;
+
+  const resolvedWorkdir = path.resolve(workdir);
+  const previousId = session.sessionId;
+  if (isPendingSessionId(previousId)) {
+    promoteSessionId(resolvedWorkdir, session.record.agent, previousId, resolvedId);
+  } else {
+    const index = loadSessionIndex(resolvedWorkdir);
+    const filtered = index.sessions.filter(e => !(e.agent === session.record.agent && e.sessionId === previousId));
+    if (filtered.length !== index.sessions.length) writeSessionIndex(resolvedWorkdir, filtered);
+  }
+
+  session.sessionId = resolvedId;
+  session.workspacePath = sessionWorkspacePath(resolvedWorkdir, session.record.agent, resolvedId);
+  session.record.sessionId = resolvedId;
+  session.record.workspacePath = session.workspacePath;
+  recordSessionPromotion(resolvedWorkdir, session.record.agent, previousId, resolvedId);
+  return true;
+}
+
+export function summarizePromptTitle(prompt: string | null | undefined): string | null {
+  const raw = String(prompt || '').replace(/\r\n?/g, '\n');
+  const text = firstNonEmptyLine(raw).replace(/\s+/g, ' ').trim()
+    || raw.replace(/\s+/g, ' ').trim();
+  if (!text) return null;
+  return text.length <= 120 ? text : `${text.slice(0, 117).trimEnd()}...`;
+}
+
+function safeWorkspaceFilename(filename: string): string {
+  const base = path.basename(filename || 'file');
+  const sanitized = base.replace(/[^\w.\- ]+/g, '_').replace(/^\.+/, '').trim();
+  return sanitized || `file-${Date.now()}`;
+}
+
+function uniqueWorkspaceFilename(workspacePath: string, desiredName: string): string {
+  const ext = path.extname(desiredName);
+  const stem = ext ? desiredName.slice(0, -ext.length) : desiredName;
+  let candidate = desiredName;
+  let index = 2;
+  while (fs.existsSync(path.join(workspacePath, candidate))) { candidate = `${stem}-${index}${ext}`; index++; }
+  return candidate;
+}
+
+export function importFilesIntoWorkspace(workspacePath: string, files: string[]): string[] {
+  const imported: string[] = [];
+  const realWorkspace = fs.realpathSync(workspacePath);
+  for (const filePath of files) {
+    const resolved = path.resolve(filePath);
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) continue;
+    const sourcePath = fs.realpathSync(resolved);
+    const relPath = path.relative(realWorkspace, sourcePath);
+    if (relPath && !relPath.startsWith('..') && !path.isAbsolute(relPath)) {
+      imported.push(relPath.split(path.sep).join(path.posix.sep));
+      continue;
+    }
+    const targetName = uniqueWorkspaceFilename(workspacePath, safeWorkspaceFilename(path.basename(sourcePath)));
+    fs.copyFileSync(sourcePath, path.join(workspacePath, targetName));
+    imported.push(targetName);
+  }
+  return dedupeStrings(imported);
+}
+
+export function ensureSessionWorkspace(opts: EnsureSessionWorkspaceOpts): SessionWorkspaceInfo {
+  const workdir = path.resolve(opts.workdir);
+  const index = loadSessionIndex(workdir);
+  let record = index.sessions.find(entry => entry.agent === opts.agent && opts.sessionId && entry.sessionId === opts.sessionId)
+    || null;
+  if (!record) {
+    const sessionId = opts.sessionId?.trim() || nextPendingSessionId();
+    const threadId = normalizeThreadId(opts.threadId)
+      || (opts.sessionId ? legacyThreadId(opts.agent, sessionId) : nextThreadId());
+    record = {
+      sessionId, agent: opts.agent, workdir,
+      workspacePath: sessionWorkspacePath(workdir, opts.agent, sessionId),
+      threadId,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      title: summarizePromptTitle(opts.title) || null, model: null, thinkingEffort: null, workflowEnabled: null, profileId: null, accountId: null, stagedFiles: [], lastUserAttachments: [],
+      runState: 'completed', runDetail: null, runUpdatedAt: new Date().toISOString(),
+      runPid: null,
+      classification: null, userStatus: null, userNote: null,
+      lastQuestion: null, lastAnswer: null, lastMessageText: null,
+      lastThinking: null, lastPlan: null,
+      migratedFrom: null, migratedTo: null, linkedSessions: [],
+      handoverFrom: normalizeHandoverRef(opts.handoverFrom),
+    };
+  }
+  if (!record.threadId) record.threadId = normalizeThreadId(opts.threadId) || legacyThreadId(record.agent, record.sessionId);
+  if (!record.handoverFrom) record.handoverFrom = normalizeHandoverRef(opts.handoverFrom);
+  if (!record.title && opts.title) record.title = summarizePromptTitle(opts.title);
+  record.workspacePath = path.resolve(record.workspacePath);
+  saveSessionRecord(workdir, record);
+  return { sessionId: record.sessionId, workspacePath: record.workspacePath, record };
+}
+
+export function managedRecordToSessionInfo(record: ManagedSessionRecord): SessionInfo {
+  const title = collapseSkillPrompt(record.title) ?? record.title;
+  const lastQuestion = collapseSkillPrompt(record.lastQuestion) ?? record.lastQuestion;
+  const lastMessageText = collapseSkillPrompt(record.lastMessageText) ?? record.lastMessageText;
+  return {
+    sessionId: record.sessionId,
+    agent: record.agent,
+    workdir: record.workdir,
+    workspacePath: record.workspacePath,
+    threadId: record.threadId,
+    model: record.model,
+    thinkingEffort: record.thinkingEffort,
+    workflowEnabled: record.workflowEnabled ?? null,
+    profileId: record.profileId ?? null,
+    accountId: record.accountId ?? null,
+    createdAt: record.createdAt,
+    title,
+    running: record.runState === 'running',
+    runState: record.runState,
+    runDetail: record.runDetail,
+    runUpdatedAt: record.runUpdatedAt,
+    runPid: record.runPid,
+    classification: record.classification,
+    userStatus: record.userStatus,
+    userNote: record.userNote,
+    lastQuestion,
+    lastAnswer: record.lastAnswer,
+    lastMessageText,
+    migratedFrom: record.migratedFrom,
+    migratedTo: record.migratedTo,
+    linkedSessions: record.linkedSessions,
+    numTurns: record.numTurns ?? null,
+    handoverFrom: record.handoverFrom ?? null,
+  };
+}
+
+export function listSwarmDeckSessions(workdir: string, agent: Agent, limit?: number): ManagedSessionRecord[] {
+  const records = sortByUpdatedAtDesc(
+    loadSessionIndex(path.resolve(workdir)).sessions.filter(entry => entry.agent === agent),
+  );
+  return typeof limit === 'number' ? records.slice(0, limit) : records;
+}
+
+export function findSwarmDeckSession(workdir: string, agent: Agent, sessionId: string): ManagedSessionRecord | null {
+  return listSwarmDeckSessions(workdir, agent).find(entry => entry.sessionId === sessionId) || null;
+}
+
+export interface DeleteAgentSessionOpts {
+  workdir: string;
+  agent: Agent;
+  sessionId: string;
+  purgeNative?: boolean;
+}
+
+export interface DeleteAgentSessionResult {
+  ok: boolean;
+  recordRemoved: boolean;
+  swarmdeckPathsRemoved: string[];
+  nativePathsRemoved: string[];
+  refusedReason: 'session-running' | null;
+}
+
+export async function deleteAgentSession(opts: DeleteAgentSessionOpts): Promise<DeleteAgentSessionResult> {
+  const resolvedWorkdir = path.resolve(opts.workdir);
+  const { agent, sessionId } = opts;
+  const result: DeleteAgentSessionResult = {
+    ok: false,
+    recordRemoved: false,
+    swarmdeckPathsRemoved: [],
+    nativePathsRemoved: [],
+    refusedReason: null,
+  };
+
+  const index = loadSessionIndex(resolvedWorkdir);
+  const recordIdx = index.sessions.findIndex(s => s.agent === agent && s.sessionId === sessionId);
+  const record = recordIdx >= 0 ? index.sessions[recordIdx] : null;
+
+  if (record && record.runState === 'running' && !isRunningSessionStale(record, SESSION_RUNNING_THRESHOLD_MS)) {
+    result.refusedReason = 'session-running';
+    return result;
+  }
+
+  if (record) {
+    index.sessions.splice(recordIdx, 1);
+    const prunedPromotions = prunePromotionsForDeletedSession(index.promotions, agent, sessionId);
+    writeSessionIndex(resolvedWorkdir, index.sessions, prunedPromotions ?? undefined);
+    result.recordRemoved = true;
+  }
+
+  for (const dir of [sessionDirPath(resolvedWorkdir, agent, sessionId), legacySessionWorkspacePath(resolvedWorkdir, agent, sessionId)]) {
+    if (!fs.existsSync(dir)) continue;
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      result.swarmdeckPathsRemoved.push(dir);
+    } catch (err) {
+      agentLog(`[sessions] failed to remove ${dir}: ${(err as Error).message}`);
+    }
+  }
+
+  if (opts.purgeNative) {
+    try {
+      const driver = getDriver(agent);
+      if (typeof driver.deleteNativeSession === 'function') {
+        const removed = await driver.deleteNativeSession(resolvedWorkdir, sessionId);
+        result.nativePathsRemoved = Array.isArray(removed) ? removed : [];
+      }
+    } catch (err) {
+      agentLog(`[sessions] native session purge failed for ${agent}/${sessionId}: ${(err as Error).message}`);
+    }
+  }
+
+  result.ok = true;
+  return result;
+}
+
+export function getSessionStoredConfig(workdir: string, agent: Agent, sessionId: string): { model: string | null; thinkingEffort: string | null; workflowEnabled: boolean | null; profileId: string | null; accountId: string | null } {
+  const record = findSwarmDeckSession(workdir, agent, sessionId);
+  return {
+    model: record?.model ?? null,
+    thinkingEffort: record?.thinkingEffort ?? null,
+    workflowEnabled: record?.workflowEnabled ?? null,
+    profileId: record?.profileId ?? null,
+    accountId: record?.accountId ?? null,
+  };
+}
+
+export function ensureManagedSession(opts: EnsureManagedSessionOpts): SessionInfo {
+  const session = ensureSessionWorkspace({
+    agent: opts.agent,
+    workdir: opts.workdir,
+    sessionId: opts.sessionId,
+    title: opts.title,
+    threadId: opts.threadId,
+  });
+  if (!session.record.title && opts.title) session.record.title = summarizePromptTitle(opts.title);
+  if (!session.record.model && opts.model) session.record.model = opts.model.trim() || null;
+  if (!session.record.thinkingEffort && opts.thinkingEffort) {
+    session.record.thinkingEffort = opts.thinkingEffort.trim().toLowerCase() || null;
+  }
+  if (!session.record.profileId && opts.profileId) {
+    session.record.profileId = opts.profileId.trim() || null;
+  }
+  saveSessionRecord(opts.workdir, session.record);
+  return managedRecordToSessionInfo(session.record);
+}
+
+export function findManagedThreadSession(workdir: string, threadId: string, agent: Agent): SessionInfo | null {
+  const record = sortByUpdatedAtDesc(
+    loadSessionIndex(path.resolve(workdir)).sessions.filter(entry => entry.threadId === threadId && entry.agent === agent),
+  )[0] || null;
+  return record ? managedRecordToSessionInfo(record) : null;
+}
+
+export function stageSessionFiles(opts: StageSessionFilesOpts): StageSessionFilesResult {
+  const session = ensureSessionWorkspace({
+    agent: opts.agent,
+    workdir: opts.workdir,
+    sessionId: opts.sessionId,
+    title: opts.title,
+    threadId: opts.threadId,
+    handoverFrom: opts.handoverFrom,
+  });
+  const importedFiles = importFilesIntoWorkspace(session.workspacePath, opts.files);
+  if (importedFiles.length) {
+    session.record.stagedFiles = dedupeStrings([...session.record.stagedFiles, ...importedFiles]);
+    saveSessionRecord(opts.workdir, session.record);
+  }
+  return {
+    sessionId: session.sessionId,
+    workspacePath: session.workspacePath,
+    threadId: session.record.threadId,
+    importedFiles,
+    handoverFrom: session.record.handoverFrom ?? null,
+  };
+}
+
+function sessionTimelineAt(session: Pick<SessionInfo, 'runUpdatedAt' | 'createdAt'>): number {
+  const ts = Date.parse(session.runUpdatedAt || session.createdAt || '');
+  return Number.isFinite(ts) ? ts : Number.NEGATIVE_INFINITY;
+}
+
+function preferNativeSessionTimeline(managed: SessionInfo, native: SessionInfo): boolean {
+  const managedTs = sessionTimelineAt(managed);
+  const nativeTs = sessionTimelineAt(native);
+  return nativeTs > managedTs;
+}
+
+export function mergeManagedAndNativeSessions(managedSessions: SessionInfo[], nativeSessions: SessionInfo[]): SessionInfo[] {
+  const managedById = new Map<string, SessionInfo>();
+  const merged: SessionInfo[] = [];
+  const seen = new Set<string>();
+
+  for (const session of managedSessions) {
+    if (!session.sessionId || isPendingSessionId(session.sessionId)) continue;
+    managedById.set(session.sessionId, session);
+  }
+
+  for (const native of nativeSessions) {
+    const sessionId = native.sessionId;
+    if (sessionId) seen.add(sessionId);
+    const managed = sessionId ? managedById.get(sessionId) : null;
+    if (!managed) {
+      merged.push(native);
+      continue;
+    }
+    const useNativeTimeline = preferNativeSessionTimeline(managed, native);
+    merged.push({
+      ...managed,
+      ...native,
+      workdir: native.workdir || managed.workdir,
+      workspacePath: managed.workspacePath || native.workspacePath,
+      threadId: managed.threadId ?? native.threadId ?? null,
+      running: managed.running || native.running,
+      runState: managed.runState === 'running'
+        ? managed.runState
+        : (useNativeTimeline ? native.runState : managed.runState),
+      runDetail: useNativeTimeline ? (native.runDetail ?? managed.runDetail) : (managed.runDetail ?? native.runDetail),
+      runUpdatedAt: useNativeTimeline ? (native.runUpdatedAt ?? managed.runUpdatedAt) : (managed.runUpdatedAt ?? native.runUpdatedAt),
+      title: native.title || managed.title,
+      model: native.model || managed.model,
+      thinkingEffort: managed.thinkingEffort ?? native.thinkingEffort ?? null,
+      workflowEnabled: managed.workflowEnabled ?? native.workflowEnabled ?? null,
+      profileId: managed.profileId ?? native.profileId ?? null,
+      accountId: managed.accountId ?? native.accountId ?? null,
+      createdAt: native.createdAt || managed.createdAt,
+      classification: managed.classification ?? native.classification ?? null,
+      userStatus: managed.userStatus ?? native.userStatus ?? null,
+      userNote: managed.userNote ?? native.userNote ?? null,
+      lastQuestion: useNativeTimeline
+        ? (native.lastQuestion ?? managed.lastQuestion ?? null)
+        : (managed.lastQuestion ?? native.lastQuestion ?? null),
+      lastAnswer: useNativeTimeline
+        ? (native.lastAnswer ?? managed.lastAnswer ?? null)
+        : (managed.lastAnswer ?? native.lastAnswer ?? null),
+      lastMessageText: useNativeTimeline
+        ? (native.lastMessageText ?? managed.lastMessageText ?? native.lastAnswer ?? native.lastQuestion ?? managed.lastAnswer ?? managed.lastQuestion ?? null)
+        : (managed.lastMessageText ?? native.lastMessageText ?? managed.lastAnswer ?? managed.lastQuestion ?? native.lastAnswer ?? native.lastQuestion ?? null),
+      migratedFrom: managed.migratedFrom ?? native.migratedFrom ?? null,
+      migratedTo: managed.migratedTo ?? native.migratedTo ?? null,
+      linkedSessions: managed.linkedSessions?.length ? managed.linkedSessions : (native.linkedSessions ?? []),
+      numTurns: useNativeTimeline ? (native.numTurns ?? managed.numTurns ?? null) : (managed.numTurns ?? native.numTurns ?? null),
+    });
+  }
+
+  for (const managed of managedSessions) {
+    if (!managed.sessionId || isPendingSessionId(managed.sessionId) || seen.has(managed.sessionId)) continue;
+    merged.push(managed);
+  }
+
+  merged.sort((a, b) => Date.parse(b.createdAt || '') - Date.parse(a.createdAt || ''));
+  return merged;
+}
+
+export function getSessions(opts: SessionListOpts): Promise<SessionListResult> {
+  const workdir = path.resolve(opts.workdir);
+  agentLog(`[sessions] request agent=${opts.agent} workdir=${workdir} limit=${opts.limit ?? 'all'}`);
+  return getDriver(opts.agent).getSessions(workdir, opts.limit).then(result => {
+    agentLog(`[sessions] result agent=${opts.agent} ok=${result.ok} count=${result.sessions.length} error=${result.error || '(none)'}`);
+    return result;
+  });
+}
+
+export function getSessionTail(opts: SessionTailOpts): Promise<SessionTailResult> {
+  return getDriver(opts.agent).getSessionTail(opts);
+}
+
+export function getSessionMessages(opts: SessionMessagesOpts & { agent: Agent }): Promise<SessionMessagesResult> {
+  return getDriver(opts.agent).getSessionMessages(opts);
+}
+
+function normalizeTurnWindowValue(value: number | undefined, fallback: number): number {
+  if (!Number.isFinite(value) || value == null) return fallback;
+  return Math.max(0, Math.floor(value));
+}
+
+export function applyTurnWindow(
+  allMsgs: TailMessage[],
+  opts: Pick<SessionMessagesOpts, 'lastNTurns' | 'turnOffset' | 'turnLimit'> = {},
+  richMsgs?: RichMessage[],
+): SessionMessagesResult {
+  let totalTurns = 0;
+  const turnStartIndexes: number[] = [];
+  for (let i = 0; i < allMsgs.length; i++) {
+    if (allMsgs[i].role === 'user') {
+      turnStartIndexes.push(i);
+      totalTurns++;
+    }
+  }
+
+  const rich = richMsgs ?? allMsgs.map(m => ({ role: m.role, text: m.text, blocks: [{ type: 'text' as const, content: m.text }] }));
+
+  if (totalTurns <= 0) {
+    return {
+      ok: true,
+      messages: allMsgs,
+      richMessages: rich,
+      totalTurns,
+      window: {
+        offset: 0,
+        limit: 0,
+        returnedTurns: 0,
+        totalTurns: 0,
+        hasOlder: false,
+        hasNewer: false,
+        startTurn: 0,
+        endTurn: 0,
+      },
+      error: null,
+    };
+  }
+
+  const offset = normalizeTurnWindowValue(opts.turnOffset, 0);
+  const availableTurns = Math.max(0, totalTurns - offset);
+  const rawLimit = normalizeTurnWindowValue(opts.turnLimit ?? opts.lastNTurns, availableTurns);
+  const limit = rawLimit > 0 ? Math.min(rawLimit, availableTurns) : availableTurns;
+
+  if (limit <= 0 || availableTurns <= 0) {
+    const emptyTurn = Math.max(0, totalTurns - offset);
+    return {
+      ok: true,
+      messages: [],
+      richMessages: [],
+      totalTurns,
+      window: {
+        offset,
+        limit,
+        returnedTurns: 0,
+        totalTurns,
+        hasOlder: emptyTurn > 0,
+        hasNewer: offset > 0,
+        startTurn: emptyTurn,
+        endTurn: emptyTurn,
+      },
+      error: null,
+    };
+  }
+
+  const endTurn = Math.max(0, totalTurns - offset);
+  const startTurn = Math.max(0, endTurn - limit);
+  const startIdx = turnStartIndexes[startTurn] ?? 0;
+  const endIdx = endTurn < totalTurns ? (turnStartIndexes[endTurn] ?? allMsgs.length) : allMsgs.length;
+
+  return {
+    ok: true,
+    messages: allMsgs.slice(startIdx, endIdx),
+    richMessages: rich.slice(startIdx, endIdx),
+    totalTurns,
+    window: {
+      offset,
+      limit,
+      returnedTurns: endTurn - startTurn,
+      totalTurns,
+      hasOlder: startTurn > 0,
+      hasNewer: endTurn < totalTurns,
+      startTurn,
+      endTurn,
+    },
+    error: null,
+  };
+}
+
+export function applyTurnFilter(allMsgs: TailMessage[], lastNTurns?: number, richMsgs?: RichMessage[]): SessionMessagesResult {
+  return applyTurnWindow(allMsgs, { lastNTurns }, richMsgs);
+}
+
+const PROPOSAL_PATTERNS = /方案|option[s ]?[A-C]|plan|approach|建议|recommend|alternatively|trade-?off|pros?\s+(and|&)\s+cons?|选择|比较/i;
+const IMPLEMENTATION_PATTERNS = /已完成|committed|done|implemented|fixed|created|wrote|修复|完成|写入|提交|applied|updated|modified|refactored/i;
+const BLOCKED_PATTERNS = /error|failed|permission denied|cannot|无法|失败|报错|blocked|timed?\s*out/i;
+
+export function classifySession(
+  result: Pick<StreamResult, 'ok' | 'incomplete' | 'error' | 'stopReason' | 'message' | 'activity'>,
+): SessionClassification {
+  const now = new Date().toISOString();
+  const message = result.message || '';
+  const firstLine = message.split('\n').find(l => l.trim())?.trim() || '';
+  const summaryText = firstLine.length > 120 ? firstLine.slice(0, 117) + '...' : firstLine;
+
+  if (result.incomplete) {
+    return {
+      outcome: 'partial',
+      suggestedNextAction: result.stopReason === 'interrupted' ? 'Resume or restart the interrupted task' : 'Continue the incomplete task',
+      summary: summaryText || 'Task did not complete',
+      classifiedAt: now,
+    };
+  }
+
+  if (!result.ok) {
+    const errorDetail = result.error || result.stopReason || 'unknown error';
+    return {
+      outcome: 'blocked',
+      suggestedNextAction: `Resolve error: ${errorDetail.slice(0, 100)}`,
+      summary: summaryText || `Failed: ${errorDetail.slice(0, 100)}`,
+      classifiedAt: now,
+    };
+  }
+
+  const activity = result.activity || '';
+  if (/\b(Edit|Write|Bash)\b/.test(activity)) {
+    return {
+      outcome: 'implementation',
+      suggestedNextAction: 'Verify the changes made',
+      summary: summaryText,
+      classifiedAt: now,
+    };
+  }
+
+  if (BLOCKED_PATTERNS.test(message.slice(0, 500))) {
+    return {
+      outcome: 'blocked',
+      suggestedNextAction: 'Review the error and provide guidance',
+      summary: summaryText,
+      classifiedAt: now,
+    };
+  }
+
+  if (PROPOSAL_PATTERNS.test(message.slice(0, 1000))) {
+    return {
+      outcome: 'proposal',
+      suggestedNextAction: 'Review the proposal and decide on next steps',
+      summary: summaryText,
+      classifiedAt: now,
+    };
+  }
+
+  if (IMPLEMENTATION_PATTERNS.test(message.slice(0, 500))) {
+    return {
+      outcome: 'implementation',
+      suggestedNextAction: 'Verify the changes made',
+      summary: summaryText,
+      classifiedAt: now,
+    };
+  }
+
+  return {
+    outcome: 'answer',
+    suggestedNextAction: null,
+    summary: summaryText,
+    classifiedAt: now,
+  };
+}
+
+export function deriveUserStatus(outcome: SessionClassification['outcome']): 'review' | 'done' | 'active' {
+  switch (outcome) {
+    case 'answer': return 'done';
+    case 'partial': return 'active';
+    default: return 'review';
+  }
+}
+
+export async function exportSession(opts: ExportSessionOpts): Promise<ExportSessionResult> {
+  try {
+    const result = await getSessionMessages({ ...opts, agent: opts.agent, rich: true });
+    if (!result.ok) return { ok: false, content: '', filename: '', error: result.error };
+
+    const messages = result.messages;
+    const richMessages = result.richMessages;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    let content: string;
+    let ext: string;
+
+    switch (opts.format) {
+      case 'json': {
+        const { materializeImage } = await import('./images.js');
+        const enrichedRichMessages = richMessages?.map(message => ({
+          ...message,
+          blocks: message.blocks.map(block => {
+            if (block.type !== 'image') return block;
+            const resolved = materializeImage(block);
+            if (!resolved) return block;
+            return {
+              ...block,
+              content: `data:${resolved.mime};base64,${resolved.bytes.toString('base64')}`,
+            };
+          }),
+        }));
+        content = JSON.stringify({
+          agent: opts.agent,
+          sessionId: opts.sessionId,
+          exportedAt: new Date().toISOString(),
+          messages,
+          richMessages: enrichedRichMessages,
+        }, null, 2);
+        ext = 'json';
+        break;
+      }
+      case 'text':
+        content = messages.map(m => `[${m.role}]\n${m.text}`).join('\n\n---\n\n');
+        ext = 'txt';
+        break;
+      case 'markdown':
+      default:
+        content = await renderMarkdownExport(opts.agent, timestamp, messages, richMessages);
+        ext = 'md';
+        break;
+    }
+
+    const filename = `session-${opts.agent}-${opts.sessionId.slice(0, 8)}-${timestamp}.${ext}`;
+    return { ok: true, content, filename, error: null };
+  } catch (e: any) {
+    return { ok: false, content: '', filename: '', error: e.message };
+  }
+}
+
+async function renderMarkdownExport(
+  agent: Agent,
+  timestamp: string,
+  messages: TailMessage[],
+  richMessages: RichMessage[] | undefined,
+): Promise<string> {
+  const lines: string[] = [`# Session Export (${agent}, ${timestamp})`, ''];
+  const { materializeImage } = await import('./images.js');
+  const indexed = richMessages?.length === messages.length ? richMessages : null;
+  const sections: string[] = [];
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    const sectionHeader = `## ${m.role === 'user' ? 'User' : 'Assistant'}`;
+    const sectionParts: string[] = [sectionHeader, '', m.text];
+    const rich = indexed?.[i];
+    if (rich) {
+      for (const block of rich.blocks) {
+        if (block.type !== 'image') continue;
+        const resolved = materializeImage(block);
+        if (!resolved) continue;
+        const altText = (block.imageCaption || '').replace(/[\r\n]+/g, ' ').slice(0, 120);
+        const dataUrl = `data:${resolved.mime};base64,${resolved.bytes.toString('base64')}`;
+        sectionParts.push('', `![${altText}](${dataUrl})`);
+        if (block.imageCaption) sectionParts.push('', `_${altText}_`);
+      }
+    }
+    sections.push(sectionParts.join('\n'));
+  }
+  return lines.join('\n') + sections.join('\n\n---\n\n');
+}
+
+export function importSession(opts: ImportSessionOpts): ImportSessionResult {
+  try {
+    const format = opts.format || detectImportFormat(opts.content);
+    let messages: TailMessage[];
+
+    switch (format) {
+      case 'json': {
+        const parsed = JSON.parse(opts.content);
+        messages = Array.isArray(parsed.messages) ? parsed.messages : Array.isArray(parsed) ? parsed : [];
+        break;
+      }
+      case 'markdown': {
+        messages = parseMarkdownConversation(opts.content);
+        break;
+      }
+      case 'text':
+      default: {
+        messages = parseTextConversation(opts.content);
+        break;
+      }
+    }
+
+    return { ok: true, messages, error: null };
+  } catch (e: any) {
+    return { ok: false, messages: [], error: e.message };
+  }
+}
+
+function detectImportFormat(content: string): 'json' | 'markdown' | 'text' {
+  const trimmed = content.trimStart();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'json';
+  if (trimmed.startsWith('#')) return 'markdown';
+  return 'text';
+}
+
+function parseMarkdownConversation(content: string): TailMessage[] {
+  const messages: TailMessage[] = [];
+  const sections = content.split(/^## /m).slice(1);
+  for (const section of sections) {
+    const firstLine = section.split('\n')[0].trim().toLowerCase();
+    const role: 'user' | 'assistant' = firstLine.includes('user') ? 'user' : 'assistant';
+    const stripped = section
+      .split('\n')
+      .slice(1)
+      .join('\n')
+      .replace(/^---\s*$/m, '')
+      .replace(/!\[([^\]]*)\]\(data:image\/[a-zA-Z0-9.+-]+;base64,[^)]+\)/g, (_, alt) => alt ? `[image: ${alt}]` : '[image]')
+      .trim();
+    if (stripped) messages.push({ role, text: stripped });
+  }
+  return messages;
+}
+
+function parseTextConversation(content: string): TailMessage[] {
+  const messages: TailMessage[] = [];
+  const blocks = content.split(/\n---\n/).map(b => b.trim()).filter(Boolean);
+  for (const block of blocks) {
+    const match = block.match(/^\[(user|assistant)\]\n([\s\S]+)$/i);
+    if (match) {
+      messages.push({ role: match[1].toLowerCase() as 'user' | 'assistant', text: match[2].trim() });
+    }
+  }
+  return messages;
+}
