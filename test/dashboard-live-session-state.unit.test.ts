@@ -37,3 +37,70 @@ describe('dashboard live session state helpers', () => {
     expect(applyLiveSessionState(base1, streaming).runDetail).toBeNull();
 
     const base2 = {
+      sessionId: 'sess-2',
+      agent: 'codex',
+      runState: 'running' as const,
+      running: true,
+      runUpdatedAt: null,
+      runDetail: null,
+    };
+    const doneTimed = normalizeLiveSessionState('codex:sess-2', {
+      phase: 'done',
+      updatedAt: 300,
+      incomplete: true,
+      error: 'Timed out before completion.',
+    });
+    const next = applyLiveSessionState(base2, doneTimed);
+    expect(sessionDisplayState(next)).toBe('incomplete');
+    expect(next.runDetail).toBe('Timed out before completion.');
+  });
+
+  it('lets fresh server running state supersede older done snapshots, and shows waiting for parked sessions', () => {
+    const base = {
+      sessionId: 'sess-resume',
+      agent: 'claude',
+      runState: 'running' as const,
+      running: true,
+      runUpdatedAt: '2026-06-03T11:59:50.000Z',
+      runDetail: null,
+    };
+    const staleDone = normalizeLiveSessionState('claude:sess-resume', {
+      phase: 'done',
+      updatedAt: Date.parse('2026-06-03T11:03:10.000Z'),
+    });
+    const merged = applyLiveSessionState(base, staleDone);
+    expect(sessionDisplayState(merged)).toBe('running');
+    expect(merged.running).toBe(true);
+
+    const backToBackBase = { ...base, runUpdatedAt: '2026-06-03T11:59:50.000Z' };
+    const coincidentDone = normalizeLiveSessionState('claude:sess-resume', {
+      phase: 'done',
+      updatedAt: Date.parse('2026-06-03T11:59:50.000Z'),
+    });
+    const mergedBackToBack = applyLiveSessionState(backToBackBase, coincidentDone);
+    expect(sessionDisplayState(mergedBackToBack)).toBe('completed');
+    expect(mergedBackToBack.runUpdatedAt).toBe('2026-06-03T11:59:50.000Z');
+
+    const flashBase = { ...base, runUpdatedAt: '2026-06-03T11:00:00.000Z' };
+    const freshDone = normalizeLiveSessionState('claude:sess-resume', {
+      phase: 'done',
+      updatedAt: Date.parse('2026-06-03T11:00:05.000Z'),
+    });
+    expect(sessionDisplayState(applyLiveSessionState(flashBase, freshDone))).toBe('completed');
+
+    const parked = {
+      sessionId: 'sess-3',
+      agent: 'claude',
+      runState: 'completed' as const,
+      running: false,
+      runUpdatedAt: null,
+      runDetail: null,
+      awaiting: { reason: 'rebuilding swarmdeck, will confirm after restart', since: '2026-06-01T00:00:00.000Z' },
+    };
+    expect(sessionDisplayState(parked)).toBe('waiting');
+    expect(sessionDisplayState({ ...parked, running: true })).toBe('running');
+    expect(sessionDisplayState({ ...parked, awaiting: null })).toBe('completed');
+    const doneParked = normalizeLiveSessionState('claude:sess-3', { phase: 'done', updatedAt: 400 });
+    expect(sessionDisplayState(applyLiveSessionState(parked, doneParked))).toBe('waiting');
+  });
+});
