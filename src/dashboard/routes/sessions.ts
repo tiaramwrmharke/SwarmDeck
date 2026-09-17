@@ -11,7 +11,7 @@ import {
   type Agent, type SessionInfo, type SessionMessagesResult, type RichMessage, type MessageBlock,
 } from '../../agent/index.js';
 import { getSessionStatusForBot } from '../../bot/session-status.js';
-import { findSwarmDeckSession } from '../../agent/session.js';
+import { findHelioSession } from '../../agent/session.js';
 import { readAwaitResume } from '../../agent/await-resume.js';
 import {
   cancelSessionTask,
@@ -204,7 +204,7 @@ async function materializeUploadedFiles(entries: unknown[]): Promise<{ attachmen
     return { attachments: [], cleanup: async () => {} };
   }
 
-  const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'swarmdeck-dashboard-upload-'));
+  const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'helio-dashboard-upload-'));
   try {
     const attachments: string[] = [];
     const usedNames = new Set<string>();
@@ -497,7 +497,7 @@ app.post('/api/session-hub/session/delete', async (c) => {
     return c.json({
       ok: true,
       recordRemoved: result.recordRemoved,
-      swarmdeckPathsRemoved: result.swarmdeckPathsRemoved,
+      helioPathsRemoved: result.helioPathsRemoved,
       nativePathsRemoved: result.nativePathsRemoved,
     });
   } catch (e: any) {
@@ -601,7 +601,7 @@ app.get('/api/sessions/:agent/:id/attachment', async (c) => {
 
   const config = loadUserConfig();
   const fallbackWorkdir = runtime.getRequestWorkdir(config);
-  const managed = findSwarmDeckSession(fallbackWorkdir, agent, sessionId);
+  const managed = findHelioSession(fallbackWorkdir, agent, sessionId);
   const workdirs = [
     ...(managed?.workdir ? [managed.workdir] : []),
     fallbackWorkdir,

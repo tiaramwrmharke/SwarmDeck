@@ -271,7 +271,7 @@ export function getCatalogItems(opts: {
   const items: McpCatalogItem[] = [];
   const userConfig = loadUserConfig();
   const builtinInstalled = (catalogId: string): boolean => {
-    if (catalogId === 'swarmdeck-browser') return userConfig.browserEnabled === true;
+    if (catalogId === 'helio-browser') return userConfig.browserEnabled === true;
     if (catalogId === 'peekaboo') return userConfig.peekabooEnabled === true;
     return false;
   };
@@ -600,7 +600,7 @@ export async function checkMcpHealth(config: McpServerConfig, timeoutMs = 10_000
       params: {
         protocolVersion: '2024-11-05',
         capabilities: {},
-        clientInfo: { name: 'swarmdeck-health-check', version: '1.0.0' },
+        clientInfo: { name: 'helio-health-check', version: '1.0.0' },
       },
     });
     const header = `Content-Length: ${Buffer.byteLength(initRequest)}\r\n\r\n`;

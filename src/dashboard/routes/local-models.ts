@@ -340,7 +340,7 @@ async function fetchOllamaLibrary(): Promise<OllamaLibModel[]> {
   try {
     const res = await fetch(OLLAMA_LIBRARY_URL, {
       signal: controller.signal,
-      headers: { 'user-agent': 'Mozilla/5.0 (swarmdeck local-models)' },
+      headers: { 'user-agent': 'Mozilla/5.0 (helio local-models)' },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const models = parseOllamaLibrary(await res.text());

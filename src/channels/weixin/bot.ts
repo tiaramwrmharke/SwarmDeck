@@ -214,7 +214,7 @@ export class WeixinBot extends Bot {
           '/skills - List & run project skills',
           '/cancel - Cancel an active interactive prompt',
           '/stop - Stop current task',
-          '/restart - Restart swarmdeck',
+          '/restart - Restart helio',
         ].join('\n'));
         return true;
       case 'new': {
@@ -271,7 +271,7 @@ export class WeixinBot extends Bot {
 
   private async cmdStart(ctx: WeixinContext) {
     const d = getStartData(this, ctx.chatId);
-    const lines = [`swarmdeck v${d.version}`, `Workdir: ${d.workdir}`, '', `Agent: ${d.agent}`];
+    const lines = [`helio v${d.version}`, `Workdir: ${d.workdir}`, '', `Agent: ${d.agent}`];
     for (const a of d.agentDetails) {
       const parts = [`  ${a.agent}: ${a.model}`];
       if (a.effort) parts[0] += ` (effort: ${a.effort})`;
@@ -290,7 +290,7 @@ export class WeixinBot extends Bot {
     const d = await getStatusDataAsync(this, ctx.chatId);
     const gitLine = formatGitStatusLine(d.git);
     const lines = [
-      `swarmdeck v${d.version}`,
+      `helio v${d.version}`,
       `Uptime: ${fmtUptime(d.uptime)}`,
       `PID: ${d.pid} | RSS: ${fmtBytes(d.memRss)} | Heap: ${fmtBytes(d.memHeap)}`,
       `Workdir: ${d.workdir}`,
@@ -563,7 +563,7 @@ export class WeixinBot extends Bot {
   }
 
   private async cmdRestart(ctx: WeixinContext) {
-    await ctx.reply('Restarting swarmdeck...');
+    await ctx.reply('Restarting helio...');
     void requestProcessRestart({ log: msg => this.log(msg) });
   }
 
@@ -588,7 +588,7 @@ export class WeixinBot extends Bot {
   private formatHumanLoopPromptText(prompt: HumanLoopPromptState): string {
     const question = currentHumanLoopQuestion(prompt);
     const lines: string[] = [];
-    lines.push(`【${prompt.title || 'SwarmDeck needs your input'}】`);
+    lines.push(`【${prompt.title || 'Helio needs your input'}】`);
     if (prompt.hint) lines.push(prompt.hint);
     if (prompt.questions.length > 1) {
       lines.push(`(${prompt.currentIndex + 1}/${prompt.questions.length})`);
@@ -942,7 +942,7 @@ export class WeixinBot extends Bot {
   }
 
   async run() {
-    const tmpDir = path.join(os.tmpdir(), 'swarmdeck');
+    const tmpDir = path.join(os.tmpdir(), 'helio');
     fs.mkdirSync(tmpDir, { recursive: true });
 
     this.channel = new WeixinChannel({

@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { getProjectSkillPaths, listSkills, stageSessionFiles, ensureManagedSession, findSwarmDeckSession, getDriverCapabilities, isPendingSessionId, type Agent, type HandoverRef } from '../agent/index.js';
+import { getProjectSkillPaths, listSkills, stageSessionFiles, ensureManagedSession, findHelioSession, getDriverCapabilities, isPendingSessionId, type Agent, type HandoverRef } from '../agent/index.js';
 import { loadUserConfig } from '../core/config/user-config.js';
 import { splitEffortForAgent } from '../core/config/runtime-config.js';
 import { runtime } from './runtime.js';
@@ -35,7 +35,7 @@ function resolveSkillFromPrompt(workdir: string, prompt: string): { resolvedProm
   const workdirHint = `[Project directory: ${workdir}]\n\n`;
   const paths = getProjectSkillPaths(workdir, skill.name);
   const skillFile = paths.claudeSkillFile || paths.sharedSkillFile || paths.agentsSkillFile;
-  const targetPath = skillFile || `${workdir}/.swarmdeck/skills/${skill.name}/SKILL.md`;
+  const targetPath = skillFile || `${workdir}/.helio/skills/${skill.name}/SKILL.md`;
   const resolvedPrompt = `${workdirHint}Read the skill definition at \`${targetPath}\` and execute the instructions defined there.${extra}`;
   return { resolvedPrompt, skillName: skill.name };
 }
@@ -67,7 +67,7 @@ function resolveHandoverFrom(request: QueueSessionTaskRequest, targetAgent: Agen
   if (!KNOWN_AGENTS.has(prevAgent as Agent)) return null;
   if (prevAgent === targetAgent) return null;
   if (isPendingSessionId(prevSessionId)) return null;
-  const record = findSwarmDeckSession(request.workdir, prevAgent as Agent, prevSessionId);
+  const record = findHelioSession(request.workdir, prevAgent as Agent, prevSessionId);
   if (!record) return null;
   return { agent: prevAgent as Agent, sessionId: prevSessionId };
 }

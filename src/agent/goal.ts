@@ -24,7 +24,7 @@ const MAX_OBJECTIVE_CHARS = 4000;
 export const DEFAULT_MAX_CONTINUATIONS = 50;
 
 export function sessionGoalPath(workdir: string, agent: Agent, sessionId: string): string {
-  return path.join(workdir, '.swarmdeck', 'sessions', agent, sessionId, GOAL_FILE);
+  return path.join(workdir, '.helio', 'sessions', agent, sessionId, GOAL_FILE);
 }
 
 export function readGoal(workdir: string, agent: Agent, sessionId: string): ThreadGoal | null {

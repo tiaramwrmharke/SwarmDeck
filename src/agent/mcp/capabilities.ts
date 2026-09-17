@@ -1,9 +1,9 @@
 // Session tool capabilities: each co-locates a session MCP tool group (defined under
 // ./tools/) with the prompt fragment that teaches the agent to use it. This is the local,
-// decoupled analog of a @swarmdeck/kernel Plugin (a capability = its tools + its usage
-// prompt, as one unit). swarmdeck composes its own system prompt app-side and feeds the
+// decoupled analog of a @helio/kernel Plugin (a capability = its tools + its usage
+// prompt, as one unit). helio composes its own system prompt app-side and feeds the
 // kernel a finished string, so this module intentionally does NOT import the kernel — that
-// is what keeps swarmdeck fully decoupled from the kernel's Hub/plugin runtime.
+// is what keeps helio fully decoupled from the kernel's Hub/plugin runtime.
 
 export interface SessionPromptContext {
   agent: string;
@@ -23,7 +23,7 @@ const ARTIFACT_RETURN = [
 
 const ASK_USER = [
   '[Asking the user]',
-  'The built-in `AskUserQuestion` tool is disabled here and will fail. If you would otherwise call it, call `mcp__swarmdeck__im_ask_user` instead — same intent (a question plus optional choices), it blocks until the user replies via the IM/dashboard channel. Default behaviour is unchanged: infer obvious decisions yourself and only ask when you genuinely cannot proceed.',
+  'The built-in `AskUserQuestion` tool is disabled here and will fail. If you would otherwise call it, call `mcp__helio__im_ask_user` instead — same intent (a question plus optional choices), it blocks until the user replies via the IM/dashboard channel. Default behaviour is unchanged: infer obvious decisions yourself and only ask when you genuinely cannot proceed.',
 ].join('\n');
 
 export const SESSION_TOOL_CAPABILITIES: SessionToolCapability[] = [

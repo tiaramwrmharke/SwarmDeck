@@ -508,7 +508,7 @@ export class FeishuBot extends Bot {
   }
 
   private async cmdRestart(ctx: FeishuContext) {
-    await ctx.reply('**Restarting swarmdeck...**\n\nPulling latest version. The bot will be back shortly.');
+    await ctx.reply('**Restarting helio...**\n\nPulling latest version. The bot will be back shortly.');
     void requestProcessRestart({ log: msg => this.log(msg) });
   }
 
@@ -1210,7 +1210,7 @@ export class FeishuBot extends Bot {
   }
 
   async run() {
-    const tmpDir = path.join(os.tmpdir(), 'swarmdeck');
+    const tmpDir = path.join(os.tmpdir(), 'helio');
     fs.mkdirSync(tmpDir, { recursive: true });
 
     this.channel = new FeishuChannel({

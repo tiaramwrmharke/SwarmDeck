@@ -184,7 +184,7 @@ function parseArgs(argv: string[]) {
 
 function processLog(message: string) {
   const ts = new Date().toTimeString().slice(0, 8);
-  process.stdout.write(`[swarmdeck ${ts}] ${message}\n`);
+  process.stdout.write(`[helio ${ts}] ${message}\n`);
 }
 
 const listStartupAgents = () => listAgents().agents;
@@ -200,7 +200,7 @@ async function handleMcpServeMode(): Promise<boolean> {
 
 function printHelp(): never {
   process.stdout.write(
-`swarmdeck v${VERSION} — Run local coding agents through IM.
+`helio v${VERSION} — Run local coding agents through IM.
 
 Run a bot that forwards IM messages to a local AI coding agent
 (Claude Code or Codex CLI), streams responses in real-time, and manages
@@ -210,9 +210,9 @@ Channels are auto-detected from configured credentials. If multiple
 validated channels are enabled, they launch simultaneously.
 
 Usage:
-  npx swarmdeck                              # auto-detect from config/env
-  npx swarmdeck -w ~/project                 # set working directory
-  npx swarmdeck stop                         # stop the running daemon
+  npx helio                              # auto-detect from config/env
+  npx helio -w ~/project                 # set working directory
+  npx helio stop                         # stop the running daemon
 
 Options:
   -t, --token <token>       Channel auth token (env: PIKILOOM_TOKEN)
@@ -281,10 +281,10 @@ Environment variables (Feishu):
 Notes:
   - weixin setup is QR-based in the dashboard and currently supports text-only replies.
   - --safe-mode delegates to the agent's own permission model; it does not add
-    a swarmdeck-specific approval workflow.
+    a helio-specific approval workflow.
 
 Prerequisites: Node.js >= 18, and at least one agent CLI installed (claude or codex).
-Docs: https://github.com/xiaotonng/swarmdeck
+Docs: https://github.com/expumpemployee/helio
 `);
   process.exit(0);
 }
@@ -342,11 +342,11 @@ function installTopLevelShutdownHandler(): void {
 async function handleStopCommand(): Promise<never> {
   const pid = readDaemonPidFile();
   if (!pid) {
-    process.stderr.write('swarmdeck stop: no daemon PID file found (is swarmdeck running in daemon mode?)\n');
+    process.stderr.write('helio stop: no daemon PID file found (is helio running in daemon mode?)\n');
     process.exit(1);
   }
   if (!isProcessAlive(pid)) {
-    process.stdout.write(`swarmdeck stop: daemon (pid ${pid}) is not running, clearing stale PID file\n`);
+    process.stdout.write(`helio stop: daemon (pid ${pid}) is not running, clearing stale PID file\n`);
     clearDaemonPidFile();
     process.exit(0);
   }
@@ -355,26 +355,26 @@ async function handleStopCommand(): Promise<never> {
   } catch (err) {
     const code = (err as NodeJS.ErrnoException)?.code;
     if (code === 'ESRCH') {
-      process.stdout.write(`swarmdeck stop: daemon (pid ${pid}) already exited\n`);
+      process.stdout.write(`helio stop: daemon (pid ${pid}) already exited\n`);
       clearDaemonPidFile();
       process.exit(0);
     }
-    process.stderr.write(`swarmdeck stop: failed to signal pid ${pid}: ${err}\n`);
+    process.stderr.write(`helio stop: failed to signal pid ${pid}: ${err}\n`);
     process.exit(1);
   }
-  process.stdout.write(`swarmdeck stop: SIGTERM → pid ${pid}\n`);
+  process.stdout.write(`helio stop: SIGTERM → pid ${pid}\n`);
 
   const deadline = Date.now() + 8_000;
   while (Date.now() < deadline) {
     if (!isProcessAlive(pid)) {
       clearDaemonPidFile();
-      process.stdout.write(`swarmdeck stop: daemon (pid ${pid}) stopped\n`);
+      process.stdout.write(`helio stop: daemon (pid ${pid}) stopped\n`);
       process.exit(0);
     }
     await new Promise(resolve => setTimeout(resolve, 250));
   }
 
-  process.stderr.write(`swarmdeck stop: daemon (pid ${pid}) still alive after 8s, sending SIGKILL\n`);
+  process.stderr.write(`helio stop: daemon (pid ${pid}) still alive after 8s, sending SIGKILL\n`);
   try { process.kill(pid, 'SIGKILL'); } catch {}
   clearDaemonPidFile();
   process.exit(0);
@@ -398,8 +398,8 @@ async function awaitDashboardConfig(
   ctx: { userConfig: Partial<UserConfig>; configOverrides: Partial<UserConfig>; args: Record<string, any> },
 ): Promise<{ channels: ChannelName[]; channel: ChannelName }> {
   const ts = new Date().toTimeString().slice(0, 8);
-  process.stdout.write(`[swarmdeck ${ts}] waiting for configuration via dashboard...\n`);
-  process.stdout.write(`[swarmdeck ${ts}] configure at ${dashboard.url}; startup will continue automatically once ready.\n`);
+  process.stdout.write(`[helio ${ts}] waiting for configuration via dashboard...\n`);
+  process.stdout.write(`[helio ${ts}] configure at ${dashboard.url}; startup will continue automatically once ready.\n`);
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -419,7 +419,7 @@ async function awaitDashboardConfig(
     const nextNeedsSetup = !hasReadyAgent(nextSetupState);
     if (!nextNeedsSetup) {
       const resumeTs = new Date().toTimeString().slice(0, 8);
-      process.stdout.write(`[swarmdeck ${resumeTs}] configuration detected, starting bot channels...\n`);
+      process.stdout.write(`[helio ${resumeTs}] configuration detected, starting bot channels...\n`);
       return { channels, channel };
     }
   }
@@ -503,7 +503,7 @@ function printServerConnectionCode(dashboard: DashboardServer): void {
     rendezvous: process.env.PIKICHANNEL_RENDEZVOUS || c.pikichannelRendezvous,
   });
   const ts = new Date().toTimeString().slice(0, 8);
-  process.stdout.write(`\n[swarmdeck ${ts}] server mode — host running, browser not opened\n`);
+  process.stdout.write(`\n[helio ${ts}] server mode — host running, browser not opened\n`);
   process.stdout.write(`  local console:  ${dashboard.url}\n`);
   if (sc.mode === 'none') {
     process.stdout.write('  to let others connect: set a public address (env PIKICHANNEL_PUBLIC_HOST,\n');
@@ -626,7 +626,7 @@ async function launchChannels(
 export async function main() {
   if (await handleMcpServeMode()) return;
 
-  // Cutover gate: LOOM_KERNEL_APP=1 boots the backend on @swarmdeck/kernel (new version)
+  // Cutover gate: LOOM_KERNEL_APP=1 boots the backend on @helio/kernel (new version)
   // instead of the legacy app. Non-PIKILOOM_ prefix so it survives dev.sh's env scrub.
   if (process.env.LOOM_KERNEL_APP === '1') {
     const { runKernelApp } = await import('./kernel-app.js');
@@ -637,7 +637,7 @@ export async function main() {
   const args = parseArgs(process.argv.slice(2));
   let userConfig = loadUserConfig();
 
-  if (args.version) { process.stdout.write(`swarmdeck ${VERSION}\n`); process.exit(0); }
+  if (args.version) { process.stdout.write(`helio ${VERSION}\n`); process.exit(0); }
   if (args.help) printHelp();
   if (args.stop) await handleStopCommand();
 

@@ -4,7 +4,7 @@ export type CredentialRef =
   | { source: 'command';  argv: string[] }
   | { source: 'inline';   sealed: string };
 
-export const KEYCHAIN_SERVICE = 'swarmdeck';
+export const KEYCHAIN_SERVICE = 'helio';
 
 export const LEGACY_KEYCHAIN_SERVICES = ['pikiclaw'];
 

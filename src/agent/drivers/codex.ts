@@ -18,7 +18,7 @@ import {
   firstNonEmptyLine, shortValue, numberOrNull,
   normalizeStreamPreviewPlan,
   IMAGE_EXTS,
-  listSwarmDeckSessions, findSwarmDeckSession, isPendingSessionId,
+  listHelioSessions, findHelioSession, isPendingSessionId,
   mergeManagedAndNativeSessions, managedRecordToSessionInfo,
   stripInjectedPrompts, sanitizeSessionUserPreviewText, computeContext, readTailLines, applyTurnWindow,
   roundPercent, toIsoFromEpochSeconds, labelFromWindowMinutes,
@@ -129,7 +129,7 @@ export class CodexAppServer {
       });
 
       this.call('initialize', {
-        clientInfo: { name: 'swarmdeck', version: '0.2.0' },
+        clientInfo: { name: 'helio', version: '0.2.0' },
         capabilities: { experimentalApi: true },
       })
         .then(resp => {
@@ -567,7 +567,7 @@ function findCodexManagedPreviewAssistantIndex(
 }
 
 function overlayCodexManagedPreview(workdir: string, sessionId: string, richMessages: RichMessage[]): RichMessage[] {
-  const managed = findSwarmDeckSession(workdir, 'codex', sessionId);
+  const managed = findHelioSession(workdir, 'codex', sessionId);
   if (!managed) return richMessages;
   const assistantIndex = findCodexManagedPreviewAssistantIndex(richMessages, managed.lastQuestion);
   if (assistantIndex < 0) return richMessages;
@@ -1575,14 +1575,14 @@ function getCodexSessionTailFromRollout(opts: SessionTailOpts): SessionTailResul
 
 function getCodexSessions(workdir: string, limit?: number): SessionListResult {
   const resolvedWorkdir = path.resolve(workdir);
-  const swarmdeckSessions = listSwarmDeckSessions(resolvedWorkdir, 'codex').map(managedRecordToSessionInfo);
+  const helioSessions = listHelioSessions(resolvedWorkdir, 'codex').map(managedRecordToSessionInfo);
   const nativeSessions = getNativeCodexSessions(resolvedWorkdir, limit);
-  const merged = mergeManagedAndNativeSessions(swarmdeckSessions, nativeSessions);
+  const merged = mergeManagedAndNativeSessions(helioSessions, nativeSessions);
   const sessions = typeof limit === 'number' ? merged.slice(0, limit) : merged;
   const sessionsDir = path.join(getHome(), '.codex', 'sessions');
   agentLog(
     `[sessions:codex] workdir=${resolvedWorkdir} sessionsDir=${sessionsDir} sessionsDirExists=${fs.existsSync(sessionsDir)} ` +
-    `swarmdeck=${swarmdeckSessions.length} native=${nativeSessions.length} merged=${sessions.length}`
+    `helio=${helioSessions.length} native=${nativeSessions.length} merged=${sessions.length}`
   );
   return { ok: true, sessions, error: null };
 }

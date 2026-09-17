@@ -21,7 +21,7 @@ export const DASHBOARD_TIMEOUTS = {
   runCommand: 30_000,
 };
 
-export const STATE_DIR_NAME = '.swarmdeck';
+export const STATE_DIR_NAME = '.helio';
 export const ENV_PREFIX = 'PIKILOOM_';
 export const LEGACY_STATE_DIR_NAMES = ['.pikiclaw'] as const;
 export const LEGACY_ENV_PREFIXES = ['PIKICLAW_'] as const;

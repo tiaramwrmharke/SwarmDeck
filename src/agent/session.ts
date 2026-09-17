@@ -63,7 +63,7 @@ function trimSessionText(value: unknown, max = 24_000): string | null {
   return `${text.slice(0, Math.max(0, max - 3)).trimEnd()}...`;
 }
 
-const PIKILOOM_DIR = '.swarmdeck';
+const PIKILOOM_DIR = '.helio';
 const PIKILOOM_SESSIONS_DIR = path.join(PIKILOOM_DIR, 'sessions');
 const PIKILOOM_SESSION_INDEX = path.join(PIKILOOM_SESSIONS_DIR, 'index.json');
 const PIKILOOM_LEGACY_WORKSPACES_DIR = path.join(PIKILOOM_DIR, 'workspaces');
@@ -667,15 +667,15 @@ export function managedRecordToSessionInfo(record: ManagedSessionRecord): Sessio
   };
 }
 
-export function listSwarmDeckSessions(workdir: string, agent: Agent, limit?: number): ManagedSessionRecord[] {
+export function listHelioSessions(workdir: string, agent: Agent, limit?: number): ManagedSessionRecord[] {
   const records = sortByUpdatedAtDesc(
     loadSessionIndex(path.resolve(workdir)).sessions.filter(entry => entry.agent === agent),
   );
   return typeof limit === 'number' ? records.slice(0, limit) : records;
 }
 
-export function findSwarmDeckSession(workdir: string, agent: Agent, sessionId: string): ManagedSessionRecord | null {
-  return listSwarmDeckSessions(workdir, agent).find(entry => entry.sessionId === sessionId) || null;
+export function findHelioSession(workdir: string, agent: Agent, sessionId: string): ManagedSessionRecord | null {
+  return listHelioSessions(workdir, agent).find(entry => entry.sessionId === sessionId) || null;
 }
 
 export interface DeleteAgentSessionOpts {
@@ -688,7 +688,7 @@ export interface DeleteAgentSessionOpts {
 export interface DeleteAgentSessionResult {
   ok: boolean;
   recordRemoved: boolean;
-  swarmdeckPathsRemoved: string[];
+  helioPathsRemoved: string[];
   nativePathsRemoved: string[];
   refusedReason: 'session-running' | null;
 }
@@ -699,7 +699,7 @@ export async function deleteAgentSession(opts: DeleteAgentSessionOpts): Promise<
   const result: DeleteAgentSessionResult = {
     ok: false,
     recordRemoved: false,
-    swarmdeckPathsRemoved: [],
+    helioPathsRemoved: [],
     nativePathsRemoved: [],
     refusedReason: null,
   };
@@ -724,7 +724,7 @@ export async function deleteAgentSession(opts: DeleteAgentSessionOpts): Promise<
     if (!fs.existsSync(dir)) continue;
     try {
       fs.rmSync(dir, { recursive: true, force: true });
-      result.swarmdeckPathsRemoved.push(dir);
+      result.helioPathsRemoved.push(dir);
     } catch (err) {
       agentLog(`[sessions] failed to remove ${dir}: ${(err as Error).message}`);
     }
@@ -747,7 +747,7 @@ export async function deleteAgentSession(opts: DeleteAgentSessionOpts): Promise<
 }
 
 export function getSessionStoredConfig(workdir: string, agent: Agent, sessionId: string): { model: string | null; thinkingEffort: string | null; workflowEnabled: boolean | null; profileId: string | null; accountId: string | null } {
-  const record = findSwarmDeckSession(workdir, agent, sessionId);
+  const record = findHelioSession(workdir, agent, sessionId);
   return {
     model: record?.model ?? null,
     thinkingEffort: record?.thinkingEffort ?? null,

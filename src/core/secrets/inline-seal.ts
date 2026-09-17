@@ -23,7 +23,7 @@ function readOrCreateSalt(): Buffer {
 function deriveKey(): Buffer {
   const salt = readOrCreateSalt();
   const material = Buffer.concat([
-    Buffer.from(os.hostname() || 'swarmdeck'),
+    Buffer.from(os.hostname() || 'helio'),
     Buffer.from(os.userInfo().username || ''),
     salt,
   ]);

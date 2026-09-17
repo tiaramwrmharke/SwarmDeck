@@ -19,7 +19,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 function setBuiltinEnabled(catalogId: string, enabled: boolean): boolean {
-  if (catalogId === 'swarmdeck-browser') {
+  if (catalogId === 'helio-browser') {
     saveUserConfig({ ...loadUserConfig(), browserEnabled: enabled });
     return true;
   }
@@ -270,7 +270,7 @@ app.post('/api/extensions/mcp/oauth/start', async (c) => {
       auth: rec.auth,
       resourceUrl: rec.transport.url,
       redirectUri,
-      clientName: 'SwarmDeck',
+      clientName: 'Helio',
     });
     return c.json({ ok: true, authUrl, state });
   } catch (e: any) {
@@ -335,7 +335,7 @@ app.get('/api/extensions/mcp/oauth/callback', async (c) => {
     return render({
       ok: true,
       title: 'Authorized successfully',
-      detail: `SwarmDeck can now connect to ${result.serverId}. You can close this window and return to the dashboard.`,
+      detail: `Helio can now connect to ${result.serverId}. You can close this window and return to the dashboard.`,
     });
   } catch (e: any) {
     return render({
@@ -453,7 +453,7 @@ async function fetchGithubContents(owner: string, repo: string, path: string): P
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURI(path)}`;
   try {
     const headers: Record<string, string> = {
-      'User-Agent': 'swarmdeck-dashboard',
+      'User-Agent': 'helio-dashboard',
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
     };
@@ -533,7 +533,7 @@ async function fetchOneRepoMeta(source: string): Promise<RepoMeta | null> {
       signal: controller.signal,
       headers: {
         'Accept': 'application/vnd.github+json',
-        'User-Agent': 'swarmdeck-dashboard',
+        'User-Agent': 'helio-dashboard',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
@@ -569,7 +569,7 @@ async function fetchRepoHeadSha(source: string): Promise<string | null> {
         signal: controller.signal,
         headers: {
           'Accept': 'application/vnd.github+json',
-          'User-Agent': 'swarmdeck-dashboard',
+          'User-Agent': 'helio-dashboard',
           'X-GitHub-Api-Version': '2022-11-28',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
