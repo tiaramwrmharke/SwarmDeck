@@ -101,3 +101,7 @@ async function handleMessages(
   try {
     upstreamResp = await fetch(upstreamUrl, {
       method: 'POST',
+      headers: { 'content-type': 'application/json', ...(key ? { authorization: `Bearer ${key}` } : {}) },
+      body: JSON.stringify(chatReq),
+    });
+  } catch (e: any) {
