@@ -15,10 +15,10 @@ describe('resolveAgentInjection — Claude BYOK ANTHROPIC_BASE_URL', () => {
   let cache: Map<string, any>;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-injector-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-injector-'));
     process.env.PIKILOOM_CONFIG = path.join(tmpDir, 'setting.json');
     fs.writeFileSync(process.env.PIKILOOM_CONFIG, JSON.stringify({ models: {} }));
-    cache = (globalThis as any)[Symbol.for('swarmdeck.providerModelsCache')]
+    cache = (globalThis as any)[Symbol.for('helio.providerModelsCache')]
       || new Map();
   });
 
@@ -115,10 +115,10 @@ describe('resolveAgentInjection — Codex routing (Responses-only)', () => {
   let cache: Map<string, any>;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-codex-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-codex-'));
     process.env.PIKILOOM_CONFIG = path.join(tmpDir, 'setting.json');
     fs.writeFileSync(process.env.PIKILOOM_CONFIG, JSON.stringify({ models: {} }));
-    cache = (globalThis as any)[Symbol.for('swarmdeck.providerModelsCache')] || new Map();
+    cache = (globalThis as any)[Symbol.for('helio.providerModelsCache')] || new Map();
   });
   afterEach(() => { fs.rmSync(tmpDir, { recursive: true, force: true }); });
   afterAll(() => { shutdownResponsesBridge(); });
@@ -191,7 +191,7 @@ describe('resolveAgentInjection — per-session profile override (dashboard does
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-override-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-override-'));
     process.env.PIKILOOM_CONFIG = path.join(tmpDir, 'setting.json');
     fs.writeFileSync(process.env.PIKILOOM_CONFIG, JSON.stringify({ models: {} }));
   });

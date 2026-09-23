@@ -55,12 +55,12 @@ describe('WeComChannel frame parsing and send', () => {
           chattype: 'group',
           from: { userid: 'alice' },
           msgtype: 'text',
-          text: { content: '@aibot-1 hi swarmdeck' },
+          text: { content: '@aibot-1 hi helio' },
         },
       });
 
       await new Promise(r => setImmediate(r));
-      expect(seen).toEqual([{ text: 'hi swarmdeck', chatId: 'group-99', reqId: 'srv-1' }]);
+      expect(seen).toEqual([{ text: 'hi helio', chatId: 'group-99', reqId: 'srv-1' }]);
     }
 
     {

@@ -112,7 +112,7 @@ let tmpDir: string;
 let responderPath: string;
 
 beforeEach(() => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-hermes-test-'));
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-hermes-test-'));
   responderPath = path.join(tmpDir, 'responder.py');
   fs.writeFileSync(responderPath, RESPONDER_HEADER, { mode: 0o755 });
   vi.resetModules();

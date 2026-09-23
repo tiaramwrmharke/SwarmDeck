@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { projectSnapshot } from '../src/pikichannel/adapter-swarmdeck.ts';
+import { projectSnapshot } from '../src/pikichannel/adapter-helio.ts';
 
 function snapWithInteraction(): any {
   return {

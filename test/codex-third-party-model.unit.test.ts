@@ -43,7 +43,7 @@ describe('recoverProfileIdForModel — recover a lost provider binding by model 
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-recover-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-recover-'));
     process.env.PIKILOOM_CONFIG = path.join(tmpDir, 'setting.json');
     fs.writeFileSync(process.env.PIKILOOM_CONFIG, JSON.stringify({ models: {} }));
   });

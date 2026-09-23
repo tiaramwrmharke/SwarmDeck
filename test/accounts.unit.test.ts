@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 // Isolate HOME + config to a temp dir (read lazily per-call by the store).
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-acct-'));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-acct-'));
 process.env.HOME = TMP;
 process.env.PIKILOOM_CONFIG = path.join(TMP, 'setting.json');
 

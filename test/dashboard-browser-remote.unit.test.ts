@@ -3,7 +3,7 @@ import { buildBrowserStatusResponse } from '../src/dashboard/routes/config.ts';
 
 const headlessNoChrome = {
   status: 'chrome_missing' as const,
-  profileDir: '/home/piki/.swarmdeck/browser/chrome-profile',
+  profileDir: '/home/piki/.helio/browser/chrome-profile',
   profileCreated: false,
   chromeInstalled: false,
   running: false,
