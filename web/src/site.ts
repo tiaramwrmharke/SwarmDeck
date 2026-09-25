@@ -24,3 +24,4 @@ export const MODELS = [
   'Doubao',
   'MiMo',
   'MiniMax',
+  'Qwen',

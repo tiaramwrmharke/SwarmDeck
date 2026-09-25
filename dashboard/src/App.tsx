@@ -62,3 +62,6 @@ function PageWrapper({ title, description, children }: { title: string; descript
         </div>
         {children}
       </div>
+    </div>
+  );
+}
