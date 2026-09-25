@@ -25,3 +25,7 @@ export default function Layers() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <span className="font-mono text-xs text-neutral-500">{layer.index}</span>
+                <h3 className="mt-1 text-xl font-semibold text-white">{layer.name}</h3>
+                <p className="text-sm text-neutral-400">{layer.tagline}</p>
+              </div>
+            </div>
