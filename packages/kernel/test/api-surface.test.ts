@@ -17,3 +17,5 @@ const MAIN = [
   // drivers & surfaces
   'EchoDriver', 'ClaudeDriver', 'CodexDriver', 'GeminiDriver', 'AcpDriver', 'HermesDriver',
   'WebSurface', 'CliSurface',
+  // native-session discovery
+  'discoverClaudeNativeSessions', 'discoverCodexNativeSessions', 'discoverGeminiNativeSessions',

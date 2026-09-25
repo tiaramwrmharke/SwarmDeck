@@ -42,3 +42,6 @@ describe('FeishuChannel.editCard', () => {
         ch.editCard('chat1', 'msg1', { markdown: 'same' }),
       ).resolves.toBeUndefined();
     }
+
+    {
+      const { ch, patchMock } = createTestChannel();
