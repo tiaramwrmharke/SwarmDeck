@@ -15,3 +15,4 @@ export default function Footer() {
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <a href={LINKS.github} target="_blank" rel="noreferrer" className="rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-neutral-200">
               GitHub
+            </a>
