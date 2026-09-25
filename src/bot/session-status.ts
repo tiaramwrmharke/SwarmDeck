@@ -27,3 +27,4 @@ function resolveIsRunning(session: SessionLookupInfo, runtime: SessionRuntime | 
   const stale = isRunningSessionStale(
     {
       runState: session.runState ?? 'running',
+      runPid: session.runPid ?? null,
