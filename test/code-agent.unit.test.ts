@@ -406,3 +406,7 @@ describe('stageSessionFiles', () => {
         workspacePath: legacyWorkspacePath,
         createdAt: '2026-03-10T00:00:00.000Z',
         updatedAt: '2026-03-10T00:00:00.000Z',
+        title: 'legacy session',
+        model: 'claude-opus-4-7',
+        stagedFiles: [],
+      }],
