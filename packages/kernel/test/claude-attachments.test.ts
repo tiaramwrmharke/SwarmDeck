@@ -64,3 +64,6 @@ const FAKE_CLAUDE = `#!/usr/bin/env node
 const fs = require('fs');
 fs.writeFileSync(process.env.PIKI_ARGV_OUT, JSON.stringify(process.argv.slice(2)));
 let buf = '';
+let replied = false;
+process.stdin.on('data', (d) => {
+  buf += d;
