@@ -16,3 +16,4 @@ export interface TurnAuditEntry {
   stopReason: string | null;
   incomplete: boolean;
   error: string | null;
+  elapsedS?: number;
