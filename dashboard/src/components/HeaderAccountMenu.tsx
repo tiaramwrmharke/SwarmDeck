@@ -48,3 +48,4 @@ export function HeaderAccountMenu({ agent, nativeGauge, nativeUsage, t }: {
     };
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [agent]);
+  useEffect(() => () => { if (closeTimer.current) window.clearTimeout(closeTimer.current); }, []);
