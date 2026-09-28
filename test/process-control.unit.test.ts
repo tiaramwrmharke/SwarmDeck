@@ -50,3 +50,4 @@ describe('process-control restart flow', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-restart-'));
     const stateFile = path.join(tmpDir, 'restart.json');
     process.env.PIKILOOM_DAEMON_CHILD = '1';
+    process.env.PIKILOOM_RESTART_STATE_FILE = stateFile;

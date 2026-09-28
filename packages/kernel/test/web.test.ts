@@ -36,3 +36,6 @@ describe('WebSurface (UniversalSnapshot wire protocol over ws)', () => {
   it('handshakes, streams snapshot patches, and accumulates the final text', async () => {
     const port = web.port!;
     expect(port).toBeGreaterThan(0);
+    const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+    await new Promise<void>((resolve, reject) => { ws.once('open', () => resolve()); ws.once('error', reject); });
+

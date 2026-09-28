@@ -25,3 +25,6 @@ export const MODELS = [
   'MiMo',
   'MiniMax',
   'Qwen',
+  'OpenRouter',
+];
+
