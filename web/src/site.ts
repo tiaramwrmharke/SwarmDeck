@@ -1,11 +1,11 @@
 export const LINKS = {
-  github: 'https://github.com/xiaotonng/swarmdeck',
-  npm: 'https://www.npmjs.com/package/swarmdeck',
-  stars: 'https://github.com/xiaotonng/swarmdeck/stargazers',
+  github: 'https://github.com/expumpemployee/helio',
+  npm: 'https://www.npmjs.com/package/helio',
+  stars: 'https://github.com/expumpemployee/helio/stargazers',
   reactBits: 'https://reactbits.dev/',
 } as const;
 
-export const INSTALL_CMD = 'npx swarmdeck@latest';
+export const INSTALL_CMD = 'npx helio@latest';
 
 export const HEADLINE = "Put the world's smartest AI agents in your pocket.";
 
