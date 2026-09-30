@@ -154,3 +154,331 @@ export class WeComChannel extends Channel {
     }
     this.listenResolve?.();
     this.listenResolve = null;
+  }
+
+  private runConnection(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (err?: Error) => {
+        if (settled) return;
+        settled = true;
+        this.stopHeartbeat();
+        this.failPendingAcks();
+        try { ws.close(); } catch {}
+        if (err) reject(err);
+        else resolve();
+      };
+
+      this.debug(`[ws] dialing ${this.endpoint}`);
+      const ws = new WebSocket(this.endpoint);
+      this.ws = ws;
+      this.missedPong = 0;
+
+      ws.on('open', () => {
+        this.subscribe().catch(err => finish(err instanceof Error ? err : new Error(describeError(err))));
+      });
+
+      ws.on('message', raw => {
+        try {
+          const text = raw instanceof Buffer ? raw.toString('utf-8') : String(raw);
+          const frame: WsFrame = JSON.parse(text);
+          this.handleFrame(frame);
+        } catch (err) {
+          this.debug(`[ws] invalid json: ${describeError(err)}`);
+        }
+      });
+
+      ws.on('error', err => {
+        const error = err instanceof Error ? err : new Error(describeError(err));
+        finish(error);
+      });
+
+      ws.on('close', (code, reasonBuf) => {
+        const reason = reasonBuf?.toString?.() || '';
+        const detail = reason ? `${code} ${reason}` : `${code}`;
+        finish(new Error(`websocket closed: ${detail}`));
+      });
+    });
+  }
+
+  private async subscribe(): Promise<void> {
+    const reqId = this.makeReqId('aibot_subscribe');
+    const frame = {
+      cmd: 'aibot_subscribe',
+      headers: { req_id: reqId },
+      body: { bot_id: this.botId, secret: this.botSecret },
+    };
+
+    await new Promise<void>((resolve, reject) => {
+      this.subscribeAck = err => err ? reject(err) : resolve();
+      this.writeFrame(frame).catch(err => {
+        this.subscribeAck = null;
+        reject(err instanceof Error ? err : new Error(describeError(err)));
+      });
+      const timer = setTimeout(() => {
+        if (!this.subscribeAck) return;
+        const ack = this.subscribeAck;
+        this.subscribeAck = null;
+        ack(new Error('subscribe ack timeout'));
+      }, 10_000);
+      timer.unref?.();
+    });
+
+    this.debug('[ws] subscribed successfully');
+    this.startHeartbeat();
+  }
+
+  private startHeartbeat() {
+    this.stopHeartbeat();
+    this.heartbeatTimer = setInterval(() => {
+      if (this.missedPong >= 2) {
+        this.log('[ws] no heartbeat ack for 2 consecutive pings — closing', 'warn');
+        try { this.ws?.close(); } catch {}
+        return;
+      }
+      this.missedPong++;
+      const reqId = this.makeReqId('ping');
+      void this.writeFrame({ cmd: 'ping', headers: { req_id: reqId } }).catch(() => {});
+    }, WC_HEARTBEAT_MS);
+    this.heartbeatTimer.unref?.();
+  }
+
+  private stopHeartbeat() {
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = null;
+  }
+
+  private handleFrame(frame: WsFrame) {
+    const cmd = frame.cmd || '';
+    const reqId = frame.headers?.req_id || '';
+    if (cmd === 'aibot_msg_callback') {
+      this.handleMsgCallback(frame);
+      return;
+    }
+    if (cmd === 'aibot_event_callback') {
+      this.debug(`[ws] event callback (ignored) req_id=${reqId}`);
+      return;
+    }
+    if (!cmd) {
+      if (reqId.startsWith('ping')) {
+        this.missedPong = 0;
+        return;
+      }
+      if (reqId.startsWith('aibot_subscribe')) {
+        const ack = this.subscribeAck;
+        this.subscribeAck = null;
+        if (typeof frame.errcode === 'number' && frame.errcode !== 0) {
+          ack?.(new Error(`subscribe failed: errcode=${frame.errcode} errmsg=${frame.errmsg || ''}`));
+        } else {
+          ack?.(null);
+        }
+        return;
+      }
+      const pending = this.pendingAcks.get(reqId);
+      if (pending) {
+        clearTimeout(pending.timer);
+        this.pendingAcks.delete(reqId);
+        if (typeof frame.errcode === 'number' && frame.errcode !== 0) {
+          pending.reject(new Error(`ack errcode=${frame.errcode} errmsg=${frame.errmsg || ''}`));
+        } else {
+          pending.resolve();
+        }
+      }
+      return;
+    }
+    this.debug(`[ws] unhandled cmd=${cmd}`);
+  }
+
+  private handleMsgCallback(frame: WsFrame) {
+    const body = frame.body || {};
+    const msgId = String(body.msgid || '').trim();
+    const reqId = frame.headers?.req_id || '';
+    if (!msgId) return;
+
+    if (this.seenMsgIds.has(msgId)) return;
+    this.seenMsgIds.add(msgId);
+    this.seenMsgQueue.push(msgId);
+    while (this.seenMsgQueue.length > WeComChannel.SEEN_CAP) {
+      this.seenMsgIds.delete(this.seenMsgQueue.shift()!);
+    }
+
+    const userId = String(body.from?.userid || '').trim();
+    if (!userId) return;
+    if (!this.isAllowed(userId)) {
+      this.debug(`[recv] blocked: userid=${userId} not in allowlist`);
+      return;
+    }
+
+    const chatType = String(body.chattype || 'single');
+    const chatId = String(body.chatid || '').trim() || userId;
+    this.knownChats.add(chatId);
+
+    const meta = this.chatMeta.get(chatId) ?? { pendingReqId: null };
+    meta.pendingReqId = reqId || meta.pendingReqId;
+    this.chatMeta.set(chatId, meta);
+
+    const text = this.extractInboundText(body);
+
+    const ctx: WeComContext = {
+      chatId,
+      messageId: msgId,
+      chatType,
+      reqId: reqId || '',
+      from: { userId },
+      reply: (replyText, opts) => this.send(chatId, replyText, opts),
+      editReply: () => Promise.resolve(),
+      channel: this,
+      raw: body,
+    };
+
+    const payload: WeComMessagePayload = { text, files: [] };
+    void this.dispatchInbound(payload, ctx);
+  }
+
+  private extractInboundText(body: any): string {
+    if (!body) return '';
+    const direct = String(body.text?.content || '').trim();
+    if (direct) return this.stripBotMention(direct, body.aibotid);
+    if (body.msgtype === 'voice') {
+      const voice = body.voice || {};
+      const transcript = String(voice.content || voice.text || '').trim();
+      if (transcript) return this.stripBotMention(transcript, body.aibotid);
+    }
+    if (body.msgtype === 'mixed' && Array.isArray(body.mixed?.msg_item)) {
+      const parts: string[] = [];
+      for (const item of body.mixed.msg_item) {
+        if (item?.msgtype === 'text' && item.text?.content) parts.push(String(item.text.content));
+      }
+      const joined = parts.join('\n').trim();
+      if (joined) return this.stripBotMention(joined, body.aibotid);
+    }
+    return '';
+  }
+
+  private stripBotMention(text: string, aibotid?: string): string {
+    let out = text;
+    if (aibotid) out = out.replace(new RegExp(`@${aibotid}`, 'g'), '');
+    if (this.botId) out = out.replace(new RegExp(`@${this.botId}`, 'g'), '');
+    return out.trim();
+  }
+
+  private async dispatchInbound(payload: WeComMessagePayload, ctx: WeComContext) {
+    for (const handler of this.messageHandlers) {
+      try { await handler(payload, ctx); } catch (error) {
+        this.emitError(error instanceof Error ? error : new Error(describeError(error)));
+      }
+    }
+  }
+
+  async send(chatId: number | string, text: string, _opts?: SendOpts): Promise<string | null> {
+    const chat = String(chatId);
+    const trimmed = (text || '').trim() || '(empty)';
+    const chunks = splitText(trimmed, WC_MAX);
+    let lastReqId: string | null = null;
+
+    const meta = this.chatMeta.get(chat);
+    const replyReqId = meta?.pendingReqId;
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i]!;
+      if (i === 0 && replyReqId) {
+        const streamId = this.makeReqId('stream');
+        const frame = {
+          cmd: 'aibot_respond_msg',
+          headers: { req_id: replyReqId },
+          body: {
+            msgtype: 'stream',
+            stream: { id: streamId, finish: true, content: chunk },
+          },
+        };
+        await this.writeFrame(frame);
+        if (meta) meta.pendingReqId = null;
+        lastReqId = replyReqId;
+        continue;
+      }
+      const reqId = this.makeReqId('aibot_send_msg');
+      const frame = {
+        cmd: 'aibot_send_msg',
+        headers: { req_id: reqId },
+        body: {
+          chatid: chat,
+          msgtype: 'markdown',
+          markdown: { content: chunk },
+        },
+      };
+      await this.writeAndAwaitAck(reqId, frame, 5_000);
+      lastReqId = reqId;
+    }
+    return lastReqId;
+  }
+
+  async editMessage(_chatId: number | string, _msgId: number | string, _text: string, _opts?: SendOpts): Promise<void> {
+  }
+
+  async deleteMessage(_chatId: number | string, _msgId: number | string): Promise<void> {
+  }
+
+  async sendTyping(_chatId: number | string, _opts?: SendOpts): Promise<void> {
+  }
+
+  private writeFrame(frame: any): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const ws = this.ws;
+      if (!ws || ws.readyState !== ws.OPEN) {
+        reject(new Error('wecom-ws: not connected'));
+        return;
+      }
+      ws.send(JSON.stringify(frame), err => {
+        if (err) reject(err instanceof Error ? err : new Error(describeError(err)));
+        else resolve();
+      });
+    });
+  }
+
+  private writeAndAwaitAck(reqId: string, frame: any, timeoutMs: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingAcks.delete(reqId);
+        this.debug(`[ws] ack timeout req_id=${reqId} — proceeding`);
+        resolve();
+      }, timeoutMs);
+      timer.unref?.();
+      this.pendingAcks.set(reqId, { resolve, reject, timer });
+      this.writeFrame(frame).catch(err => {
+        const pending = this.pendingAcks.get(reqId);
+        if (pending) {
+          clearTimeout(pending.timer);
+          this.pendingAcks.delete(reqId);
+        }
+        reject(err);
+      });
+    });
+  }
+
+  private failPendingAcks() {
+    for (const [reqId, pending] of this.pendingAcks) {
+      clearTimeout(pending.timer);
+      pending.reject(new Error('wecom-ws: connection closed'));
+      this.pendingAcks.delete(reqId);
+    }
+  }
+
+  private makeReqId(prefix: string): string {
+    this.reqSeq += 1;
+    return `${prefix}_${this.reqSeq}`;
+  }
+
+  private isAllowed(userId: string): boolean {
+    if (!this.allowedUserIds?.size) return true;
+    return this.allowedUserIds.has(userId);
+  }
+
+  private emitError(error: Error) {
+    for (const handler of this.errorHandlers) {
+      try { handler(error); } catch {}
+    }
+  }
+
+  private debug(msg: string) { this.log(msg, 'debug'); }
+  private log(msg: string, level: LogLevel = 'info') { writeScopedLog('wecom', msg, { level }); }
+}
