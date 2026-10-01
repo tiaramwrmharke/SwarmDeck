@@ -40,3 +40,58 @@ function normalizeFeishuMarkdown(lines: string[]): string {
       out.push(line);
       inCodeBlock = !inCodeBlock;
       continue;
+    }
+
+    if (inCodeBlock) {
+      out.push(rawLine);
+      continue;
+    }
+
+    if (!line.trim()) {
+      if (out.length) pendingBlankLine = true;
+      continue;
+    }
+
+    if (pendingBlankLine && out.length) out.push('');
+    pendingBlankLine = false;
+    out.push(line);
+  }
+
+  if (inCodeBlock) out.push('```');
+  return out.join('\n');
+}
+
+export function adaptMarkdownForFeishu(markdown: string): string {
+  const lines = markdown.split('\n');
+  const out: string[] = [];
+  let i = 0;
+  let inCodeBlock = false;
+
+  while (i < lines.length) {
+    const trimmed = lines[i].trimStart();
+    if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
+      inCodeBlock = !inCodeBlock;
+      out.push(lines[i]);
+      i++;
+      continue;
+    }
+    if (inCodeBlock) {
+      out.push(lines[i]);
+      i++;
+      continue;
+    }
+
+    if (i + 1 < lines.length && isGfmTableRow(lines[i]) && isGfmTableSeparator(lines[i + 1])) {
+      while (i < lines.length && isGfmTableRow(lines[i])) {
+        out.push(lines[i]);
+        i++;
+      }
+      continue;
+    }
+
+    out.push(adaptLine(lines[i]));
+    i++;
+  }
+
+  return normalizeFeishuMarkdown(out);
+}
