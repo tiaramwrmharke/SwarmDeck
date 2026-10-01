@@ -47,3 +47,34 @@ export async function readKeychain(account: string): Promise<string | null> {
   };
 
   const current = readUnder(KEYCHAIN_SERVICE);
+  if (current != null) return current;
+
+  for (const legacy of LEGACY_KEYCHAIN_SERVICES) {
+    const value = readUnder(legacy);
+    if (value == null) continue;
+    try {
+      new mod.Entry(KEYCHAIN_SERVICE, account).setPassword(value);
+    } catch {
+    }
+    return value;
+  }
+  return null;
+}
+
+export async function writeKeychain(account: string, value: string): Promise<void> {
+  const mod = await loadKeyring();
+  if (!mod) throw new Error('OS keychain unavailable (install @napi-rs/keyring)');
+  const entry = new mod.Entry(KEYCHAIN_SERVICE, account);
+  entry.setPassword(value);
+}
+
+export async function deleteKeychain(account: string): Promise<boolean> {
+  const mod = await loadKeyring();
+  if (!mod) return false;
+  try {
+    const entry = new mod.Entry(KEYCHAIN_SERVICE, account);
+    return !!entry.deletePassword();
+  } catch {
+    return false;
+  }
+}

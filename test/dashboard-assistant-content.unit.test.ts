@@ -20,3 +20,16 @@ describe('AssistantContent block categorization', () => {
       content: 'src/bot.ts:610: snap.plan = event.plan?.steps?.length ? event.plan : null;',
       toolName: 'exec_command',
       toolId: 'call-1',
+    };
+    const finalAnswer: MessageBlock = {
+      type: 'text',
+      content: 'Fixed the panel to keep activity and answer text separate.',
+      phase: 'final_answer',
+    };
+
+    const categorized = categorizeAssistantBlocks([commentary, toolUse, toolResult, finalAnswer]);
+
+    expect(categorized.activityBlocks).toEqual([toolUse, toolResult]);
+    expect(categorized.outputBlocks).toEqual([commentary, finalAnswer]);
+  });
+});
