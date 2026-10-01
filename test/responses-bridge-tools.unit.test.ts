@@ -24,3 +24,34 @@ describe('responses-bridge toChatRequest — tool translation', () => {
     expect(names).not.toContain(''); // web_search / image_generation carry no function name → dropped
   });
 
+  it('dedupes tool names that collide across namespaces', () => {
+    const body = {
+      model: 'm',
+      input: [],
+      tools: [
+        fn('search'),
+        { type: 'namespace', name: 'a', tools: [fn('search'), fn('open')] },
+        { type: 'namespace', name: 'b', tools: [fn('search'), fn('close')] },
+      ],
+    };
+    const names = toChatRequest(body).tools.map((t: any) => t.function.name);
+    expect(names).toEqual(['search', 'open', 'close']);
+  });
+
+  it('preserves function_call / function_call_output round-trip translation', () => {
+    const body = {
+      model: 'm',
+      input: [
+        { type: 'message', role: 'user', content: 'do it' },
+        { type: 'function_call', call_id: 'c1', name: 'exec_command', arguments: '{"cmd":"ls"}' },
+        { type: 'function_call_output', call_id: 'c1', output: 'file.txt' },
+      ],
+      tools: [fn('exec_command')],
+    };
+    const req = toChatRequest(body);
+    const assistant = req.messages.find((m: any) => m.role === 'assistant' && m.tool_calls);
+    expect(assistant.tool_calls[0]).toMatchObject({ id: 'c1', type: 'function', function: { name: 'exec_command' } });
+    const tool = req.messages.find((m: any) => m.role === 'tool');
+    expect(tool).toMatchObject({ tool_call_id: 'c1', content: 'file.txt' });
+  });
+});
