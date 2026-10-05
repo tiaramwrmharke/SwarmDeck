@@ -30,3 +30,7 @@ This gives you a live-reloading development server with the dashboard at `http:/
 
 ### Running tests
 
+```bash
+npm test                                    # all unit tests
+npx vitest run test/some-file.unit.test.ts  # single test file
+npm run test:watch                          # watch mode
