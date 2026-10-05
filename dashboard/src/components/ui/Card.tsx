@@ -40,3 +40,6 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   elevation?: CardElevation;
   tone?: CardTone;
   padding?: CardPadding;
+  interactive?: boolean;
+  streaming?: boolean;
+  glow?: boolean;

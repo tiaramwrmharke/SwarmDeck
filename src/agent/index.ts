@@ -46,3 +46,6 @@ export {
   deliveredArtifactBlocks,
   tailDeliveredBlocks,
   latestDeliveredTaskId,
+  mimeForArtifact,
+  type DeliveredArtifact,
+  type ArtifactKind,

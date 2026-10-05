@@ -66,3 +66,5 @@ export function parseSkillMeta(content: string): SkillMeta {
   }
   if (!label) {
     const hm = content.match(/^#\s+(.+)$/m);
+    if (hm) label = hm[1].trim();
+  }
