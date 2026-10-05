@@ -27,3 +27,6 @@ describe('applyTurnWindow', () => {
       'user 3',
       'assistant 3',
     ]);
+    expect(windowed.window).toEqual({
+      offset: 1,
+      limit: 2,

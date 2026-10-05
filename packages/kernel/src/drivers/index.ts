@@ -3,3 +3,4 @@
 // deliberately NOT re-exported here — tests import them from their defining module.
 export { EchoDriver } from './echo.js';
 export { ClaudeDriver } from './claude.js';
+export { CodexDriver } from './codex.js';
