@@ -83,3 +83,6 @@ function parseClaudeShellActivity(line: string): {
 
 export function parseActivitySummary(activity: string): ActivitySummary {
   const narrative: string[] = [];
+  let failedCommands = 0;
+  let activeCommands = 0;
+  let completedCommands = 0;
