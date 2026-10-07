@@ -42,3 +42,7 @@ describe('WeComChannel frame parsing and send', () => {
 
     {
       const ch = new WeComChannel({ botId: 'bot-1', botSecret: 'sec-1' });
+      const seen: any[] = [];
+      ch.onMessage((msg, ctx) => seen.push({ text: msg.text, chatId: ctx.chatId, reqId: ctx.reqId }));
+
+      (ch as any).handleFrame({

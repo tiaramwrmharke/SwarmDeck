@@ -22,3 +22,7 @@ const MAIN = [
   'encodeClaudeProjectDir',
   // workspace
   'resolveLoomPaths', 'normalizeStateDirName', 'SessionsManager', 'SkillsManager',
+  'ensureDirSymlink', 'parseSkillMeta', 'McpRegistry',
+  // accounts
+  'accountTokenSupported', 'accountTokenEnvVar', 'accountTokenEnv',
+  // protocol
