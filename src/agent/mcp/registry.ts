@@ -40,3 +40,7 @@ export interface RecommendedMcpServer {
   iconSlug?: string;
   iconUrl?: string;
   homepage?: string;
+  isBuiltin?: boolean;
+}
+
+export type SkillCategory = 'general' | 'dev' | 'productivity';
