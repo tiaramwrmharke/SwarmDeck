@@ -80,3 +80,196 @@ async function main() {
   initializeProjectSkills(workdir);
 
   if (args.help || !args.command) {
+    process.stdout.write(HELP);
+    process.exit(0);
+  }
+
+  switch (args.command) {
+    case 'skills': {
+      const result = listSkills(workdir);
+      if (!result.skills.length) {
+        process.stdout.write(`No custom skills found in ${workdir} (.swarmdeck/skills)\n`);
+        break;
+      }
+      process.stdout.write(`Project skills (${result.skills.length}):\n\n`);
+      for (const sk of result.skills) {
+        const desc = sk.description ? `  ${sk.description}` : '';
+        process.stdout.write(`  ${sk.name}${desc}\n`);
+      }
+      break;
+    }
+    case 'claude-status': {
+      const info = listAgents({ includeVersion: true }).agents.find(a => a.agent === 'claude')!;
+      const mark = info.installed ? '\u2713' : '\u2717';
+      process.stdout.write(`${mark} claude  ${info.version ?? 'not installed'}  ${info.path ?? ''}\n`);
+      const usage = getUsage({ agent: 'claude' });
+      if (usage.error) {
+        process.stdout.write(`  ${usage.error}\n`);
+      } else {
+        for (const w of usage.windows) {
+          process.stdout.write(`  [${w.label}] ${w.usedPercent ?? '?'}% used  status=${w.status ?? 'n/a'}\n`);
+        }
+      }
+      break;
+    }
+    case 'codex-status': {
+      const info = listAgents({ includeVersion: true }).agents.find(a => a.agent === 'codex')!;
+      const mark = info.installed ? '\u2713' : '\u2717';
+      process.stdout.write(`${mark} codex  ${info.version ?? 'not installed'}  ${info.path ?? ''}\n`);
+      const usage = getUsage({ agent: 'codex' });
+      if (usage.error) {
+        process.stdout.write(`  ${usage.error}\n`);
+      } else {
+        for (const w of usage.windows) {
+          process.stdout.write(`  [${w.label}] ${w.usedPercent ?? '?'}% used  status=${w.status ?? 'n/a'}\n`);
+        }
+      }
+      break;
+    }
+    case 'gemini-status': {
+      const info = listAgents({ includeVersion: true }).agents.find(a => a.agent === 'gemini')!;
+      const mark = info.installed ? '\u2713' : '\u2717';
+      process.stdout.write(`${mark} gemini  ${info.version ?? 'not installed'}  ${info.path ?? ''}\n`);
+      const driver = getDriver('gemini');
+      const usage = driver.getUsageLive
+        ? await driver.getUsageLive({ agent: 'gemini', model: args.model })
+        : getUsage({ agent: 'gemini', model: args.model });
+      if (usage.error) {
+        process.stdout.write(`  ${usage.error}\n`);
+      } else {
+        for (const w of usage.windows) {
+          process.stdout.write(`  [${w.label}] ${w.usedPercent ?? '?'}% used  status=${w.status ?? 'n/a'}\n`);
+        }
+      }
+      break;
+    }
+    case 'claude-models': {
+      const result = await listModels('claude', { workdir, currentModel: args.model });
+      process.stdout.write(`Claude models${result.note ? ` (${result.note})` : ''}:\n`);
+      for (const m of result.models) {
+        process.stdout.write(`  ${m.id}${m.alias ? ` (${m.alias})` : ''}\n`);
+      }
+      break;
+    }
+    case 'codex-models': {
+      const result = await listModels('codex', { workdir, currentModel: args.model });
+      process.stdout.write(`Codex models${result.note ? ` (${result.note})` : ''}:\n`);
+      for (const m of result.models) {
+        process.stdout.write(`  ${m.id}${m.alias ? ` (${m.alias})` : ''}\n`);
+      }
+      break;
+    }
+    case 'claude-sessions': case 'codex-sessions': case 'gemini-sessions': {
+      const agent: Agent = args.command === 'codex-sessions'
+        ? 'codex'
+        : args.command === 'gemini-sessions'
+          ? 'gemini'
+          : 'claude';
+      const limit = 20;
+      const result = await querySessions({ agent, workdir, limit });
+      if (!result.ok) {
+        process.stderr.write(`Error: ${result.errors.join('; ')}\n`);
+        process.exit(1);
+      }
+      if (!result.sessions.length) {
+        process.stdout.write(`No ${agent} sessions found for ${workdir}\n`);
+        break;
+      }
+      process.stdout.write(`${agent} sessions (${result.sessions.length}) for ${workdir}:\n\n`);
+      for (const s of result.sessions) {
+        const run = s.running ? ' [RUNNING]' : '';
+        const date = s.createdAt ? s.createdAt.replace('T', ' ').slice(0, 19) : '?';
+        const model = s.model ? ` model=${s.model}` : '';
+        const title = s.title ? `  ${s.title}` : '';
+        const displayId = s.sessionId || '(none)';
+        process.stdout.write(`  ${displayId}  ${date}${model}${run}\n`);
+        if (title) process.stdout.write(`    ${title}\n`);
+      }
+      process.exit(0);
+    }
+    case 'claude-tail': case 'codex-tail': case 'gemini-tail': {
+      const agent: Agent = args.command === 'codex-tail'
+        ? 'codex'
+        : args.command === 'gemini-tail'
+          ? 'gemini'
+          : 'claude';
+      let sessionId: string | null = args.session;
+
+      if (!sessionId) {
+        const sessions = await querySessions({ agent, workdir, limit: 1 });
+        if (!sessions.ok || !sessions.sessions.length) {
+          process.stderr.write(`No ${agent} sessions found for ${workdir}\n`);
+          process.exit(1);
+        }
+        sessionId = sessions.sessions[0].sessionId;
+        if (!sessionId) {
+          process.stderr.write(`Latest ${agent} session has no usable session ID\n`);
+          process.exit(1);
+        }
+      }
+
+      const tail = await querySessionTail({ agent, sessionId, workdir, limit: args.n });
+      if (!tail.ok) {
+        process.stderr.write(`Error: ${tail.error}\n`);
+        process.exit(1);
+      }
+      if (!tail.messages.length) {
+        process.stdout.write(`No messages found in session ${sessionId}\n`);
+        break;
+      }
+
+      process.stdout.write(`${agent} session ${sessionId.slice(0, 16)}  (last ${tail.messages.length} messages)\n\n`);
+      for (const m of tail.messages) {
+        const icon = m.role === 'user' ? '👤 User' : '🤖 Assistant';
+        const preview = m.text.length > 300 ? m.text.slice(0, 300) + '...' : m.text;
+        process.stdout.write(`${icon}:\n${preview}\n\n`);
+      }
+      process.exit(0);
+    }
+    case 'claude-run': case 'codex-run': {
+      const agent: Agent = args.command === 'codex-run' ? 'codex' : 'claude';
+      const prompt = args.prompt;
+      if (!prompt) {
+        process.stderr.write(`Missing prompt. Use -p "..." or pass text after the command.\n`);
+        process.exit(1);
+      }
+      const opts: StreamOpts = {
+        agent, prompt, workdir, timeout: args.timeout,
+        sessionId: null, model: null, thinkingEffort: 'max',
+        onText: (text, _thinking) => {
+          process.stdout.write(`\r\x1b[K${text.slice(-120)}`);
+        },
+        claudeModel: agent === 'claude' ? (args.model || undefined) : undefined,
+        claudePermissionMode: agent === 'claude' ? 'bypassPermissions' : undefined,
+        codexModel: agent === 'codex' ? (args.model || undefined) : undefined,
+        codexFullAccess: agent === 'codex' ? true : undefined,
+      };
+      process.stdout.write(`Running ${agent}${args.model ? ` (model: ${args.model})` : ''}...\n`);
+      const result = await doStream(opts);
+      process.stdout.write('\r\x1b[K');
+      process.stdout.write(`--- ${agent} result ---\n`);
+      process.stdout.write(`ok:        ${result.ok}\n`);
+      process.stdout.write(`model:     ${result.model ?? '(unknown)'}\n`);
+      process.stdout.write(`session:   ${result.sessionId ?? '(none)'}\n`);
+      process.stdout.write(`elapsed:   ${result.elapsedS.toFixed(1)}s\n`);
+      process.stdout.write(`tokens:    in=${result.inputTokens ?? '?'} out=${result.outputTokens ?? '?'} cached=${result.cachedInputTokens ?? '?'} cacheCreate=${result.cacheCreationInputTokens ?? '?'}\n`);
+      if (result.contextPercent != null) {
+        process.stdout.write(`context:   ${result.contextUsedTokens}/${result.contextWindow} (${result.contextPercent}%)\n`);
+      }
+      process.stdout.write(`stop:      ${result.stopReason ?? 'n/a'}\n`);
+      if (result.error) process.stdout.write(`error:     ${result.error}\n`);
+      process.stdout.write(`---\n`);
+      if (result.thinking) {
+        process.stdout.write(`\n<thinking>\n${formatThinkingForDisplay(result.thinking, 800)}\n</thinking>\n`);
+      }
+      process.stdout.write(`\n${result.message}\n`);
+      process.exit(result.ok ? 0 : 1);
+    }
+    default:
+      process.stderr.write(`Unknown command: ${args.command}\n`);
+      process.stderr.write(`Available commands: skills, claude-run, codex-run, claude-status, codex-status, claude-models, codex-models, claude-sessions, codex-sessions, claude-tail, codex-tail\n`);
+      process.exit(1);
+  }
+}
+
+main().catch(err => { console.error(err); process.exit(1); });
