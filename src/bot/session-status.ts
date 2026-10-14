@@ -28,3 +28,53 @@ function resolveIsRunning(session: SessionLookupInfo, runtime: SessionRuntime | 
     {
       runState: session.runState ?? 'running',
       runPid: session.runPid ?? null,
+      runUpdatedAt: session.runUpdatedAt ?? null,
+    },
+    STALE_RUNNING_AGE_MS,
+  );
+  return stale ? { isRunning: false, isStale: true } : { isRunning: true, isStale: false };
+}
+
+export function getSessionStatusForChat(
+  bot: SessionLookupBot,
+  chat: SessionLookupChat,
+  session: SessionLookupInfo,
+): SessionStatusResult {
+  const runtime = getSessionRuntime(bot, session);
+  const sessionId = session.sessionId || null;
+  const isCurrent = !!sessionId && (
+    runtime
+      ? chat.activeSessionKey === runtime.key
+      : chat.agent === session.agent && chat.sessionId === sessionId
+  );
+  const { isRunning, isStale } = resolveIsRunning(session, runtime);
+  return { runtime, isCurrent, isRunning, isStale };
+}
+
+export function getSessionStatusForBot(
+  bot: SessionLookupRuntimeBot,
+  session: SessionLookupInfo,
+): SessionStatusResult {
+  const runtime = getSessionRuntime(bot, session);
+  const sessionId = session.sessionId || null;
+  let isCurrent = false;
+
+  if (sessionId) {
+    for (const [, chat] of bot.chats) {
+      if (runtime) {
+        if (chat.activeSessionKey === runtime.key) {
+          isCurrent = true;
+          break;
+        }
+        continue;
+      }
+      if (chat.agent === session.agent && chat.sessionId === sessionId) {
+        isCurrent = true;
+        break;
+      }
+    }
+  }
+
+  const { isRunning, isStale } = resolveIsRunning(session, runtime);
+  return { runtime, isCurrent, isRunning, isStale };
+}
