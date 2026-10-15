@@ -25,3 +25,8 @@ export function TabsTrigger({
         className
       )}
       {...props}
+    >
+      {children}
+    </button>
+  );
+}
