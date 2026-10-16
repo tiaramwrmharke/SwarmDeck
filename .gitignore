@@ -22,3 +22,13 @@ replied_issues.txt
 .scratch/
 # Legacy state dir (pre-rename) — never track in the swarmdeck repo.
 # Canonical state dir: ignore runtime state, keep committed project skills.
+.pikiclaw/*
+!.pikiclaw/skills/
+!.pikiclaw/skills/**
+# Never commit Python bytecode caches, even under skills/ — MUST stay after the
+# skills un-ignore above (gitignore is last-match-wins) or it gets re-included.
+**/__pycache__/
+*.pyc
+.swarmdeck/*
+!.swarmdeck/skills/
+!.swarmdeck/skills/**
