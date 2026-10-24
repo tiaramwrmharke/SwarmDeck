@@ -48,3 +48,62 @@ describe('LivePreview placeholder lifecycle', () => {
       await flush(preview);
 
       expect(preview.isPlaceholderAbandoned()).toBe(true);
+      const callsAtAbandon = editMessage.mock.calls.length;
+
+      preview.update('text-4', '', '');
+      await flush(preview);
+      preview.update('text-5', '', '');
+      await flush(preview);
+      expect(editMessage.mock.calls.length).toBe(callsAtAbandon);
+    }
+
+    {
+      const { channel, editMessage } = createChannel();
+      editMessage
+        .mockRejectedValueOnce(new Error('blip-1'))
+        .mockRejectedValueOnce(new Error('blip-2'))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('blip-3'))
+        .mockResolvedValueOnce(undefined);
+
+      const preview = new LivePreview({
+        agent: 'claude',
+        chatId: 'c1',
+        placeholderMessageId: 'placeholder',
+        channel,
+        renderer,
+        streamEditIntervalMs: 0,
+        startTimeMs: Date.now(),
+        canEditMessages: true,
+        canSendTyping: false,
+        log: () => {},
+      });
+
+      for (const txt of ['a', 'b', 'c', 'd', 'e']) {
+        preview.update(txt, '', '');
+        await flush(preview);
+      }
+      expect(preview.isPlaceholderAbandoned()).toBe(false);
+    }
+
+    {
+      const { channel, editMessage } = createChannel();
+      const preview = new LivePreview({
+        agent: 'claude',
+        chatId: 'c1',
+        placeholderMessageId: null,
+        channel,
+        renderer,
+        streamEditIntervalMs: 0,
+        startTimeMs: Date.now(),
+        canEditMessages: true,
+        canSendTyping: false,
+        log: () => {},
+      });
+      preview.update('hello', '', '');
+      await flush(preview);
+      expect(editMessage).not.toHaveBeenCalled();
+      expect(preview.isPlaceholderAbandoned()).toBe(false);
+    }
+  });
+});
