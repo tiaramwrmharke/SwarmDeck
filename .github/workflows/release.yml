@@ -26,3 +26,26 @@ jobs:
       - run: npm ci
       - run: npm run verify:toolchain
 
+      - run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # The reusable core is published alongside swarmdeck on every release, for EXTERNAL
+      # reuse. swarmdeck itself bundles packages/kernel/dist in its own tarball, so this
+      # step failing (e.g. @swarmdeck scope missing / NPM_TOKEN lacks scope access) must NOT
+      # block the release — swarmdeck already published and works off the bundled copy.
+      - name: Publish @swarmdeck/kernel to npm
+        continue-on-error: true
+        run: |
+          npx tsc -p packages/kernel/tsconfig.json
+          npm publish ./packages/kernel --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
