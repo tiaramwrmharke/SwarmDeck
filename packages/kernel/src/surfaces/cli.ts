@@ -28,3 +28,28 @@ export class CliSurface implements Surface {
         return;
       }
       const q = snap.queued?.length ?? 0;
+      if (q !== lastQueued && snap.phase !== 'done') { lastQueued = q; if (q) out.write(`\n[queued: ${q}]\n> `); }
+      if (snap.phase !== 'done') return;
+      pendingPromptId = null; lastQueued = 0;
+      out.write(`\n${snap.text || snap.error || '(no output)'}\n> `);
+    });
+
+    this.rl = readline.createInterface({ input: this.opts.input || process.stdin, output: out, prompt: '> ' });
+    this.rl.prompt();
+    this.rl.on('line', (line) => {
+      const text = line.trim();
+      if (!text) { this.rl!.prompt(); return; }
+      if (pendingPromptId) { const pid = pendingPromptId; pendingPromptId = null; io.interact(pid, 'text', text); return; }   // HITL answer
+      if (text === '/models') {                              // discovery from the terminal (C2)
+        void io.listModels(this.opts.agent || io.listAgents()[0] || '').then(ms => out.write(`\n${ms.map(m => m.id).join(', ') || '(no models)'}\n> `));
+        return;
+      }
+      void io.prompt({ prompt: text, agent: this.opts.agent, sessionKey }).then(r => { sessionKey = r.sessionKey; });   // continue the conversation
+    });
+  }
+
+  async stop(): Promise<void> {
+    this.unsub?.();
+    this.rl?.close();
+  }
+}
