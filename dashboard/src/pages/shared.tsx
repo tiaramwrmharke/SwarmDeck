@@ -62,3 +62,133 @@ export function StatusBadge({
 export function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return <MetricPrimitive label={label} value={value} hint={hint} />;
 }
+
+export function DetailGrid({
+  items,
+}: {
+  items: Array<{ label: string; value: ReactNode; mono?: boolean }>;
+}) {
+  return <DescriptionList items={items} columns={2} />;
+}
+
+export function StepList({ steps }: { steps: string[] }) {
+  return (
+    <ol className="space-y-2 text-sm leading-relaxed text-fg-3">
+      {steps.map(step => (
+        <li key={step} className="rounded-lg border border-[var(--edge-subtle)] bg-[var(--surface-2)] px-3 py-2">
+          {step}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function ActionBar({
+  primary,
+  secondary,
+  tertiary,
+}: {
+  primary?: { label: string; onClick: () => void | Promise<void>; disabled?: boolean; loading?: boolean };
+  secondary?: { label: string; onClick: () => void | Promise<void>; disabled?: boolean };
+  tertiary?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-center gap-2">
+        {primary && (
+          <Button tone="primary" onClick={primary.onClick} disabled={primary.disabled}>
+            {primary.loading && <Spinner />}
+            {primary.label}
+          </Button>
+        )}
+        {secondary && (
+          <Button tone="secondary" onClick={secondary.onClick} disabled={secondary.disabled}>
+            {secondary.label}
+          </Button>
+        )}
+      </div>
+      {tertiary && <div className="text-xs leading-relaxed text-fg-4">{tertiary}</div>}
+    </div>
+  );
+}
+
+export function StatusRail({
+  label,
+  value,
+  tone,
+  pulse,
+}: {
+  label: string;
+  value: string;
+  tone: 'ok' | 'warn' | 'err' | 'idle';
+  pulse?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-[var(--edge-subtle)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-fg-4">
+      <Dot tone={tone} pulse={pulse} />
+      <span className="font-semibold uppercase tracking-[0.16em] text-fg-5">{label}</span>
+      <span className="text-fg-2">{value}</span>
+    </div>
+  );
+}
+
+export function SectionCard({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <Card padding="md" elevation="flat" className={className}>
+      {children}
+    </Card>
+  );
+}
+
+export function SettingRowCard({ children, className }: { children: ReactNode; className?: string }) {
+  return <Row inline={false} className={className}>{children}</Row>;
+}
+
+export function SettingRowLead({
+  icon,
+  title,
+  subtitle,
+  badge,
+  className,
+  iconWrap = true,
+}: {
+  icon: ReactNode;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  badge?: ReactNode;
+  className?: string;
+  iconWrap?: boolean;
+}) {
+  return (
+    <Row.Lead
+      icon={icon}
+      title={title}
+      subtitle={subtitle}
+      badge={badge}
+      className={className}
+      iconWrap={iconWrap}
+    />
+  );
+}
+
+export function SettingRowField({
+  label,
+  children,
+  className,
+}: {
+  label: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Row.Field label={label} className={className}>
+      {children}
+    </Row.Field>
+  );
+}
+
+export function SettingRowAction({ children, className }: { children: ReactNode; className?: string }) {
+  return <Row.Action className={className}>{children}</Row.Action>;
+}
+
+export { Row, RowGroup, Section, Field, EmptyState, LoadingDots, Tile, PageHeader };
