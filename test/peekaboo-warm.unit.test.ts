@@ -25,3 +25,30 @@ describe('Peekaboo npx warm', () => {
 
   it('runs the long-lived server bin for MCP but a quick-exit bin for warming', () => {
     expect(PEEKABOO_MCP_ARGV).toContain('peekaboo-mcp');
+    expect(PEEKABOO_WARM_ARGV).not.toContain('peekaboo-mcp');
+    expect(PEEKABOO_WARM_ARGV).toContain('--version');
+  });
+
+  it('spawns a detached warm once on darwin and is a process-singleton', () => {
+    const original = process.platform;
+    const originalOpenAi = process.env.OPENAI_API_KEY;
+    Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
+    process.env.OPENAI_API_KEY = 'sk-should-not-leak';
+    try {
+      spawnMock.mockClear();
+      ensurePeekabooWarm();
+      ensurePeekabooWarm();
+      expect(spawnMock).toHaveBeenCalledTimes(1);
+      const [cmd, args, opts] = spawnMock.mock.calls[0] as unknown as [string, string[], Record<string, unknown>];
+      expect(cmd).toBe('npx');
+      expect(args).toEqual(PEEKABOO_WARM_ARGV);
+      expect(opts).toMatchObject({ detached: true, stdio: 'ignore' });
+      expect((opts.env as Record<string, string>).OPENAI_API_KEY).toBeUndefined();
+      expect((opts.env as Record<string, string>).PIKILOOM_MCP_SERVER).toBe('peekaboo');
+    } finally {
+      Object.defineProperty(process, 'platform', { value: original, configurable: true });
+      if (originalOpenAi == null) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = originalOpenAi;
+    }
+  });
+});
