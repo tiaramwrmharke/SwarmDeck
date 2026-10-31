@@ -56,3 +56,92 @@ type StoredGoal = {
   timeUsedSeconds: number;
   continuationCount: number;
   createdAt: string;
+  updatedAt: string;
+  startedAt: number;
+};
+
+function readGoalFile(file: string): StoredGoal | null {
+  if (!file || !fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+function writeGoalFile(file: string, goal: StoredGoal): void {
+  const dir = path.dirname(file);
+  fs.mkdirSync(dir, { recursive: true });
+  const tmp = `${file}.tmp-${process.pid}-${Date.now().toString(36)}`;
+  fs.writeFileSync(tmp, JSON.stringify({ ...goal, updatedAt: new Date().toISOString() }, null, 2));
+  fs.renameSync(tmp, file);
+}
+
+function serialize(goal: StoredGoal): Record<string, unknown> {
+  return {
+    goal_id: goal.goalId,
+    objective: goal.objective,
+    status: goal.status,
+    token_budget: goal.tokenBudget,
+    tokens_used: goal.tokensUsed,
+    time_used_seconds: goal.timeUsedSeconds,
+    remaining_tokens: goal.tokenBudget != null ? Math.max(0, goal.tokenBudget - goal.tokensUsed) : null,
+    created_at: goal.createdAt,
+    updated_at: goal.updatedAt,
+  };
+}
+
+function handleGoalGet(ctx: ToolContext): ToolResult {
+  const file = goalPathFromCtx(ctx);
+  toolLog('goal_get', `file=${file || '(unresolved)'}`);
+  if (!file) return toolResult('Error: MCP workspace path is not configured', true);
+  const goal = readGoalFile(file);
+  if (!goal) return toolResult(JSON.stringify({ goal: null }, null, 2));
+  return toolResult(JSON.stringify({ goal: serialize(goal) }, null, 2));
+}
+
+function handleGoalUpdate(args: Record<string, unknown>, ctx: ToolContext): ToolResult {
+  const status = typeof args?.status === 'string' ? args.status : '';
+  toolLog('goal_update', `status=${status}`);
+  if (status !== 'complete') {
+    return toolResult(
+      'Error: goal_update only accepts status "complete". Pause, resume, and budget-limited status changes are controlled by the user or system.',
+      true,
+    );
+  }
+  const file = goalPathFromCtx(ctx);
+  if (!file) return toolResult('Error: MCP workspace path is not configured', true);
+  const goal = readGoalFile(file);
+  if (!goal) {
+    return toolResult('Error: no goal is currently set for this session', true);
+  }
+  if (goal.status === 'complete') {
+    return toolResult(JSON.stringify({ goal: serialize(goal), note: 'already complete' }, null, 2));
+  }
+  const next: StoredGoal = { ...goal, status: 'complete' };
+  writeGoalFile(file, next);
+  return toolResult(
+    JSON.stringify(
+      {
+        goal: serialize(next),
+        completion_budget_report:
+          goal.tokenBudget != null
+            ? `tokens used: ${goal.tokensUsed} of ${goal.tokenBudget}`
+            : `tokens used: ${goal.tokensUsed}`,
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+export const goalTools: McpToolModule = {
+  tools,
+  handle(name, args, ctx) {
+    switch (name) {
+      case 'goal_get': return handleGoalGet(ctx);
+      case 'goal_update': return handleGoalUpdate(args, ctx);
+      default: return toolResult(`Unknown goal tool: ${name}`, true);
+    }
+  },
+};
