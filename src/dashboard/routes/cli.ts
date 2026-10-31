@@ -45,3 +45,101 @@ app.post('/api/extensions/cli/auth/start', async (c) => {
 
 app.get('/api/extensions/cli/auth/stream', (c) => {
   const sessionId = c.req.query('sessionId') || '';
+  if (!sessionId) return c.json({ ok: false, error: 'sessionId is required' }, 400);
+
+  const session = getAuthSession(sessionId);
+  if (!session) return c.json({ ok: false, error: 'session not found' }, 404);
+
+  c.header('Content-Type', 'text/event-stream; charset=utf-8');
+  c.header('Cache-Control', 'no-cache, no-transform');
+  c.header('Connection', 'keep-alive');
+  c.header('X-Accel-Buffering', 'no');
+
+  return stream(c, async (s) => {
+    const format = (ev: AuthSessionEvent): string => `data: ${JSON.stringify(ev)}\n\n`;
+
+    if (session.backlog.length) {
+      for (const chunk of session.backlog) {
+        await s.write(format({ type: 'output', chunk }));
+      }
+    }
+
+    let closed = false;
+    const onEvent = async (ev: AuthSessionEvent) => {
+      if (closed) return;
+      try {
+        await s.write(format(ev));
+        if (ev.type === 'done') {
+          closed = true;
+          await s.write('event: close\ndata: {}\n\n');
+          await s.close();
+        }
+      } catch { closed = true; }
+    };
+    session.events.on('event', onEvent);
+
+    if (session.done) {
+      await onEvent({ type: 'done', ok: session.ok, exitCode: session.exitCode });
+      return;
+    }
+
+    const heartbeat = setInterval(() => {
+      if (closed) { clearInterval(heartbeat); return; }
+      s.write(':ping\n\n').catch(() => { closed = true; });
+    }, 15_000);
+
+    s.onAbort(() => {
+      closed = true;
+      clearInterval(heartbeat);
+      session.events.off('event', onEvent);
+    });
+  });
+});
+
+app.post('/api/extensions/cli/install', async (c) => {
+  try {
+    const { id } = await c.req.json() as { id: string };
+    if (!id?.trim()) return c.json({ ok: false, error: 'id is required' }, 400);
+    const result = await startCliInstallSession(id.trim());
+    if (!result.ok) return c.json(result, 400);
+    return c.json({ ok: true, sessionId: result.sessionId });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || 'install failed' }, 500);
+  }
+});
+
+app.post('/api/extensions/cli/auth/cancel', async (c) => {
+  try {
+    const { sessionId } = await c.req.json() as { sessionId: string };
+    if (!sessionId?.trim()) return c.json({ ok: false, error: 'sessionId is required' }, 400);
+    const cancelled = cancelAuthSession(sessionId.trim());
+    return c.json({ ok: true, cancelled });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || 'cancel failed' }, 500);
+  }
+});
+
+app.post('/api/extensions/cli/auth/token', async (c) => {
+  try {
+    const { id, values } = await c.req.json() as { id: string; values: Record<string, string> };
+    if (!id?.trim()) return c.json({ ok: false, error: 'id is required' }, 400);
+    if (!values || typeof values !== 'object') return c.json({ ok: false, error: 'values is required' }, 400);
+    const result = await applyCliToken(id.trim(), values);
+    return c.json(result);
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || 'token apply failed' }, 500);
+  }
+});
+
+app.post('/api/extensions/cli/logout', async (c) => {
+  try {
+    const { id } = await c.req.json() as { id: string };
+    if (!id?.trim()) return c.json({ ok: false, error: 'id is required' }, 400);
+    const result = await logoutCli(id.trim());
+    return c.json(result);
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message || 'logout failed' }, 500);
+  }
+});
+
+export default app;
