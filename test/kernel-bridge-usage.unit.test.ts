@@ -38,3 +38,4 @@ describe('kernel-bridge final usage projection', () => {
     });
     expect(kernelUsageToResultFields(null).contextPercent).toBeNull();
   });
+});
