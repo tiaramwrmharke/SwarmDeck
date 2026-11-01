@@ -47,3 +47,112 @@ describe('optimisticSendWasQueued', () => {
 
   it('demotes when the optimistic send was queued behind a different running task', () => {
     expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'a', queuedTaskIds: ['b'] })).toBe(true);
+    expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'a', queuedTaskIds: ['a', 'b'] })).toBe(true);
+  });
+
+  it('is false when the server snapshot does not list the optimistic send as queued', () => {
+    expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'a', queuedTaskIds: ['c'] })).toBe(false);
+    expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'a', queuedTaskIds: null })).toBe(false);
+    expect(optimisticSendWasQueued({ pendingTaskId: 'b', streamTaskId: 'a', queuedTaskIds: undefined })).toBe(false);
+  });
+});
+
+describe('visibleQueuedIds', () => {
+  const base = {
+    queuedTaskIds: null as readonly string[] | null,
+    streamPhase: null as string | null,
+    streamTaskId: null as string | null,
+    localTaskId: null as string | null,
+  };
+
+  it('shows nothing on an idle session', () => {
+    expect(visibleQueuedIds({ ...base })).toEqual([]);
+  });
+
+  it('lists a task queued behind the running turn', () => {
+    expect(visibleQueuedIds({ ...base, streamPhase: 'streaming', streamTaskId: 'a', queuedTaskIds: ['b'] })).toEqual(['b']);
+  });
+
+  it('never lists the running task as queued, even if a stale snapshot still carries it', () => {
+    expect(visibleQueuedIds({ ...base, streamPhase: 'streaming', streamTaskId: 'a', queuedTaskIds: ['a'] })).toEqual([]);
+    expect(visibleQueuedIds({ ...base, streamPhase: 'streaming', streamTaskId: 'a', queuedTaskIds: ['a', 'b'] })).toEqual(['b']);
+    expect(visibleQueuedIds({ ...base, streamPhase: 'streaming', streamTaskId: 'a', localTaskId: 'a' })).toEqual([]);
+  });
+
+  it('surfaces a self-queued task before any turn is running', () => {
+    expect(visibleQueuedIds({ ...base, streamPhase: 'queued', streamTaskId: 'a' })).toEqual(['a']);
+  });
+
+  it('shows an optimistic local send while idle or queued, never while streaming', () => {
+    expect(visibleQueuedIds({ ...base, localTaskId: 'x' })).toEqual(['x']);
+    expect(visibleQueuedIds({ ...base, streamPhase: 'queued', streamTaskId: 'a', localTaskId: 'x' })).toEqual(['a', 'x']);
+    expect(visibleQueuedIds({ ...base, streamPhase: 'streaming', streamTaskId: 'a', localTaskId: 'x' })).toEqual([]);
+  });
+
+  it('de-duplicates ids drawn from multiple sources', () => {
+    expect(visibleQueuedIds({ ...base, queuedTaskIds: ['a', 'b'], localTaskId: 'a' })).toEqual(['a', 'b']);
+  });
+});
+
+describe('doneAppliesToLivePreview', () => {
+  it('applies a done for the task currently shown in the preview', () => {
+    expect(doneAppliesToLivePreview('a', 'a')).toBe(true);
+  });
+
+  it('applies when there is no live preview yet', () => {
+    expect(doneAppliesToLivePreview(null, 'a')).toBe(true);
+    expect(doneAppliesToLivePreview(undefined, 'a')).toBe(true);
+  });
+
+  it('ignores a stale done for an older task while a newer task streams', () => {
+    expect(doneAppliesToLivePreview('b', 'a')).toBe(false);
+  });
+});
+
+describe('shouldShowTrailingLoader', () => {
+  const base = {
+    sessionRunning: false,
+    streaming: false,
+    streamPhase: null as string | null,
+    queuedTaskCount: 0,
+    pendingQueuedCount: 0,
+    liveTurnStreaming: false,
+    pendingBubbleDots: false,
+  };
+
+  it('stays hidden on a fully idle / completed session', () => {
+    expect(shouldShowTrailingLoader({ ...base })).toBe(false);
+  });
+
+  it('shows when the server reports the session is still running but no loader is on screen', () => {
+    // e.g. a turn reconciled into history / a follow-up turn whose snapshot has not arrived yet.
+    expect(shouldShowTrailingLoader({ ...base, sessionRunning: true })).toBe(true);
+  });
+
+  it('shows during the queued gap between turns', () => {
+    expect(shouldShowTrailingLoader({ ...base, streamPhase: 'queued' })).toBe(true);
+    expect(shouldShowTrailingLoader({ ...base, queuedTaskCount: 1 })).toBe(true);
+    expect(shouldShowTrailingLoader({ ...base, pendingQueuedCount: 1 })).toBe(true);
+  });
+
+  it('shows when streaming is believed active but the live preview is not yet painted', () => {
+    expect(shouldShowTrailingLoader({ ...base, streaming: true })).toBe(true);
+    expect(shouldShowTrailingLoader({ ...base, streamPhase: 'streaming' })).toBe(true);
+  });
+
+  it('never stacks a second loader when the live preview is already streaming', () => {
+    expect(shouldShowTrailingLoader({ ...base, sessionRunning: true, streaming: true, liveTurnStreaming: true })).toBe(false);
+  });
+
+  it('never stacks a second loader when the optimistic pending bubble shows its own dots', () => {
+    expect(shouldShowTrailingLoader({ ...base, sessionRunning: true, pendingBubbleDots: true })).toBe(false);
+  });
+
+  it('stays hidden for a frozen incomplete turn (done, not running, nothing queued)', () => {
+    expect(shouldShowTrailingLoader({ ...base, streamPhase: 'done' })).toBe(false);
+  });
+
+  it('lets an observed done snapshot override stale session running state', () => {
+    expect(shouldShowTrailingLoader({ ...base, sessionRunning: true, streamPhase: 'done' })).toBe(false);
+  });
+});
