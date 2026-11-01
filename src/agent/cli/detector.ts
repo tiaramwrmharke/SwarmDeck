@@ -46,3 +46,88 @@ function which(binary: string): string | null {
   const sep = isWin ? ';' : ':';
   const pathDirs = (process.env.PATH || '').split(sep);
   for (const dir of pathDirs) {
+    if (!dir) continue;
+    for (const ext of exts) {
+      const candidate = path.join(dir, binary + ext);
+      try {
+        const stat = fs.statSync(candidate);
+        if (stat.isFile()) return candidate;
+      } catch {  }
+    }
+  }
+  return null;
+}
+
+function extractVersion(stdout: string, stderr: string): string | undefined {
+  const text = (stdout || stderr).trim();
+  if (!text) return undefined;
+  const firstLine = text.split(/\r?\n/, 1)[0].trim();
+  const m = firstLine.match(/\b(\d+\.\d+(?:\.\d+)?(?:[-.+][0-9A-Za-z.]+)?)\b/);
+  return m ? m[1] : firstLine.slice(0, 80);
+}
+
+function trimDetail(s: string): string | undefined {
+  const text = s.trim();
+  if (!text) return undefined;
+  const first = text.split(/\r?\n/, 1)[0].trim();
+  return first.slice(0, 200);
+}
+
+export function getCachedCliStatus(id: string): CliStatus | undefined {
+  const cached = cache.get(id);
+  if (!cached) return undefined;
+  if (Date.now() - cached.checkedAt > DETECT_TTL_MS) return undefined;
+  return cached;
+}
+
+export function invalidateCliStatus(id?: string): void {
+  if (id) cache.delete(id);
+  else cache.clear();
+}
+
+export async function detectCli(cli: RecommendedCli): Promise<CliStatus> {
+  const binaryPath = which(cli.binary);
+  if (!binaryPath) {
+    const status: CliStatus = {
+      id: cli.id, binary: cli.binary, state: 'not_installed', checkedAt: Date.now(),
+    };
+    cache.set(cli.id, status);
+    return status;
+  }
+
+  let version: string | undefined;
+  if (cli.versionArgv && cli.versionArgv.length) {
+    const v = await runArgv(cli.versionArgv, 5_000);
+    version = extractVersion(v.stdout, v.stderr);
+  }
+
+  if (cli.auth.type === 'none' || !cli.auth.statusArgv || cli.auth.statusArgv.length === 0) {
+    const status: CliStatus = {
+      id: cli.id, binary: cli.binary, state: 'ready', version, checkedAt: Date.now(),
+    };
+    cache.set(cli.id, status);
+    return status;
+  }
+
+  const result = await runArgv(cli.auth.statusArgv, 6_000);
+  const patternOk = !cli.auth.statusReadyPattern
+    || new RegExp(cli.auth.statusReadyPattern).test(result.stdout);
+  const state: CliState = (result.ok && patternOk) ? 'ready' : 'installed_not_auth';
+  const status: CliStatus = {
+    id: cli.id, binary: cli.binary, state, version,
+    authDetail: state === 'ready' ? trimDetail(result.stdout) : trimDetail(result.stderr || result.stdout),
+    checkedAt: Date.now(),
+  };
+  cache.set(cli.id, status);
+  return status;
+}
+
+export function currentPlatform(): 'darwin' | 'linux' | 'win' {
+  if (process.platform === 'darwin') return 'darwin';
+  if (process.platform === 'win32') return 'win';
+  return 'linux';
+}
+
+export function awsCredentialsPath(): string {
+  return path.join(os.homedir(), '.aws', 'credentials');
+}
