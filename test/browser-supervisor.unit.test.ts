@@ -58,3 +58,172 @@ describe('browser-supervisor', () => {
     expect(prepareMock).toHaveBeenCalledTimes(2);
 
     const probe = await supervisor.probeManagedBrowser();
+    expect(probe.cdpEndpoint).toBe('http://127.0.0.1:39222');
+    expect(prepareMock).toHaveBeenCalledTimes(2);
+
+    supervisor._resetManagedBrowserSupervisor();
+    prepareMock.mockReset();
+    forceCloseMock.mockReset();
+    forceCloseMock.mockResolvedValue([]);
+    const emptyProbe = await supervisor.probeManagedBrowser();
+    expect(prepareMock).not.toHaveBeenCalled();
+    expect(emptyProbe).toEqual({ cdpEndpoint: null, connectionMode: 'unavailable' });
+  });
+
+  it('detects unhealthy CDP endpoints: /json timeout and non-array response both trigger re-prepare', async () => {
+    prepareMock.mockResolvedValue({ profileDir: '/tmp/profile', closedPids: [], cdpEndpoint: 'http://127.0.0.1:39222', connectionMode: 'attach' });
+
+    let jsonShouldHang = false;
+    vi.stubGlobal('fetch', vi.fn((input: any, init?: any) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.endsWith('/json/version')) {
+        return Promise.resolve(new Response(JSON.stringify({ webSocketDebuggerUrl: 'ws://x' }), { status: 200 }));
+      }
+      if (!jsonShouldHang) {
+        return Promise.resolve(new Response(JSON.stringify([{ type: 'page', url: 'about:blank' }]), { status: 200 }));
+      }
+      return new Promise<Response>((_resolve, reject) => {
+        const signal: AbortSignal | undefined = init?.signal;
+        if (signal?.aborted) return reject(new DOMException('aborted', 'AbortError'));
+        signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+      });
+    }));
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      await supervisor.ensureManagedBrowser();
+      expect(prepareMock).toHaveBeenCalledTimes(1);
+
+      jsonShouldHang = true;
+      vi.setSystemTime(Date.now() + 60_000);
+
+      await supervisor.ensureManagedBrowser();
+      expect(prepareMock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    supervisor._resetManagedBrowserSupervisor();
+    prepareMock.mockReset();
+    prepareMock.mockResolvedValue({ profileDir: '/tmp/profile', closedPids: [], cdpEndpoint: 'http://127.0.0.1:39222', connectionMode: 'attach' });
+    forceCloseMock.mockReset();
+    forceCloseMock.mockResolvedValue([]);
+    vi.unstubAllGlobals();
+
+    let jsonReturnsHtml = false;
+    vi.stubGlobal('fetch', vi.fn(async (input: any) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.endsWith('/json/version')) return new Response(JSON.stringify({ webSocketDebuggerUrl: 'ws://x' }), { status: 200 });
+      if (jsonReturnsHtml) return new Response('<html>error</html>', { status: 200 });
+      return new Response(JSON.stringify([{ type: 'page', url: 'about:blank' }]), { status: 200 });
+    }));
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      await supervisor.ensureManagedBrowser();
+      expect(prepareMock).toHaveBeenCalledTimes(1);
+
+      jsonReturnsHtml = true;
+      vi.setSystemTime(Date.now() + 60_000);
+
+      await supervisor.ensureManagedBrowser();
+      expect(prepareMock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('restart clears cache, throttles, coalesces concurrent calls, and handles remote CDP mode', async () => {
+    const makeHealthyFetch = () => vi.fn(async (input: any) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.endsWith('/json/version')) return new Response(JSON.stringify({ webSocketDebuggerUrl: 'ws://x' }), { status: 200 });
+      if (url.endsWith('/json')) return new Response(JSON.stringify([{ type: 'page', url: 'about:blank' }]), { status: 200 });
+      return new Response('', { status: 404 });
+    });
+
+    prepareMock.mockResolvedValue({ profileDir: '/tmp/profile', closedPids: [], cdpEndpoint: 'http://127.0.0.1:39222', connectionMode: 'attach' });
+    vi.stubGlobal('fetch', makeHealthyFetch());
+
+    await supervisor.ensureManagedBrowser();
+    expect(supervisor.getCachedManagedBrowserEndpoint()).toBe('http://127.0.0.1:39222');
+
+    await supervisor.restartManagedBrowser('test');
+    expect(forceCloseMock).toHaveBeenCalledTimes(1);
+    expect(supervisor.getCachedManagedBrowserEndpoint()).toBeNull();
+
+    await supervisor.ensureManagedBrowser();
+    expect(prepareMock).toHaveBeenCalledTimes(2);
+
+    supervisor._resetManagedBrowserSupervisor();
+    prepareMock.mockReset();
+    forceCloseMock.mockReset();
+    forceCloseMock.mockResolvedValue([]);
+    vi.unstubAllGlobals();
+
+    await supervisor.restartManagedBrowser('first');
+    await supervisor.restartManagedBrowser('second');
+    await supervisor.restartManagedBrowser('third');
+    expect(forceCloseMock).toHaveBeenCalledTimes(1);
+
+    supervisor._resetManagedBrowserSupervisor();
+    forceCloseMock.mockReset();
+    let resolveForce: (() => void) | null = null;
+    forceCloseMock.mockImplementation(() => new Promise<number[]>(r => {
+      resolveForce = () => r([]);
+    }));
+
+    const ra = supervisor.restartManagedBrowser('a');
+    const rb = supervisor.restartManagedBrowser('b');
+    const rc = supervisor.restartManagedBrowser('c');
+    expect(forceCloseMock).toHaveBeenCalledTimes(1);
+    resolveForce!();
+    await Promise.all([ra, rb, rc]);
+    expect(forceCloseMock).toHaveBeenCalledTimes(1);
+
+    supervisor._resetManagedBrowserSupervisor();
+    prepareMock.mockReset();
+    forceCloseMock.mockReset();
+    forceCloseMock.mockResolvedValue([]);
+    vi.unstubAllGlobals();
+
+    process.env.PIKILOOM_BROWSER_CDP_URL = 'http://chromium:9222/';
+    try {
+      vi.stubGlobal('fetch', vi.fn(async (input: any) => {
+        const url = typeof input === 'string' ? input : input.url;
+        if (url.startsWith('http://chromium:9222/') && url.endsWith('/json/version')) {
+          return new Response(JSON.stringify({ webSocketDebuggerUrl: 'ws://chromium:9222/devtools/browser/x' }), { status: 200 });
+        }
+        if (url.startsWith('http://chromium:9222/') && url.endsWith('/json')) {
+          return new Response(JSON.stringify([{ type: 'page', url: 'about:blank' }]), { status: 200 });
+        }
+        return new Response('', { status: 404 });
+      }));
+
+      const snap = await supervisor.ensureManagedBrowser();
+      expect(snap.connectionMode).toBe('attach');
+      expect(snap.cdpEndpoint).toBe('http://chromium:9222');
+      expect(prepareMock).not.toHaveBeenCalled();
+
+      await supervisor.restartManagedBrowser('remote test');
+      expect(forceCloseMock).not.toHaveBeenCalled();
+      expect(supervisor.getCachedManagedBrowserEndpoint()).toBeNull();
+    } finally {
+      delete process.env.PIKILOOM_BROWSER_CDP_URL;
+    }
+
+    supervisor._resetManagedBrowserSupervisor();
+    prepareMock.mockReset();
+    vi.unstubAllGlobals();
+
+    process.env.PIKILOOM_BROWSER_CDP_URL = 'http://chromium:9222';
+    try {
+      vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })));
+      const unreachableSnap = await supervisor.ensureManagedBrowser();
+      expect(unreachableSnap.connectionMode).toBe('unavailable');
+      expect(unreachableSnap.cdpEndpoint).toBeNull();
+      expect(prepareMock).not.toHaveBeenCalled();
+    } finally {
+      delete process.env.PIKILOOM_BROWSER_CDP_URL;
+    }
+  });
+});
