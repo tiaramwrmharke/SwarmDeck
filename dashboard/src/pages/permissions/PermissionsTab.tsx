@@ -58,3 +58,175 @@ const PERMISSIONS: PermissionMeta[] = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="6.2" y="10.1" width="11.6" height="8.6" rx="2.6" />
         <path d="M9 10V7.8a3 3 0 1 1 6 0V10" />
+        <circle cx="12" cy="13.5" r="0.9" fill="currentColor" stroke="none" />
+        <path d="M12 14.6v1.8" />
+      </svg>
+    ),
+  },
+];
+
+function getCopy(locale: 'zh-CN' | 'en'): CopyPack {
+  if (locale === 'zh-CN') {
+    return {
+      introWithHost: '请在 macOS 中为 {hostApp} 开启以下权限。',
+      intro: '请在 macOS 中开启以下权限。',
+      status: '状态',
+      summary: '系统位置',
+      loading: '检查中',
+      needsGrant: '需要授权',
+      granted: '已授权',
+      authorize: '授权',
+      openSettings: '前往设置',
+      refreshState: '刷新状态',
+      checking: '检查中...',
+      hostGranted: '{hostApp} 已可直接使用此权限。',
+      hostGrantedFallback: '当前宿主应用已可直接使用此权限。',
+      needsGrantDetail: '尚未授权，可通过右侧按钮发起系统授权。',
+      needsSettingsDetail: '需要在系统设置中手动开启此权限。',
+    };
+  }
+
+  return {
+    introWithHost: 'Grant the following permissions to {hostApp} in macOS.',
+    intro: 'Grant the following permissions in macOS.',
+    status: 'Status',
+    summary: 'System path',
+    loading: 'Checking',
+    needsGrant: 'Needs access',
+    granted: 'Granted',
+    authorize: 'Authorize',
+    openSettings: 'Open settings',
+    refreshState: 'Refresh status',
+    checking: 'Checking...',
+    hostGranted: '{hostApp} can use this permission now.',
+    hostGrantedFallback: 'The current host app can use this permission now.',
+    needsGrantDetail: 'Access has not been granted yet. Use the button on the right to trigger the macOS prompt.',
+    needsSettingsDetail: 'This permission needs to be enabled manually in System Settings.',
+  };
+}
+
+export function PermissionsTab() {
+  const state = useStore(s => s.state);
+  const locale = useStore(s => s.locale);
+  const reload = useStore(s => s.reload);
+  const toast = useStore(s => s.toast);
+  const t = useMemo(() => createT(locale), [locale]);
+  const copy = getCopy(locale);
+  const permissions = state?.permissions || {};
+  const hostApp = state?.hostApp || null;
+  const loading = !state;
+  const [requesting, setRequesting] = useState<PermissionKey | null>(null);
+
+  const rows = useMemo(() => PERMISSIONS.map(item => ({
+    ...item,
+    permission: permissions[item.key],
+  })), [permissions]);
+
+  const handleRequest = useCallback(async (permission: PermissionKey) => {
+    if (requesting) return;
+    setRequesting(permission);
+    try {
+      const result = await api.requestPermission(permission);
+      if (!result.ok) {
+        toast(result.error || t('perm.requestFailed'), false);
+        return;
+      }
+
+      if (result.action === 'already_granted') {
+        toast(t('perm.alreadyGranted'));
+      } else if (result.action === 'prompted') {
+        toast(t('perm.promptOpened'));
+      } else {
+        toast(t('perm.settingsOpened'));
+      }
+
+      await reload();
+    } catch (error) {
+      toast(error instanceof Error ? error.message : t('perm.requestFailed'), false);
+    } finally {
+      setRequesting(current => (current === permission ? null : current));
+    }
+  }, [reload, requesting, t, toast]);
+
+  const handleRefresh = useCallback(async () => {
+    await reload();
+  }, [reload]);
+
+  return (
+    <div className="animate-in space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] leading-relaxed text-fg-4">
+            {hostApp ? copy.introWithHost.replace('{hostApp}', hostApp) : copy.intro}
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => void handleRefresh()}>
+          {copy.refreshState}
+        </Button>
+      </div>
+
+      <RowGroup>
+        {rows.map(row => {
+          const permission = row.permission;
+          const granted = !!permission?.granted;
+          const checkable = !!permission && permission.checkable;
+          const statusLabel = loading
+            ? copy.loading
+            : granted
+              ? copy.granted
+              : copy.needsGrant;
+          const statusState: StatusState = loading
+            ? 'idle'
+            : granted
+              ? 'ok'
+              : 'warn';
+          const statusDescription = loading
+            ? copy.loading
+            : granted
+              ? (hostApp ? copy.hostGranted.replace('{hostApp}', hostApp) : copy.hostGrantedFallback)
+              : checkable
+                ? copy.needsGrantDetail
+                : copy.needsSettingsDetail;
+          const actionLabel = loading
+            ? copy.checking
+            : checkable
+              ? copy.authorize
+              : copy.openSettings;
+
+          return (
+            <Row key={row.key}>
+              <Row.Lead
+                icon={row.icon}
+                title={t(row.labelKey)}
+                subtitle={locale === 'zh-CN' ? row.reasonZh : row.reasonEn}
+              />
+
+              <Row.Status>
+                <StatusPill state={statusState} label={statusLabel} />
+              </Row.Status>
+
+              <Row.Field>{t(row.guidePathKey)}</Row.Field>
+
+              <Row.Action>
+                {!granted && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={loading || !!requesting}
+                    onClick={() => void handleRequest(row.key)}
+                  >
+                    {requesting === row.key ? copy.checking : actionLabel}
+                  </Button>
+                )}
+              </Row.Action>
+
+              {statusDescription && statusDescription !== statusLabel && (
+                <Row.Description>{statusDescription}</Row.Description>
+              )}
+            </Row>
+          );
+        })}
+      </RowGroup>
+    </div>
+  );
+}

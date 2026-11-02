@@ -289,3 +289,975 @@ function getCopy(locale: Locale): CopyPack {
     };
   }
   return {
+    defaultsTitle: 'New Session Defaults',
+    defaultsHint: 'Pick which agent new sessions use by default. Provider / Model / Effort live on each agent card below.',
+    defaultsEditTitle: 'Change Default Agent',
+    defaultsEditHint: 'Which agent should new sessions use by default?',
+    defaultsSaved: 'Default agent updated',
+    editDefaults: 'Change default',
+    agentsTitle: 'Available Agents',
+    defaultAgent: 'Default Agent',
+    installLabel: 'Install',
+    versionLabel: 'Version',
+    defaultBadge: 'Default',
+    installed: 'Installed',
+    notInstalled: 'Not installed',
+    notInstalledHint: 'Install the local CLI for this agent to configure its provider and model.',
+    noModel: 'Not set',
+    noVersion: 'Version unavailable',
+    loadFailed: 'Failed to load agent status',
+    updateAvailable: 'Update available',
+    updateSkipped: 'Auto-update skipped',
+    updateFailed: 'Auto-update failed',
+    update: 'Update',
+    updating: 'Updating…',
+    checkUpdate: 'Check update',
+    checking: 'Checking…',
+    upToDate: 'Up to date',
+    install: 'Install',
+    installing: 'Installing…',
+    profilesTitle: 'My Models',
+    profilesHint: 'Register the models you actually use as named shortcuts. A pure selection list — agents (including Hermes) pick from here, but who picks what does not bubble back into this view.',
+    modelsTitle: 'Model Providers',
+    modelsHint: 'Connect BYOK providers; pin specific models above in "My Models".',
+    localTitle: 'Local Models',
+    localHint: 'Detect Ollama / mlx-lm on this machine and surface coding models that fit your RAM. Connected backends show up as a provider on the agent cards.',
+    rowProvider: 'Provider',
+    rowModel: 'Model',
+    rowEffort: 'Effort',
+    rowWorkflow: 'Multi-agent Workflow',
+    workflowOn: 'On',
+    workflowOff: 'Off (default)',
+    workflowHint: 'When on, the agent may orchestrate multiple sub-agents in parallel for large multi-step work (broad research, big refactors/audits, cross-file reviews). Off fully disables the Workflow tool; ordinary chat is unaffected.',
+    rowAccessMode: 'Access mode',
+    accessSubscription: 'TUI mode',
+    accessApi: 'Standard · `claude -p`',
+    accessSubscriptionDesc: 'Runs Claude Code as an interactive terminal, parsing each turn through the standard Claude TUI, counted inside your Pro/Max subscription quota.',
+    accessApiDesc: 'The standard headless path: invokes `claude -p` directly and reads its structured output. Will eventually count against a separate API credit pool (not yet in effect — it still reuses your existing Claude sign-in).',
+    accessModeSwitchNote: 'Switching applies to new sessions/turns only; in-flight tasks are unaffected.',
+    providerNative: 'Native (CLI auth)',
+    providerNativeFromAgent: "agent's own config",
+    effortDefault: 'default',
+    modelLoading: 'Loading model list…',
+    modelEmpty: 'Provider returned no model list — use custom input.',
+    modelCustomToggle: 'Use custom input',
+    modelListToggle: 'Pick from list',
+    modelCustomPlaceholder: 'anthropic/claude-sonnet-4',
+    modelSearchPlaceholder: 'Search models',
+    modelSearchEmpty: 'No matching models',
+    modelCurrentLabel: 'Current',
+    modelGroupNative: 'Native',
+    modelGroupProfiles: 'My Models',
+    modelPickerEmpty: 'No models available',
+    modelPickerEmptyHint: 'This agent has no native model list, and no "My Models" entries are registered.',
+    saveChanges: 'Save',
+    saving: 'Saving…',
+    saved: 'Saved',
+    configError: 'Save failed',
+    externalNativeNote: path => `Hermes reads these values from ${path || '~/.hermes/config.yaml'}; pick a BYOK provider to let swarmdeck take over.`,
+    configure: 'Configure',
+    configModalTitle: label => `Configure ${label}`,
+    rowSummaryNative: 'Native auth',
+    rowSummaryNoModel: 'No model',
+    rowSummaryNoEffort: 'Default effort',
+    rowWorkflowChipOn: 'Workflow on',
+    rowWorkflowChipOff: 'Workflow off',
+  };
+}
+
+function buildAgentOptions(agents: AgentRuntimeStatus[], copy: CopyPack) {
+  const installedAgents = agents.filter(agent => agent.installed);
+  const source = installedAgents.length ? installedAgents : agents;
+  return source.map(agent => ({
+    value: agent.agent,
+    label: `${getAgentMeta(agent.agent).label} · ${agent.installed ? (agent.version || copy.installed) : copy.notInstalled}`,
+  }));
+}
+
+function modelLabel(model: ModelInfo | null | undefined): string {
+  if (!model) return '—';
+  return model.alias || model.id;
+}
+
+function defaultNativeModel(agent: AgentRuntimeStatus): string {
+  if (agent.nativeSelectedModel) return agent.nativeSelectedModel;
+  if (agent.nativeConfig?.model) return agent.nativeConfig.model;
+  if (agent.models.length) return agent.models[0].id;
+  return '';
+}
+
+function applySnapshot(setter: (value: SnapshotState) => void, next: AgentStatusResponse) {
+  setter({ defaultAgent: next.defaultAgent, agents: next.agents });
+}
+
+interface ConfigDraft {
+  kind: 'native' | 'profile';
+  modelId: string;
+  profileId: string | null;
+  effort: string;
+  accessMode?: 'subscription' | 'api';
+}
+
+function makeInitialDraft(
+  agentId: Agent,
+  agentStatus: AgentRuntimeStatus | null,
+  boundInfo: BoundProfileInfo | null,
+): ConfigDraft {
+  if (boundInfo) {
+    return {
+      kind: 'profile',
+      modelId: boundInfo.modelId,
+      profileId: boundInfo.profileId,
+      effort: foldUltraEffort(agentId, boundInfo.effort, agentStatus?.workflowEnabled),
+      accessMode: agentId === 'claude' ? (agentStatus?.claudeAccessMode || 'api') : undefined,
+    };
+  }
+  const native = agentStatus?.nativeConfig || null;
+  return {
+    kind: 'native',
+    modelId: native?.model || agentStatus?.selectedModel || '',
+    profileId: null,
+    effort: foldUltraEffort(agentId, native?.effort || agentStatus?.selectedEffort, agentStatus?.workflowEnabled),
+    accessMode: agentId === 'claude' ? (agentStatus?.claudeAccessMode || 'api') : undefined,
+  };
+}
+
+function draftEqual(a: ConfigDraft, b: ConfigDraft): boolean {
+  return a.kind === b.kind
+    && (a.profileId || '') === (b.profileId || '')
+    && a.modelId.trim() === b.modelId.trim()
+    && (a.effort || '') === (b.effort || '')
+    && (a.accessMode || '') === (b.accessMode || '');
+}
+
+function encodeSelection(draft: ConfigDraft): string {
+  return draft.kind === 'profile' && draft.profileId
+    ? `p:${draft.profileId}`
+    : `n:${draft.modelId}`;
+}
+function decodeSelection(value: string): { kind: 'native'; modelId: string } | { kind: 'profile'; profileId: string } | null {
+  if (value.startsWith('n:')) return { kind: 'native', modelId: value.slice(2) };
+  if (value.startsWith('p:')) return { kind: 'profile', profileId: value.slice(2) };
+  return null;
+}
+
+function AgentInlineConfig({
+  agentId,
+  agentStatus,
+  boundInfo,
+  copy,
+  layer,
+  toast,
+  onSaved,
+  onCancel,
+  t,
+}: {
+  agentId: Agent;
+  agentStatus: AgentRuntimeStatus;
+  boundInfo: BoundProfileInfo | null;
+  copy: CopyPack;
+  layer: ModelLayerSnapshot;
+  toast: (msg: string, ok?: boolean) => void;
+  onSaved: () => void | Promise<void>;
+  onCancel: () => void;
+  t: (key: string) => string;
+}) {
+  const externalNative = isNativeConfigExternal(agentId);
+  const native = agentStatus.nativeConfig || null;
+
+  const baseline = useMemo(
+    () => makeInitialDraft(agentId, agentStatus, boundInfo),
+    [agentId, agentStatus, boundInfo],
+  );
+  const [draft, setDraft] = useState<ConfigDraft>(baseline);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => { setDraft(baseline); setError(null); }, [baseline]);
+
+  const isNative = draft.kind === 'native';
+  const nativeReadOnly = isNative && externalNative;
+
+  const effortOptions = useMemo(() => {
+    const levels = agentStatus.effortOptions ?? [];
+    return [
+      { value: '', label: copy.effortDefault },
+      ...levels.map(l => ({ value: l.id, label: l.label })),
+    ];
+  }, [agentStatus.effortOptions, copy.effortDefault]);
+
+  const modelOptions = useMemo(() => {
+    type RichOpt = { value: string; label: string; description?: string; meta?: string; group?: string };
+    const out: RichOpt[] = [];
+    if (!externalNative) {
+      for (const m of agentStatus.models) {
+        const aliasNormalized = m.alias?.toLowerCase().replace(/[\s_-]/g, '');
+        const idNormalized = m.id.toLowerCase().replace(/[\s_-]/g, '');
+        const showAlias = m.alias && aliasNormalized !== idNormalized;
+        out.push({
+          value: `n:${m.id}`,
+          label: m.id,
+          description: showAlias ? m.alias! : undefined,
+          group: copy.modelGroupNative,
+        });
+      }
+    }
+    const acceptedKinds = new Set(AGENT_ACCEPTED_PROVIDER_KINDS[agentId] || []);
+    for (const p of layer.profiles) {
+      const provider = layer.providers.find(x => x.id === p.providerId);
+      if (!provider || !acceptedKinds.has(provider.kind)) continue;
+      const providerName = provider.name;
+      const showModelId = p.name.trim().toLowerCase() !== p.modelId.trim().toLowerCase();
+      const description = showModelId ? `${providerName} · ${p.modelId}` : providerName;
+      out.push({
+        value: `p:${p.id}`,
+        label: p.name,
+        description,
+        group: copy.modelGroupProfiles,
+      });
+    }
+    return out;
+  }, [agentId, agentStatus.models, layer.profiles, layer.providers, copy.modelGroupNative, copy.modelGroupProfiles, externalNative]);
+
+  const selectionValue = encodeSelection(draft);
+
+  const handleSelectionChange = useCallback((value: string) => {
+    const parsed = decodeSelection(value);
+    if (!parsed) return;
+    if (parsed.kind === 'native') {
+      setDraft(d => ({
+        ...d,
+        kind: 'native',
+        modelId: parsed.modelId,
+        profileId: null,
+        effort: d.kind === 'profile'
+          ? (agentStatus.nativeSelectedEffort || agentStatus.nativeConfig?.effort || '')
+          : d.effort,
+      }));
+    } else {
+      const profile = layer.profiles.find(p => p.id === parsed.profileId);
+      setDraft(d => ({
+        ...d,
+        kind: 'profile',
+        profileId: parsed.profileId,
+        modelId: profile?.modelId || d.modelId,
+        effort: profile?.effort || d.effort,
+      }));
+    }
+  }, [layer.profiles, agentStatus.nativeSelectedEffort, agentStatus.nativeConfig]);
+
+  const dirty = !draftEqual(draft, baseline);
+  const canSave = !submitting && dirty && (nativeReadOnly || !!draft.modelId.trim() || draft.kind === 'profile');
+
+  const submit = useCallback(async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const targetEffort = draft.effort || null;
+
+      if (draft.kind === 'native') {
+        if (layer.bindings[agentId]) await layer.setActiveProfile(agentId, null);
+        if (!externalNative) {
+          const patch: Record<string, unknown> = { agent: agentId };
+          const targetModel = draft.modelId.trim();
+          const currentEffort = foldUltraEffort(agentId, agentStatus.nativeSelectedEffort, agentStatus.workflowEnabled) || null;
+          if (targetModel && targetModel !== (agentStatus.nativeSelectedModel || '')) patch.model = targetModel;
+          if (targetEffort !== currentEffort) patch.effort = targetEffort;
+          if (agentId === 'claude' && draft.accessMode && draft.accessMode !== agentStatus.claudeAccessMode) {
+            patch.accessMode = draft.accessMode;
+          }
+          if (Object.keys(patch).length > 1) {
+            const res = await api.updateRuntimeAgent(patch);
+            if (!res.ok) throw new Error(res.error || 'Failed to update agent');
+          }
+        }
+      } else {
+        if (!draft.profileId) throw new Error('No profile selected');
+        await layer.setActiveProfile(agentId, draft.profileId);
+        const currentEffort = foldUltraEffort(agentId, agentStatus.selectedEffort, agentStatus.workflowEnabled) || null;
+        if (targetEffort !== currentEffort) {
+          const res = await api.updateRuntimeAgent({ agent: agentId, effort: targetEffort });
+          if (!res.ok) throw new Error(res.error || 'Failed to update agent');
+        }
+      }
+
+      await Promise.resolve(onSaved());
+      toast(copy.saved);
+    } catch (e: any) {
+      const msg = e?.message || String(e);
+      setError(msg);
+      toast(`${copy.configError}: ${msg}`, false);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [agentId, agentStatus, copy, draft, externalNative, layer, onSaved, toast]);
+
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div>
+          <Label className="!mb-1 text-[11px]">{copy.rowModel}</Label>
+          {nativeReadOnly ? (
+            <div className="flex h-9 items-center rounded-md border border-control-border bg-control px-3 text-[13px] text-fg-3">
+              <span className="truncate font-mono">{native?.model || copy.noModel}</span>
+            </div>
+          ) : modelOptions.length === 0 ? (
+            <div className="rounded-md border border-edge bg-panel-alt px-3 py-3">
+              <div className="text-[12px] font-medium text-fg-3">{copy.modelPickerEmpty}</div>
+              <div className="mt-0.5 text-[11px] leading-relaxed text-fg-5">{copy.modelPickerEmptyHint}</div>
+            </div>
+          ) : (
+            <ModelSelect
+              value={selectionValue}
+              options={modelOptions}
+              onChange={handleSelectionChange}
+              placeholder="—"
+              searchPlaceholder={copy.modelSearchPlaceholder}
+              noMatchesText={copy.modelSearchEmpty}
+              currentLabel={copy.modelCurrentLabel}
+            />
+          )}
+        </div>
+
+        <div>
+          <Label className="!mb-1 text-[11px]">{copy.rowEffort}</Label>
+          {nativeReadOnly ? (
+            <div className="flex h-9 items-center rounded-md border border-control-border bg-control px-3 text-[13px] text-fg-3">
+              <span className="font-mono">{native?.effort || copy.effortDefault}</span>
+            </div>
+          ) : (
+            <Select
+              value={draft.effort}
+              options={effortOptions}
+              onChange={v => setDraft(d => ({ ...d, effort: v }))}
+            />
+          )}
+        </div>
+      </div>
+
+      {agentId === 'claude' && draft.kind === 'native' && (
+        <div>
+          <Label className="!mb-1 text-[11px]">{copy.rowAccessMode}</Label>
+          <Select
+            value={draft.accessMode || 'api'}
+            options={[
+              { value: 'api', label: copy.accessApi },
+              { value: 'subscription', label: copy.accessSubscription },
+            ]}
+            onChange={v => setDraft(d => ({ ...d, accessMode: v as 'subscription' | 'api' }))}
+          />
+          <div className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-fg-5">
+            <div><span className="font-medium text-fg-3">{copy.accessApi}</span>{' — '}{copy.accessApiDesc}</div>
+            <div><span className="font-medium text-fg-3">{copy.accessSubscription}</span>{' — '}{copy.accessSubscriptionDesc}</div>
+            <div>{copy.accessModeSwitchNote}</div>
+          </div>
+        </div>
+      )}
+
+      {agentStatus.capabilities?.workflow && draft.effort === 'ultra' && (
+        <div className="text-[11px] leading-relaxed text-fg-5">{copy.workflowHint}</div>
+      )}
+
+      {agentId === 'claude' && draft.kind === 'native' && (
+        <AccountsPanel agentId={agentId} />
+      )}
+
+      {nativeReadOnly && (
+        <div className="text-[11px] leading-relaxed text-fg-5">
+          {copy.externalNativeNote(native?.configPath || '')}
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-md border border-rose-700/40 bg-rose-900/20 px-3 py-2 text-xs text-rose-200">
+          {error}
+        </div>
+      )}
+
+      <div className="flex items-center justify-end gap-2">
+        <Button variant="ghost" size="sm" onClick={onCancel} disabled={submitting}>
+          {t('modal.cancel')}
+        </Button>
+        <Button variant="primary" size="sm" disabled={!canSave} onClick={() => void submit()}>
+          {submitting && <Spinner className="h-3 w-3" />}
+          {submitting ? copy.saving : copy.saveChanges}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function buildRowSummary(
+  agent: AgentRuntimeStatus,
+  boundInfo: BoundProfileInfo | null,
+  copy: CopyPack,
+): { providerBrand: string; providerLabel: string; modelText: string; effortText: string } {
+  if (boundInfo) {
+    return {
+      providerBrand: boundInfo.providerBrand,
+      providerLabel: boundInfo.providerName,
+      modelText: (boundInfo.profileName.trim().toLowerCase() !== boundInfo.modelId.trim().toLowerCase()
+        ? boundInfo.profileName
+        : boundInfo.modelId) || copy.rowSummaryNoModel,
+      effortText: agent.workflowEnabled ? 'ultra' : (boundInfo.effort || copy.rowSummaryNoEffort),
+    };
+  }
+  const native = agent.nativeConfig || null;
+  const nativeSlug = native?.provider || null;
+  return {
+    providerBrand: brandIdForNativeSlug(nativeSlug),
+    providerLabel: copy.rowSummaryNative,
+    modelText: agent.nativeSelectedModel || native?.model || agent.selectedModel || copy.rowSummaryNoModel,
+    effortText: agent.workflowEnabled
+      ? 'ultra'
+      : (agent.nativeSelectedEffort || native?.effort || agent.selectedEffort || copy.rowSummaryNoEffort),
+  };
+}
+
+function AgentRow({
+  agent,
+  copy,
+  t,
+  installing,
+  onInstall,
+  updatingAgent,
+  checkingAgent,
+  onUpdate,
+  onCheckUpdate,
+  onEdit,
+  loading = false,
+  boundInfo,
+}: {
+  agent: AgentRuntimeStatus;
+  copy: CopyPack;
+  t: (key: string) => string;
+  installing: boolean;
+  onInstall: (agent: AgentRuntimeStatus) => void;
+  updatingAgent: boolean;
+  checkingAgent: boolean;
+  onUpdate: (agent: AgentRuntimeStatus) => void;
+  onCheckUpdate: (agent: AgentRuntimeStatus) => void;
+  onEdit: (agent: AgentRuntimeStatus) => void;
+  loading?: boolean;
+  boundInfo: BoundProfileInfo | null;
+}) {
+  const meta = getAgentMeta(agent.agent);
+  const tagline = meta.advantageKey ? t(meta.advantageKey) : '';
+  const summary = agent.installed ? buildRowSummary(agent, boundInfo, copy) : null;
+  const updating = agent.updateStatus === 'updating';
+  const manualInstall = !agent.installed && agent.install?.method === 'manual' && !!agent.install?.docsUrl;
+
+  const usageWindows = agent.installed ? displayableUsageWindows(agent.usage) : [];
+  const worstWindow = worstUsageWindow(agent.usage);
+  const inlineUsage = usageWindows.slice(0, 2);
+  if (worstWindow && !inlineUsage.includes(worstWindow)) inlineUsage.push(worstWindow);
+  const usageAlert = agent.installed ? usageTone(agent.usage) : 'ok';
+
+  return (
+    <div
+      className="glass rounded-md border border-edge px-3.5 py-2.5 shadow-[0_1px_0_rgba(255,255,255,0.02),0_4px_12px_rgba(15,23,42,0.05)]"
+      title={tagline || undefined}
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-edge bg-panel-alt">
+          <BrandIcon brand={agent.agent} size={20} />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[14px] font-semibold tracking-tight text-fg">{meta.label}</span>
+            {agent.isDefault && <Badge variant="accent">{copy.defaultBadge}</Badge>}
+            {loading
+              ? <Badge variant="muted"><Spinner className="h-3 w-3" /> {t('status.loading')}</Badge>
+              : updating
+                ? <Badge variant="accent"><Spinner className="h-3 w-3" /> {copy.updating}</Badge>
+                : agent.installed
+                  ? <Badge variant="ok">{copy.installed}</Badge>
+                  : <Badge variant="muted">{copy.notInstalled}</Badge>}
+            {!updating && agent.installed && agent.updateAvailable && (
+              <Badge variant="warn">{copy.updateAvailable}</Badge>
+            )}
+            {usageAlert !== 'ok' && (
+              <Tooltip content={<UsageTooltipContent usage={agent.usage} t={t} />}>
+                <Badge variant={usageAlert}>
+                  {usageAlert === 'err' ? t('config.limitReached') : t('config.balanceTight')}
+                </Badge>
+              </Tooltip>
+            )}
+            {agent.installed && agent.version && (
+              <span className="text-[11px] font-mono text-fg-5">v{agent.version}</span>
+            )}
+            {agent.latestVersion && agent.updateAvailable && (
+              <span className="text-[11px] text-amber-400">→ {agent.latestVersion}</span>
+            )}
+          </div>
+          {summary ? (
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-fg-4">
+              <span className="inline-flex items-center gap-1">
+                <BrandIcon brand={summary.providerBrand} size={11} />
+                <span className="text-fg-3">{summary.providerLabel}</span>
+              </span>
+              <span className="text-fg-6" aria-hidden="true">·</span>
+              <span className="font-mono text-fg-3">{summary.modelText}</span>
+              <span className="text-fg-6" aria-hidden="true">·</span>
+              <span>{summary.effortText}</span>
+              {inlineUsage.length > 0 && (
+                <>
+                  <span className="text-fg-6" aria-hidden="true">·</span>
+                  <Tooltip content={<UsageTooltipContent usage={agent.usage} t={t} />} className="items-center gap-1.5">
+                    {inlineUsage.map(window => {
+                      const tone = usageWindowTone(window);
+                      return (
+                        <span
+                          key={window.label}
+                          className={cn(
+                            'font-mono',
+                            tone === 'err' ? 'text-err' : tone === 'warn' ? 'text-warn' : 'text-fg-3',
+                          )}
+                        >
+                          {window.label} {usagePercentText(window)}
+                        </span>
+                      );
+                    })}
+                  </Tooltip>
+                </>
+              )}
+            </div>
+          ) : tagline ? (
+            <div className="mt-0.5 truncate text-[11px] text-fg-5">{tagline}</div>
+          ) : null}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          {loading && (
+            <div className="inline-flex h-7 items-center gap-2 px-2 text-[11px] text-fg-5">
+              <Spinner className="h-3 w-3" />
+            </div>
+          )}
+          {!loading && updating && (
+            <div className="inline-flex h-7 items-center gap-2 px-2 text-[11px] text-fg-5">
+              <Spinner className="h-3 w-3" /> {copy.updating}
+            </div>
+          )}
+          {!loading && !updating && !agent.installed && (
+            manualInstall ? (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => window.open(agent.install!.docsUrl, '_blank', 'noopener,noreferrer')}
+              >
+                {copy.install}
+              </Button>
+            ) : (
+              <Button variant="primary" size="sm" disabled={installing} onClick={() => onInstall(agent)}>
+                {installing ? copy.installing : copy.install}
+              </Button>
+            )
+          )}
+          {!loading && !updating && agent.installed && agent.updateAvailable && (
+            <Button variant="outline" size="sm" disabled={updatingAgent} onClick={() => onUpdate(agent)}>
+              {updatingAgent ? copy.updating : copy.update}
+            </Button>
+          )}
+          {!loading && !updating && agent.installed && !agent.updateAvailable && (
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={checkingAgent}
+              onClick={() => onCheckUpdate(agent)}
+              title={copy.checkUpdate}
+              aria-label={copy.checkUpdate}
+              className="h-7 w-7"
+            >
+              {checkingAgent ? <Spinner className="h-3 w-3" /> : <span aria-hidden="true">↻</span>}
+            </Button>
+          )}
+          {!loading && !updating && agent.installed && (
+            <Button variant="outline" size="sm" onClick={() => onEdit(agent)}>
+              {copy.configure}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {!loading && agent.installed && agent.updateAvailable && agent.updateStatus === 'skipped' && agent.updateDetail && (
+        <div className="mt-1.5 text-[11px] leading-relaxed" style={{ color: 'var(--th-badge-warn-text)' }}>
+          {copy.updateSkipped}: {agent.updateDetail}
+        </div>
+      )}
+      {!loading && agent.installed && agent.updateStatus === 'failed' && agent.updateDetail && (
+        <div className="mt-1.5 text-[11px] leading-relaxed" style={{ color: 'var(--th-badge-err-text)' }}>
+          {copy.updateFailed}: {agent.updateDetail}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryField({ label, value, hint, loading = false }: {
+  label: string; value: string; hint?: string; loading?: boolean;
+}) {
+  return (
+    <div className="rounded-lg border border-edge bg-panel-alt px-3.5 py-2.5">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-5">{label}</div>
+      <div className="mt-1 flex items-center gap-2 text-[13px] font-semibold text-fg-2">
+        {loading && <Spinner className="h-3.5 w-3.5" />}
+        <span>{value}</span>
+      </div>
+      {hint && <div className="mt-0.5 text-[10px] leading-relaxed text-fg-5">{hint}</div>}
+    </div>
+  );
+}
+
+export function AgentTab() {
+  const locale = useStore(s => s.locale);
+  const toast = useStore(s => s.toast);
+  const storeAgentStatus = useStore(s => s.agentStatus);
+  const setStoreAgentStatus = useStore(s => s.setAgentStatus);
+  const refreshStoreAgentStatus = useStore(s => s.refreshAgentStatus);
+  const t = useMemo(() => createT(locale), [locale]);
+  const copy = useMemo(() => getCopy(locale), [locale]);
+  const modelLayer = useModelLayer();
+  const localBackendLayer = useLocalBackends();
+
+  const [snapshot, setSnapshot] = useState<SnapshotState | null>(
+    storeAgentStatus ? { defaultAgent: storeAgentStatus.defaultAgent, agents: storeAgentStatus.agents } : null,
+  );
+  const [loading, setLoading] = useState(!storeAgentStatus);
+  const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [installingAgent, setInstallingAgent] = useState<Agent | null>(null);
+  const [defaultsModalOpen, setDefaultsModalOpen] = useState(false);
+  const [defaultsDraft, setDefaultsDraft] = useState<Agent>('codex');
+  const [updatingAgent, setUpdatingAgent] = useState<Agent | null>(null);
+  const [checkingAgent, setCheckingAgent] = useState<Agent | null>(null);
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
+  const hasLoaded = useRef(!!storeAgentStatus);
+
+  useEffect(() => {
+    if (storeAgentStatus) {
+      applySnapshot(setSnapshot, storeAgentStatus);
+      if (!hasLoaded.current) { hasLoaded.current = true; setLoading(false); }
+    }
+  }, [storeAgentStatus]);
+
+  const applyAndSync = useCallback((status: AgentStatusResponse) => {
+    applySnapshot(setSnapshot, status);
+    setStoreAgentStatus(status);
+  }, [setStoreAgentStatus]);
+
+  const refresh = useCallback(async () => {
+    if (!hasLoaded.current) setLoading(true);
+    try {
+      const status = await api.getAgentStatus();
+      applyAndSync(status);
+      setError(null);
+      hasLoaded.current = true;
+      return status;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : copy.loadFailed;
+      setError(message);
+      if (!hasLoaded.current) toast(message, false);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [applyAndSync, copy.loadFailed, toast]);
+
+  useEffect(() => {
+    if (!storeAgentStatus) void refresh();
+    else void refreshStoreAgentStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const agents = useMemo(() => {
+    const source = snapshot?.agents || [];
+    const map = new Map(source.map(agent => [agent.agent, agent] as const));
+    return AGENT_ORDER.map(agentId => {
+      const current = map.get(agentId);
+      if (current) return current;
+      const meta = getAgentMeta(agentId);
+      return {
+        agent: agentId,
+        label: meta.label,
+        installed: false,
+        version: undefined,
+        installCommand: undefined,
+        selectedModel: null,
+        selectedEffort: null,
+        isDefault: snapshot?.defaultAgent === agentId,
+        models: [],
+        usage: null,
+      } satisfies AgentRuntimeStatus;
+    });
+  }, [snapshot]);
+
+  const defaultAgent = snapshot?.defaultAgent || 'codex';
+  const defaultAgentStatus = agents.find(agent => agent.agent === defaultAgent) || null;
+  const installedAgents = agents.filter(agent => agent.installed);
+  const canEditDefaults = installedAgents.length > 0;
+  const agentOptions = buildAgentOptions(agents, copy);
+
+  const updateRuntime = useCallback(async (patch: Record<string, unknown>) => {
+    setUpdating(true);
+    try {
+      const result = await api.updateRuntimeAgent(patch);
+      if (!result.ok) throw new Error(result.error || t('config.applyFailed'));
+      applyAndSync(result);
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('config.applyFailed');
+      toast(message, false);
+      void refresh();
+      return null;
+    } finally {
+      setUpdating(false);
+    }
+  }, [applyAndSync, refresh, t, toast]);
+
+  useEffect(() => {
+    if (!defaultsModalOpen) return;
+    setDefaultsDraft(defaultAgent);
+  }, [defaultAgent, defaultsModalOpen]);
+
+  const handleSaveDefaults = useCallback(async () => {
+    if (!defaultsDraft) {
+      setDefaultsModalOpen(false);
+      return;
+    }
+    const result = await updateRuntime({ defaultAgent: defaultsDraft });
+    if (!result) return;
+    toast(copy.defaultsSaved);
+    setDefaultsModalOpen(false);
+  }, [copy.defaultsSaved, defaultsDraft, toast, updateRuntime]);
+
+  const handleInstall = useCallback(async (agent: AgentRuntimeStatus) => {
+    if (installingAgent) return;
+    setInstallingAgent(agent.agent);
+    try {
+      const result = await api.installAgent(agent.agent);
+      if (!result.ok) throw new Error(result.error || t('config.agentInstallFailed'));
+      applyAndSync(result);
+      toast(t('config.agentInstalled'));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('config.agentInstallFailed');
+      toast(message, false);
+      void refresh();
+    } finally {
+      setInstallingAgent(current => (current === agent.agent ? null : current));
+    }
+  }, [applyAndSync, installingAgent, refresh, t, toast]);
+
+  const handleUpdate = useCallback(async (agent: AgentRuntimeStatus) => {
+    if (updatingAgent) return;
+    setUpdatingAgent(agent.agent);
+    try {
+      const result = await api.updateAgent(agent.agent);
+      if (!result.ok) throw new Error(result.error || t('config.agentInstallFailed'));
+      applyAndSync(result);
+      toast(copy.upToDate);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : copy.updateFailed;
+      toast(message, false);
+      void refresh();
+    } finally {
+      setUpdatingAgent(current => (current === agent.agent ? null : current));
+    }
+  }, [applyAndSync, copy.updateFailed, copy.upToDate, refresh, t, toast, updatingAgent]);
+
+  const handleCheckUpdate = useCallback(async (agent: AgentRuntimeStatus) => {
+    if (checkingAgent) return;
+    setCheckingAgent(agent.agent);
+    try {
+      const result = await api.checkAgentUpdate(agent.agent);
+      if (!result.ok) throw new Error(result.error || copy.loadFailed);
+      applyAndSync(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : copy.loadFailed;
+      toast(message, false);
+      void refresh();
+    } finally {
+      setCheckingAgent(current => (current === agent.agent ? null : current));
+    }
+  }, [applyAndSync, checkingAgent, copy.loadFailed, refresh, toast]);
+
+  const initialLoading = loading && !snapshot;
+  const defaultAgentValue = initialLoading
+    ? t('status.loading')
+    : defaultAgentStatus
+      ? getAgentMeta(defaultAgentStatus.agent).label
+      : copy.notInstalled;
+  const defaultAgentHint = initialLoading
+    ? t('status.loading')
+    : defaultAgentStatus?.installed ? copy.installed : copy.notInstalled;
+
+  const handleConfigSaved = useCallback(async () => {
+    await modelLayer.reload();
+    await refresh();
+  }, [modelLayer, refresh]);
+
+  const editingAgentStatus = editingAgent ? agents.find(a => a.agent === editingAgent) ?? null : null;
+  const editingMeta = editingAgentStatus ? getAgentMeta(editingAgentStatus.agent) : null;
+
+  return (
+    <div className="animate-in space-y-4">
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-5">{copy.agentsTitle}</div>
+          {initialLoading ? (
+            <div className="flex items-center gap-1.5 text-[12px] text-fg-5">
+              <Spinner className="h-3 w-3" />
+              <span>{copy.defaultAgent}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDefaultsModalOpen(true)}
+              disabled={updating || !canEditDefaults}
+              title={copy.editDefaults}
+              className="group inline-flex items-center gap-1.5 rounded-full border border-edge bg-panel-alt px-3 py-1 text-[12px] transition hover:border-edge-strong hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span className="text-fg-5 group-hover:text-fg-4">{copy.defaultAgent}</span>
+              <BrandIcon brand={defaultAgent} size={14} />
+              <span className="font-semibold text-fg-2">{defaultAgentValue}</span>
+              <svg
+                className="text-fg-6 transition group-hover:text-fg-3"
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+          {agents.map(agent => (
+            <AgentRow
+              key={agent.agent}
+              agent={agent}
+              copy={copy}
+              t={t}
+              installing={installingAgent === agent.agent}
+              loading={initialLoading}
+              onInstall={handleInstall}
+              updatingAgent={updatingAgent === agent.agent}
+              checkingAgent={checkingAgent === agent.agent}
+              onUpdate={handleUpdate}
+              onCheckUpdate={handleCheckUpdate}
+              onEdit={a => setEditingAgent(a.agent)}
+              boundInfo={buildBoundInfo(modelLayer, agent.agent)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {error && (
+        <SectionCard className="border-amber-500/20 bg-amber-500/5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-[13px] text-fg-2">{error}</div>
+            <Button variant="outline" size="sm" onClick={() => void refresh()}>
+              {t('sessions.retry')}
+            </Button>
+          </div>
+        </SectionCard>
+      )}
+
+      <section className="space-y-3 pt-4">
+        <div className="flex items-baseline justify-between border-t border-edge pt-4">
+          <div>
+            <div className="text-base font-semibold tracking-tight text-fg">{copy.profilesTitle}</div>
+            <div className="mt-0.5 text-[13px] leading-relaxed text-fg-4">{copy.profilesHint}</div>
+          </div>
+        </div>
+        <ProfilesSection snapshot={modelLayer} />
+      </section>
+
+      <section className="space-y-3 pt-4">
+        <div className="flex items-baseline justify-between border-t border-edge pt-4">
+          <div>
+            <div className="text-base font-semibold tracking-tight text-fg">{copy.modelsTitle}</div>
+            <div className="mt-0.5 text-[13px] leading-relaxed text-fg-4">{copy.modelsHint}</div>
+          </div>
+        </div>
+        <ModelsSection snapshot={modelLayer} localBackends={localBackendLayer.backends} />
+      </section>
+
+      <section className="space-y-3 pt-4">
+        <div className="flex items-baseline justify-between border-t border-edge pt-4">
+          <div>
+            <div className="text-base font-semibold tracking-tight text-fg">{copy.localTitle}</div>
+            <div className="mt-0.5 text-[13px] leading-relaxed text-fg-4">{copy.localHint}</div>
+          </div>
+        </div>
+        <LocalModelsSection snapshot={localBackendLayer} onConnected={handleConfigSaved} />
+      </section>
+
+      <Modal open={!!editingAgentStatus} onClose={() => setEditingAgent(null)} wide>
+        {editingAgentStatus && editingMeta && (
+          <>
+            <ModalHeader
+              title={copy.configModalTitle(editingMeta.label)}
+              description={editingMeta.advantageKey ? t(editingMeta.advantageKey) : undefined}
+              onClose={() => setEditingAgent(null)}
+            />
+            <AgentInlineConfig
+              agentId={editingAgentStatus.agent}
+              agentStatus={editingAgentStatus}
+              boundInfo={buildBoundInfo(modelLayer, editingAgentStatus.agent)}
+              copy={copy}
+              layer={modelLayer}
+              toast={toast}
+              t={t}
+              onSaved={async () => {
+                await handleConfigSaved();
+                setEditingAgent(null);
+              }}
+              onCancel={() => setEditingAgent(null)}
+            />
+          </>
+        )}
+      </Modal>
+
+      <Modal open={defaultsModalOpen} onClose={() => setDefaultsModalOpen(false)}>
+        <ModalHeader
+          title={copy.defaultsEditTitle}
+          description={copy.defaultsEditHint}
+          onClose={() => setDefaultsModalOpen(false)}
+        />
+        <div className="space-y-4">
+          <div>
+            <Label>{copy.defaultAgent}</Label>
+            <Select
+              value={defaultsDraft}
+              options={agentOptions}
+              onChange={v => setDefaultsDraft(v as Agent)}
+              disabled={updating || !canEditDefaults}
+              placeholder={copy.notInstalled}
+            />
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setDefaultsModalOpen(false)}>
+            {t('modal.cancel')}
+          </Button>
+          <Button
+            variant="primary"
+            disabled={updating || !defaultsDraft}
+            onClick={() => void handleSaveDefaults()}
+          >
+            {updating ? t('config.validating') : t('modal.save')}
+          </Button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+export default AgentTab;
