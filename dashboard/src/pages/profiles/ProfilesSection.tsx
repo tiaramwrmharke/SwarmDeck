@@ -138,3 +138,438 @@ function getCopy(locale: Locale): Copy {
     fieldModelIdToggleManual: 'Enter manually',
     fieldModelIdToggleList: 'Pick from list',
     fieldModelIdSearchPlaceholder: 'Search models',
+    fieldModelIdSearchEmpty: 'No matching models',
+    fieldModelIdCurrentLabel: 'Current',
+    fieldEffort: 'Reasoning effort',
+    effortDefault: '(default)',
+    cancel: 'Cancel',
+    save: 'Save',
+    saving: 'Saving',
+    remove: 'Remove',
+    removeConfirm: 'Remove this model entry? Agents that picked it will fall back to native auth.',
+    via: 'via',
+  };
+}
+
+async function send<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const r = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return r.json() as Promise<T>;
+}
+
+const EFFORT_CHOICES = ['', 'low', 'medium', 'high', 'xhigh', 'max'];
+
+interface ProfileDraft {
+  name: string;
+  providerId: string;
+  modelId: string;
+  effort: string;
+}
+
+interface ProviderModelInfo {
+  id: string;
+  name?: string;
+  contextLength?: number;
+  pricePromptUsd?: number;
+  priceCompletionUsd?: number;
+}
+
+interface ProviderModelsResponse {
+  ok: boolean;
+  models?: string[];
+  modelInfos?: ProviderModelInfo[];
+  error?: string;
+}
+
+type ProviderModelCache = Map<string, ProviderModelInfo[]>;
+
+function ProfileModal({
+  open,
+  copy,
+  providers,
+  initial,
+  existing,
+  onClose,
+  onSaved,
+  onRemove,
+}: {
+  open: boolean;
+  copy: Copy;
+  providers: ProviderRow[];
+  initial: ProfileDraft;
+  existing?: ProfileRow | null;
+  onClose: () => void;
+  onSaved: () => void;
+  onRemove?: () => void | Promise<void>;
+}) {
+  const [draft, setDraft] = useState<ProfileDraft>(initial);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [modelCache, setModelCache] = useState<ProviderModelCache>(() => new Map());
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  const [manualEntry, setManualEntry] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setDraft(initial);
+    setError(null);
+    setManualEntry(false);
+    setModelCache(new Map());
+  }, [open, initial]);
+
+  useEffect(() => {
+    if (!open) return;
+    const providerId = draft.providerId;
+    if (!providerId) return;
+    if (modelCache.has(providerId)) return;
+    let aborted = false;
+    setModelsLoading(true);
+    setModelsError(null);
+    (async () => {
+      try {
+        const r = await fetch(`/api/models/providers/${providerId}/models`);
+        const data: ProviderModelsResponse = await r.json();
+        if (aborted) return;
+        const list: ProviderModelInfo[] = data.modelInfos && data.modelInfos.length > 0
+          ? data.modelInfos
+          : (data.models || []).map(id => ({ id }));
+        setModelCache(prev => {
+          const next = new Map(prev);
+          next.set(providerId, list);
+          return next;
+        });
+        if (!data.ok && data.error) setModelsError(data.error);
+      } catch (e: any) {
+        if (!aborted) setModelsError(e?.message || String(e));
+      } finally {
+        if (!aborted) setModelsLoading(false);
+      }
+    })();
+    return () => { aborted = true; };
+  }, [open, draft.providerId, modelCache]);
+
+  const isEdit = !!existing;
+  const providerModels = modelCache.get(draft.providerId) ?? null;
+
+  const submit = useCallback(async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const body = {
+        name: draft.name.trim() || undefined,
+        providerId: draft.providerId,
+        modelId: draft.modelId.trim(),
+        effort: draft.effort || null,
+      };
+      const url = isEdit && existing
+        ? `/api/models/profiles/${existing.id}`
+        : '/api/models/profiles';
+      const method = isEdit ? 'PATCH' : 'POST';
+      const res = await send<{ ok: boolean; error?: string }>(method, url, body);
+      if (!res.ok) { setError(res.error || 'Failed to save'); return; }
+      onSaved();
+      onClose();
+    } catch (e: any) {
+      setError(e?.message || String(e));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [draft, isEdit, existing, onSaved, onClose]);
+
+  const canSave = !submitting
+    && !!draft.providerId
+    && draft.modelId.trim().length > 0;
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <ModalHeader
+        title={isEdit ? copy.editModalTitle : copy.addModalTitle}
+        description={copy.sectionHint}
+        onClose={onClose}
+      />
+      <div className="space-y-4">
+        <div>
+          <Label>{copy.fieldProvider}</Label>
+          {providers.length === 0 ? (
+            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-700">
+              {copy.fieldProviderEmpty}
+            </div>
+          ) : (() => {
+            const locked = isEdit || providers.length <= 1;
+            const selected = providers.find(p => p.id === draft.providerId) ?? providers[0];
+            if (locked) {
+              return (
+                <>
+                  <div className="flex h-10 w-full items-center gap-2.5 rounded-md border border-edge bg-panel-alt px-3">
+                    <BrandIcon brand={brandIdForProvider(selected)} size={20} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-medium text-fg-2">{selected.name}</div>
+                      <div className="truncate font-mono text-[10.5px] leading-tight text-fg-5">{selected.baseURL}</div>
+                    </div>
+                  </div>
+                  {!isEdit && (
+                    <div className="mt-1 text-[11px] leading-relaxed text-fg-5">{copy.fieldProviderLockedHint}</div>
+                  )}
+                </>
+              );
+            }
+            return (
+              <Select
+                value={draft.providerId}
+                options={providers.map(p => ({ value: p.id, label: `${p.name} · ${p.baseURL}` }))}
+                onChange={v => setDraft(d => ({ ...d, providerId: v }))}
+              />
+            );
+          })()}
+        </div>
+        <div>
+          <div className="mb-2 flex items-baseline justify-between gap-2">
+            <Label className="mb-0">{copy.fieldModelId}</Label>
+            {providerModels && providerModels.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setManualEntry(v => !v)}
+                className="text-[11px] text-fg-5 transition hover:text-fg-3"
+              >
+                {manualEntry ? copy.fieldModelIdToggleList : copy.fieldModelIdToggleManual}
+              </button>
+            )}
+          </div>
+          {modelsLoading && (
+            <div className="flex h-9 items-center gap-2 rounded-md border border-edge bg-panel-alt px-3 text-[12px] text-fg-5">
+              <Spinner />
+              {copy.fieldModelIdLoading}
+            </div>
+          )}
+          {!modelsLoading && !manualEntry && providerModels && providerModels.length > 0 && (() => {
+            const inList = providerModels.some(m => m.id === draft.modelId);
+            const options = [
+              ...(!inList && draft.modelId
+                ? [{ value: draft.modelId, label: draft.modelId, description: copy.fieldModelIdCurrentLabel }]
+                : []),
+              ...providerModels.map(m => ({
+                value: m.id,
+                label: m.id,
+                description: m.name && m.name.toLowerCase() !== m.id.toLowerCase() ? m.name : undefined,
+                // formatContextLength returns string | null; ModelOption.meta is string | undefined.
+                meta: formatContextLength(m.contextLength) ?? undefined,
+              })),
+            ];
+            return (
+              <ModelSelect
+                value={draft.modelId}
+                options={options}
+                onChange={v => setDraft(d => ({ ...d, modelId: v }))}
+                searchPlaceholder={copy.fieldModelIdSearchPlaceholder}
+                noMatchesText={copy.fieldModelIdSearchEmpty}
+                currentLabel={copy.fieldModelIdCurrentLabel}
+              />
+            );
+          })()}
+          {!modelsLoading && (manualEntry || !providerModels || providerModels.length === 0) && (
+            <>
+              <Input
+                value={draft.modelId}
+                onChange={e => setDraft(d => ({ ...d, modelId: e.target.value }))}
+                placeholder="anthropic/claude-sonnet-4"
+              />
+              {(!providerModels || providerModels.length === 0) && !modelsError && (
+                <div className="mt-1 text-[11px] leading-relaxed text-fg-5">{copy.fieldModelIdEmpty}</div>
+              )}
+            </>
+          )}
+          {modelsError && (
+            <div className="mt-1 text-[11px] leading-relaxed text-amber-700">{modelsError}</div>
+          )}
+          {!manualEntry && providerModels && providerModels.length > 0 && (
+            <div className="mt-1 text-[11px] leading-relaxed text-fg-5">{copy.fieldModelIdHint}</div>
+          )}
+        </div>
+        <div>
+          <Label>{copy.fieldName}</Label>
+          <Input
+            value={draft.name}
+            onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+            placeholder={draft.modelId || 'anthropic/claude-sonnet-4'}
+          />
+          <div className="mt-1 text-[11px] leading-relaxed text-fg-5">{copy.fieldNameHint}</div>
+        </div>
+        <div>
+          <Label>{copy.fieldEffort}</Label>
+          <Select
+            value={draft.effort}
+            options={EFFORT_CHOICES.map(e => ({ value: e, label: e || copy.effortDefault }))}
+            onChange={v => setDraft(d => ({ ...d, effort: v }))}
+          />
+        </div>
+        {error && (
+          <div className="rounded-md border border-rose-700/40 bg-rose-900/20 px-3 py-2 text-xs text-rose-200">{error}</div>
+        )}
+      </div>
+      <div className="mt-6 flex items-center justify-between gap-2 border-t border-edge pt-4">
+        <div>
+          {isEdit && onRemove && (
+            <button
+              type="button"
+              onClick={() => void onRemove()}
+              className="text-[12px] text-fg-5 transition hover:text-[var(--th-err)]"
+            >
+              {copy.remove}
+            </button>
+          )}
+        </div>
+        <ActionBar
+          primary={{ label: submitting ? copy.saving : copy.save, onClick: submit, disabled: !canSave }}
+          secondary={{ label: copy.cancel, onClick: onClose }}
+        />
+      </div>
+    </Modal>
+  );
+}
+
+function ProfileTile({
+  profile,
+  provider,
+  copy,
+  onPick,
+}: {
+  profile: ProfileRow;
+  provider: ProviderRow | null;
+  copy: Copy;
+  onPick: () => void;
+}) {
+  const brand = provider ? brandIdForProvider(provider) : 'custom';
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      className="group relative flex h-[120px] flex-col rounded-lg border border-edge bg-panel-alt px-4 py-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-edge-strong hover:bg-panel hover:shadow-[0_4px_16px_rgba(15,23,42,0.06)]"
+    >
+      <div className="flex w-full items-start justify-between gap-2">
+        <BrandIcon brand={brand} size={28} />
+        {profile.effort && <Badge variant="muted">{profile.effort}</Badge>}
+      </div>
+      <div className="mt-auto min-w-0">
+        <div className="truncate text-[14px] font-semibold tracking-tight text-fg">{profile.name}</div>
+        <div className="mt-0.5 truncate font-mono text-[11px] leading-relaxed text-fg-4">{profile.modelId}</div>
+        <div className="mt-1 truncate text-[11.5px] text-fg-5">
+          {copy.via} {provider?.name ?? '?'}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function AddTile({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-[120px] flex-col items-center justify-center rounded-lg border border-dashed border-edge bg-panel-alt text-fg-4 transition hover:border-edge-strong hover:bg-panel hover:text-fg-2"
+    >
+      <div className="text-2xl leading-none">+</div>
+      <div className="mt-1 text-[12.5px] font-medium tracking-tight">{label}</div>
+    </button>
+  );
+}
+
+export default function ProfilesSection({
+  snapshot,
+}: {
+  snapshot: ModelLayerSnapshot;
+}) {
+  const { providers, profiles, reload } = snapshot;
+  const locale = useStore(s => s.locale);
+  const copy = useMemo(() => getCopy(locale), [locale]);
+
+  const [modal, setModal] = useState<
+    | { kind: 'add' }
+    | { kind: 'edit'; profile: ProfileRow }
+    | null
+  >(null);
+
+  const providerById = useMemo(() => new Map(providers.map(p => [p.id, p])), [providers]);
+
+  const remove = useCallback(async (profile: ProfileRow) => {
+    if (!confirm(copy.removeConfirm)) return;
+    await send('DELETE', `/api/models/profiles/${profile.id}`);
+    await reload();
+  }, [copy, reload]);
+
+  const addDraft: ProfileDraft = useMemo(() => ({
+    name: '',
+    providerId: providers[0]?.id ?? '',
+    modelId: '',
+    effort: '',
+  }), [providers]);
+
+  const editDraft: ProfileDraft | null = useMemo(() => {
+    if (!modal || modal.kind !== 'edit') return null;
+    const p = modal.profile;
+    return {
+      name: p.name,
+      providerId: p.providerId,
+      modelId: p.modelId,
+      effort: p.effort || '',
+    };
+  }, [modal]);
+
+  const showEmptyState = profiles.length === 0;
+
+  return (
+    <div className="space-y-2">
+      {showEmptyState && (
+        <div className="rounded-lg border border-dashed border-edge bg-panel-alt px-4 py-6 text-center">
+          <div className="text-[13.5px] font-semibold text-fg-2">{copy.empty}</div>
+          <div className="mx-auto mt-1 max-w-md text-[12px] leading-relaxed text-fg-5">{copy.emptyHint}</div>
+          {providers.length > 0 && (
+            <div className="mt-3">
+              <Button variant="primary" size="sm" onClick={() => setModal({ kind: 'add' })}>
+                {copy.addLabel}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!showEmptyState && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {profiles.map(profile => (
+            <ProfileTile
+              key={profile.id}
+              profile={profile}
+              provider={providerById.get(profile.providerId) ?? null}
+              copy={copy}
+              onPick={() => setModal({ kind: 'edit', profile })}
+            />
+          ))}
+          {providers.length > 0 && (
+            <AddTile label={copy.addLabel} onClick={() => setModal({ kind: 'add' })} />
+          )}
+        </div>
+      )}
+
+      {modal && (
+        <ProfileModal
+          open
+          copy={copy}
+          providers={providers}
+          initial={modal.kind === 'edit' ? editDraft! : addDraft}
+          existing={modal.kind === 'edit' ? modal.profile : null}
+          onClose={() => setModal(null)}
+          onSaved={reload}
+          onRemove={modal.kind === 'edit'
+            ? async () => {
+                await remove(modal.profile);
+                setModal(null);
+              }
+            : undefined}
+        />
+      )}
+    </div>
+  );
+}
