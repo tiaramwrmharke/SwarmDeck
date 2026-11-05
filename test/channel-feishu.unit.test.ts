@@ -45,3 +45,43 @@ describe('FeishuChannel.editCard', () => {
 
     {
       const { ch, patchMock } = createTestChannel();
+      patchMock.mockRejectedValue(new Error('content not modified'));
+      await expect(
+        ch.editCard('chat1', 'msg1', { markdown: 'same' }),
+      ).resolves.toBeUndefined();
+    }
+
+    {
+      const { ch, patchMock } = createTestChannel();
+      await expect(
+        ch.editCard('chat1', 'msg1', { markdown: '' }),
+      ).resolves.toBeUndefined();
+      expect(patchMock).not.toHaveBeenCalled();
+    }
+  });
+
+  it('throws feishuEditFailed for non-zero application errors and real network errors', async () => {
+    {
+      const { ch, patchMock } = createTestChannel();
+      patchMock.mockResolvedValue({ code: 230020, msg: 'edit is not allowed for this message' });
+      await expect(
+        ch.editCard('chat1', 'msg1', { markdown: 'updated text' }),
+      ).rejects.toMatchObject({
+        message: expect.stringContaining('edit card failed'),
+        feishuEditFailed: true,
+        feishuCode: 230020,
+      });
+    }
+
+    {
+      const { ch, patchMock } = createTestChannel();
+      patchMock.mockRejectedValue(new Error('socket hang up'));
+      await expect(
+        ch.editCard('chat1', 'msg1', { markdown: 'x' }),
+      ).rejects.toMatchObject({
+        message: expect.stringContaining('socket hang up'),
+        feishuEditFailed: true,
+      });
+    }
+  });
+});
