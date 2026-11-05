@@ -21,3 +21,50 @@ export { PtyBridge, ptyAvailable, type PtyExit, type PtyOpenOpts } from './runti
 export { attachTui, type AttachTuiOptions } from './runtime/tui.js';
 
 // Contracts
+export type {
+  AgentDriver, AgentTurnInput, DriverContext, DriverEvent, DriverResult, SteerFn, McpServerSpec,
+  TuiInput, TuiSpec, NativeSessionInfo,
+} from './contracts/driver.js';
+export type {
+  SessionStore, CoreSessionRecord, ModelResolver, ModelInjection,
+  ToolProvider, SystemPromptBuilder, InteractionHandler, Catalog,
+} from './contracts/ports.js';
+export type {
+  LoomIO, PromptInput, ForkSessionInput, ForkSessionResult,
+  Surface, SurfaceCapabilities, Plugin, SpawnContribution,
+} from './contracts/surface.js';
+// AgentInfo + Model/Effort/Tool/Skill descriptors are wire vocabulary — exported via protocol below.
+
+// Default ports
+export {
+  FsSessionStore, NullModelResolver, NoopToolProvider,
+  PassthroughSystemPromptBuilder, AutoCancelInteractionHandler, DeferToTerminalInteractionHandler,
+  NoopCatalog, defaultBaseDir,
+} from './ports/defaults.js';
+
+// Drivers & surfaces (also available via subpath exports)
+export { EchoDriver } from './drivers/echo.js';
+export { ClaudeDriver, type ClaudeDriverOptions } from './drivers/claude.js';
+export { CodexDriver } from './drivers/codex.js';
+export { GeminiDriver } from './drivers/gemini.js';
+export { AcpDriver, type AcpDriverConfig } from './drivers/acp.js';
+export { HermesDriver } from './drivers/hermes.js';
+export { WebSurface, type WebSurfaceOptions } from './surfaces/web.js';
+export { CliSurface } from './surfaces/cli.js';
+
+// Native-session discovery: pure readers of each agent CLI's own transcript store
+// (driver-axis knowledge; drivers implement listNativeSessions with these).
+export {
+  discoverClaudeNativeSessions, discoverCodexNativeSessions, discoverGeminiNativeSessions,
+  encodeClaudeProjectDir, type DiscoverOptions,
+} from './drivers/native.js';
+
+// Workspace: unified top-level directory + session/skill/mcp management (loom.paths/sessions/skills/mcp)
+export * from './workspace/index.js';
+
+// Multi-account: which env var carries an agent's auth token, so an app can inject a
+// selected account's token per spawn (see accounts.ts for the design notes).
+export * from './accounts.js';
+
+// Protocol (the wire vocabulary; shared with transports)
+export * from './protocol/index.js';
