@@ -37,3 +37,17 @@ export function HeaderUsage({ t }: { t: (key: string) => string }) {
         className="cursor-default items-center gap-1"
       >
         <BrandIcon brand={agent.agent} size={12} />
+        <UsageRing
+          percent={gauge.primary.usedPercent ?? 0}
+          tone={usageWindowTone(gauge.primary)}
+          trackTone={gauge.secondaryTone ?? undefined}
+          alert={gauge.secondaryAlert}
+          size={13}
+        />
+      </Tooltip>
+    )];
+  });
+
+  if (!nodes.length) return null;
+  return <div className="hidden items-center gap-2 pr-1 md:flex">{nodes}</div>;
+}
