@@ -26,3 +26,30 @@ const trimRetainedLogFile = () => {
     if (Date.now() - stat.mtimeMs > maxAgeMs) {
       fs.writeFileSync(filePath, '');
       return;
+    }
+    const content = fs.readFileSync(filePath, 'utf8');
+    const normalized = content.replace(/\r\n/g, '\n');
+    const hasTrailingNewline = normalized.endsWith('\n');
+    const lines = normalized.split('\n');
+    if (hasTrailingNewline) lines.pop();
+    if (lines.length <= maxLines) return;
+    fs.writeFileSync(filePath, `${lines.slice(-maxLines).join('\n')}\n`);
+  } catch {}
+};
+
+fs.mkdirSync(path.dirname(filePath), { recursive: true });
+trimRetainedLogFile();
+
+let writes = 0;
+process.stdin.on('data', chunk => {
+  process.stdout.write(chunk);
+  try {
+    fs.appendFileSync(filePath, chunk);
+    writes++;
+    if (writes === 1 || writes % trimEveryWrites === 0) trimRetainedLogFile();
+  } catch {}
+});
+
+process.stdin.on('end', () => {
+  trimRetainedLogFile();
+});
