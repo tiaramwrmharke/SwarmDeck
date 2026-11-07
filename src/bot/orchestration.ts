@@ -47,3 +47,56 @@ export class SessionMessageRegistry<ChatKey extends ChatId, MessageId extends Ch
   clear() {
     this.messages.clear();
   }
+
+  register(
+    chatId: ChatKey,
+    messageId: MessageId | null | undefined,
+    session: SessionMessageRef,
+    workdir: string,
+  ) {
+    if (session.workdir !== workdir) return;
+    if (!this.isValidMessageId(messageId)) return;
+
+    let chatMessages = this.messages.get(chatId);
+    if (!chatMessages) {
+      chatMessages = new Map<MessageId, SessionMessageRef>();
+      this.messages.set(chatId, chatMessages);
+    }
+
+    chatMessages.set(messageId, {
+      key: session.key,
+      workdir: session.workdir,
+      agent: session.agent,
+      sessionId: session.sessionId,
+      workspacePath: session.workspacePath ?? null,
+      threadId: session.threadId ?? null,
+      codexCumulative: session.codexCumulative,
+      modelId: session.modelId ?? null,
+    });
+    while (chatMessages.size > this.maxPerChat) {
+      const oldest = chatMessages.keys().next();
+      if (oldest.done) break;
+      chatMessages.delete(oldest.value);
+    }
+  }
+
+  registerMany(
+    chatId: ChatKey,
+    messageIds: Array<MessageId | null | undefined>,
+    session: SessionMessageRef,
+    workdir: string,
+  ) {
+    for (const messageId of messageIds) this.register(chatId, messageId, session, workdir);
+  }
+
+  resolve(chatId: ChatKey, messageId: MessageId | null | undefined): SessionMessageRef | null {
+    if (!this.isValidMessageId(messageId)) return null;
+    return this.messages.get(chatId)?.get(messageId) || null;
+  }
+
+  private isValidMessageId(messageId: MessageId | null | undefined): messageId is MessageId {
+    if (typeof messageId === 'number') return Number.isFinite(messageId);
+    if (typeof messageId === 'string') return messageId.length > 0;
+    return false;
+  }
+}
