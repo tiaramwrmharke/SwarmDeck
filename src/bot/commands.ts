@@ -186,3 +186,570 @@ function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   return `${text.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
 }
+
+export interface SessionEntry {
+  key: string;
+  agent: Agent;
+  title: string;
+  time: string;
+  isCurrent: boolean;
+  isRunning: boolean;
+  runState: 'running' | 'completed' | 'incomplete';
+  runDetail: string | null;
+}
+
+export interface SessionsPageData {
+  workspaceName: string;
+  agentTotals: Record<string, number>;
+  total: number;
+  page: number;
+  totalPages: number;
+  sessions: SessionEntry[];
+}
+
+export interface SessionDigestEntry {
+  index: number;
+  agent: Agent;
+  title: string;
+  time: string;
+  runState: SessionEntry['runState'];
+  runDetail: string | null;
+  isCurrent: boolean;
+  sessionKey: string;
+}
+
+export interface SessionsDigestData {
+  workspaceName: string;
+  agentTotals: Record<string, number>;
+  total: number;
+  entries: SessionDigestEntry[];
+}
+
+export interface SessionTurnPreviewData {
+  userText: string | null;
+  assistantText: string | null;
+}
+
+export interface SessionRunSummary {
+  state: 'running' | 'completed' | 'incomplete';
+  shortLabel: string;
+  noticeDetail: string;
+}
+
+export function summarizeSessionRun(session: Pick<SessionInfo, 'running' | 'runState' | 'runDetail'>): SessionRunSummary {
+  if (session.running || session.runState === 'running') {
+    return {
+      state: 'running',
+      shortLabel: 'running',
+      noticeDetail: 'Status: running',
+    };
+  }
+  if (session.runState === 'incomplete') {
+    const detail = String(session.runDetail || '').trim();
+    return {
+      state: 'incomplete',
+      shortLabel: 'unfinished',
+      noticeDetail: detail ? `Status: unfinished · ${detail}` : 'Status: unfinished',
+    };
+  }
+  return {
+    state: 'completed',
+    shortLabel: 'done',
+    noticeDetail: 'Status: completed',
+  };
+}
+
+export async function getSessionsPageData(bot: Bot, chatId: ChatId, page: number, pageSize = 5): Promise<SessionsPageData> {
+  const cs = bot.chat(chatId);
+  const res = await bot.fetchSessions(undefined, bot.chatWorkdir(chatId));
+  const sessions = res.ok ? res.sessions : [];
+  const total = sessions.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pg = Math.max(0, Math.min(page, totalPages - 1));
+  const slice = sessions.slice(pg * pageSize, (pg + 1) * pageSize);
+
+  const agentTotals: Record<string, number> = {};
+  for (const s of sessions) agentTotals[s.agent] = (agentTotals[s.agent] || 0) + 1;
+
+  const entries: SessionEntry[] = [];
+  for (const s of slice) {
+    const sessionKey = s.sessionId || '';
+    if (!sessionKey) continue;
+    const status = getSessionStatusForChat(bot, cs, s);
+    const runSummary = summarizeSessionRun({
+      running: status.isRunning,
+      runState: status.isRunning ? 'running' : s.runState,
+      runDetail: s.runDetail,
+    });
+    const displayText = sessionListDisplayTitle(s);
+    const title = displayText ? displayText.replace(/\n/g, ' ').slice(0, 28) : sessionKey.slice(0, 28);
+    const time = s.createdAt
+      ? new Date(s.createdAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '?';
+    entries.push({
+      key: sessionKey,
+      agent: s.agent,
+      title,
+      time: `${time} · ${runSummary.shortLabel}`,
+      isCurrent: status.isCurrent,
+      isRunning: status.isRunning,
+      runState: runSummary.state,
+      runDetail: s.runDetail,
+    });
+  }
+
+  return {
+    workspaceName: res.workspaceName || '',
+    agentTotals,
+    total,
+    page: pg,
+    totalPages,
+    sessions: entries,
+  };
+}
+
+export async function getSessionsDigestData(
+  bot: Bot,
+  chatId: ChatId,
+  limit = 8,
+): Promise<SessionsDigestData> {
+  const pageData = await getSessionsPageData(bot, chatId, 0, Math.max(1, limit));
+  const entries: SessionDigestEntry[] = pageData.sessions.map((session, index) => ({
+    index: index + 1,
+    agent: session.agent,
+    title: session.title,
+    time: session.time,
+    runState: session.runState,
+    runDetail: session.runDetail,
+    isCurrent: session.isCurrent,
+    sessionKey: session.key,
+  }));
+  return {
+    workspaceName: pageData.workspaceName,
+    agentTotals: pageData.agentTotals,
+    total: pageData.total,
+    entries,
+  };
+}
+
+export function formatSessionsDigestText(data: SessionsDigestData): string {
+  if (!data.entries.length) {
+    return data.workspaceName
+      ? `No sessions in ${data.workspaceName} yet. Send a message to start.`
+      : 'No sessions yet. Send a message to start.';
+  }
+
+  const agentBits = Object.entries(data.agentTotals)
+    .map(([agent, count]) => `${agent}×${count}`)
+    .join(' · ');
+  const lines = [
+    `Session digest — ${data.workspaceName || 'workspace'} (${data.total} total${agentBits ? ` · ${agentBits}` : ''})`,
+    '',
+  ];
+
+  for (const entry of data.entries) {
+    const flags = [
+      entry.isCurrent ? 'current' : null,
+      entry.runState === 'running' ? 'running' : null,
+      entry.runState === 'incomplete' ? 'unfinished' : null,
+    ].filter(Boolean).join(', ');
+    const flagSuffix = flags ? ` [${flags}]` : '';
+    lines.push(`${entry.index}. ${entry.agent} · ${entry.title}${flagSuffix}`);
+    const detail = entry.runDetail ? ` · ${entry.runDetail}` : '';
+    lines.push(`   ${entry.time}${detail}`);
+  }
+
+  lines.push('', 'Switch: /sessions <#>  ·  Browse: /sessions');
+  return lines.join('\n');
+}
+
+export function extractLastSessionTurn(
+  messages: Array<{ role: 'user' | 'assistant'; text: string }>,
+): SessionTurnPreviewData | null {
+  if (!messages.length) return null;
+
+  // Harness-injected user records (<task-notification>, <system-reminder>, …) can trail the
+  // real question in the session file — the preview must anchor on what the user actually asked.
+  let lastUserIndex = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'user' && !isSystemInjectedUserText(messages[i].text)) {
+      lastUserIndex = i;
+      break;
+    }
+  }
+
+  const userText = String(lastUserIndex >= 0 ? messages[lastUserIndex].text : '').trim() || null;
+  const assistantTexts: string[] = [];
+  for (let i = lastUserIndex >= 0 ? lastUserIndex + 1 : 0; i < messages.length; i++) {
+    if (messages[i].role === 'assistant' && messages[i].text) assistantTexts.push(messages[i].text);
+  }
+  const assistantText = assistantTexts.join('\n\n').trim() || null;
+
+  if (!userText && !assistantText) return null;
+  return { userText, assistantText };
+}
+
+export async function getSessionTurnPreviewData(
+  bot: Bot,
+  agent: Agent,
+  sessionId: string | null,
+  limit = 50,
+  workdir?: string,
+): Promise<SessionTurnPreviewData | null> {
+  if (!sessionId) return null;
+  const tail = await bot.fetchSessionTail(agent, sessionId, limit, workdir);
+  if (!tail.ok || !tail.messages.length) return null;
+  return extractLastSessionTurn(tail.messages);
+}
+
+export interface AgentEntry {
+  agent: string;
+  label: string;
+  installed: boolean;
+  version: string | null;
+  versionShort: string | null;
+  path: string | null;
+  isCurrent: boolean;
+  boundProvider: string | null;
+  boundModel: string | null;
+}
+
+export interface AgentsListData {
+  currentAgent: Agent;
+  agents: AgentEntry[];
+}
+
+const AGENT_LABEL_OVERRIDES: Record<string, string> = {
+  claude: 'Claude Code',
+  codex: 'Codex',
+  gemini: 'Gemini CLI',
+  hermes: 'Hermes',
+};
+
+function agentDisplayLabel(agentId: string): string {
+  return AGENT_LABEL_OVERRIDES[agentId]
+    || agentId.charAt(0).toUpperCase() + agentId.slice(1);
+}
+
+function shortVersion(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const m = raw.match(/\d+\.\d+(?:\.\d+)?(?:[-+][\w.]+)?/);
+  return m ? m[0] : raw.trim();
+}
+
+export function getAgentsListData(bot: Bot, chatId: ChatId): AgentsListData {
+  const cs = bot.chat(chatId);
+  const res = bot.fetchAgents();
+  return {
+    currentAgent: cs.agent,
+    agents: res.agents.map(a => {
+      const profile = getActiveProfile(a.agent);
+      const provider = profile ? getProvider(profile.providerId) : null;
+      return {
+        agent: a.agent,
+        label: agentDisplayLabel(a.agent),
+        installed: a.installed,
+        version: a.version ?? null,
+        versionShort: shortVersion(a.version ?? null),
+        path: a.path ?? null,
+        isCurrent: a.agent === cs.agent,
+        boundProvider: provider?.name ?? null,
+        boundModel: profile?.modelId ?? null,
+      };
+    }),
+  };
+}
+
+export interface SkillEntryData {
+  name: string;
+  label: string;
+  description: string | null;
+  command: string;
+  source: 'skills';
+}
+
+export interface SkillsListData {
+  agent: Agent;
+  workdir: string;
+  skills: SkillEntryData[];
+}
+
+export function getSkillsListData(bot: Bot, chatId: ChatId): SkillsListData {
+  const cs = bot.chat(chatId);
+  const skills = bot.fetchSkills(bot.chatWorkdir(chatId)).skills
+    .map(skill => {
+      const command = buildSkillCommandName(skill.name);
+      if (!command) return null;
+      return {
+        name: skill.name,
+        label: skill.label || skill.name.charAt(0).toUpperCase() + skill.name.slice(1),
+        description: skill.description,
+        command,
+        source: skill.source,
+      };
+    })
+    .filter((skill): skill is SkillEntryData => !!skill);
+  return { agent: cs.agent, workdir: bot.chatWorkdir(chatId), skills };
+}
+
+export interface ModelEntry {
+  id: string;
+  alias: string | null;
+  isCurrent: boolean;
+  group?: 'native' | 'cloud' | 'local';
+  profileId?: string | null;
+  providerName?: string | null;
+}
+
+export interface EffortEntry {
+  id: string;
+  label: string;
+  isCurrent: boolean;
+}
+
+export interface ModelsListData {
+  agent: Agent;
+  currentModel: string;
+  sources: string[];
+  note: string | null;
+  models: ModelEntry[];
+  effort: { current: string; levels: EffortEntry[] } | null;
+}
+
+function claudeModelFamily(modelId: string | null | undefined): string | null {
+  const value = normalizeClaudeModelId(modelId).toLowerCase();
+  if (!value) return null;
+  if (value === 'fable' || value.startsWith('claude-fable-')) return 'fable';
+  if (value === 'opus' || value.startsWith('claude-opus-')) return 'opus';
+  if (value === 'sonnet' || value.startsWith('claude-sonnet-')) return 'sonnet';
+  if (value === 'haiku' || value.startsWith('claude-haiku-')) return 'haiku';
+  return null;
+}
+
+function isClaudeFamilyAlias(modelId: string): boolean {
+  const v = modelId.trim().toLowerCase();
+  return v === 'fable' || v === 'opus' || v === 'sonnet' || v === 'haiku';
+}
+
+export function modelMatchesSelection(agent: Agent, selection: string, currentModel: string): boolean {
+  if (selection === currentModel) return true;
+  if (agent !== 'claude') return false;
+  if (!isClaudeFamilyAlias(selection) && !isClaudeFamilyAlias(currentModel)) return false;
+  const a = claudeModelFamily(selection);
+  const b = claudeModelFamily(currentModel);
+  return !!a && a === b;
+}
+
+function buildEffortData(bot: Bot, agent: Agent, model: string): ModelsListData['effort'] {
+  const currentEffort = bot.effortSelectionForAgent(agent);
+  if (!currentEffort) return null;
+  const levels = effortOptionsFor(agent, model);
+  if (!levels.length) return null;
+  return {
+    current: currentEffort,
+    levels: levels.map(l => ({ ...l, isCurrent: l.id === currentEffort })),
+  };
+}
+
+export async function getModelsListData(bot: Bot, chatId: ChatId): Promise<ModelsListData> {
+  const cs = bot.chat(chatId);
+  const currentModel = bot.modelForAgent(cs.agent);
+  const activeProfileId = bot.activeProfileIdForAgent(cs.agent);
+  const res = await bot.fetchModels(cs.agent, bot.chatWorkdir(chatId));
+  return {
+    agent: cs.agent,
+    currentModel,
+    sources: res.sources,
+    note: res.note ?? null,
+    models: res.models.map(m => {
+      const group = m.group ?? 'native';
+      const isProfileRow = group !== 'native';
+      const isCurrent = activeProfileId
+        ? !!m.profileId && m.profileId === activeProfileId
+        : !isProfileRow && modelMatchesSelection(cs.agent, m.id, currentModel);
+      return {
+        id: m.id,
+        alias: m.alias ?? null,
+        isCurrent,
+        group,
+        profileId: m.profileId ?? null,
+        providerName: m.providerName ?? null,
+      };
+    }),
+    effort: buildEffortData(bot, cs.agent, currentModel),
+  };
+}
+
+export interface StatusData {
+  version: string;
+  uptime: number;
+  memRss: number;
+  memHeap: number;
+  pid: number;
+  workdir: string;
+  agent: Agent;
+  model: string;
+  sessionId: string | null;
+  workspacePath: string | null;
+  activeTasksCount: number;
+  running: { prompt: string; startedAt: number } | null;
+  stats: { totalTurns: number; totalInputTokens: number; totalOutputTokens: number; totalCachedTokens: number };
+  usage: any;
+  usageOverview: UsageOverview;
+  git: GitStatus | null;
+}
+
+// One token-pool account (or the keychain default login when `id` is null) and its quota.
+export interface AccountUsageEntry {
+  id: string | null;
+  label: string;
+  active: boolean;
+  usage: UsageResult | null;
+}
+
+// One installed agent: its native/default-login usage plus, for account-capable agents
+// (claude), every saved account's own usage. `accounts` is empty when the agent has none.
+export interface AgentUsageEntry {
+  agent: Agent;
+  label: string;
+  isCurrent: boolean;
+  usage: UsageResult | null;
+  accounts: AccountUsageEntry[];
+}
+
+export interface UsageOverview {
+  agents: AgentUsageEntry[];
+}
+
+// On-demand usage probe per agent. Bounded so `/status` stays snappy: each live probe falls
+// back to the driver's cached value (and each account to its last-probed value) on timeout.
+const USAGE_PROBE_TIMEOUT_MS = 2_500;
+
+// Mirror the dashboard's top-right usage view for IM `/status`: every installed agent's usage,
+// and for account-capable agents each account's own quota with the active one marked. The plain
+// per-agent `getUsageLive` only ever reads the keychain default login, so without the per-account
+// probes `/status` would always report the default account's numbers, never the selected one.
+export async function getUsageOverview(bot: Bot, chatId: ChatId): Promise<UsageOverview> {
+  const currentAgent = bot.chat(chatId).agent;
+  const installed = bot.fetchAgents().agents.filter(a => a.installed);
+  const agents = await Promise.all(installed.map(async (info): Promise<AgentUsageEntry> => {
+    const agent = info.agent;
+    const model = bot.modelForAgent(agent);
+    const driver = getDriver(agent);
+    const cached = driver.getUsage({ agent, model });
+    const usage = driver.getUsageLive
+      ? await withTimeoutFallback(
+        driver.getUsageLive({ agent, model }).catch(() => cached),
+        USAGE_PROBE_TIMEOUT_MS,
+        cached,
+      )
+      : cached;
+
+    const accounts: AccountUsageEntry[] = [];
+    if (accountAgentSupported(agent)) {
+      const recs = listAccounts(agent);
+      if (recs.length) {
+        // Same unified pass as the dashboard popover (fresh tier, debounced in the driver
+        // caches); on timeout fall back to whatever each account last probed.
+        const snap = await withTimeoutFallback(
+          getAccountsUsageSnapshot(agent, { fresh: true }).catch(() => null),
+          USAGE_PROBE_TIMEOUT_MS,
+          null,
+        );
+        const activeId = snap?.activeAccountId ?? getActiveAccountId(agent);
+        for (const rec of recs) {
+          const row = snap?.accounts.find(a => a.id === rec.id);
+          accounts.push({
+            id: rec.id, label: rec.label, active: rec.id === activeId,
+            usage: row?.usage ?? getCachedAccountUsage(agent, rec.id),
+          });
+        }
+        accounts.push({ id: null, label: 'Default login', active: activeId === null, usage: snap?.native ?? usage });
+      }
+    }
+
+    return { agent, label: agentDisplayLabel(agent), isCurrent: agent === currentAgent, usage, accounts };
+  }));
+  return { agents };
+}
+
+export async function getStatusDataAsync(bot: Bot, chatId: ChatId): Promise<StatusData> {
+  const d = bot.getStatusData(chatId);
+  const usageOverview = await getUsageOverview(bot, chatId);
+  // Surface the identity that is actually selected: the active account's quota when one is
+  // bound, else the agent's native/default-login usage (matches the dashboard ring).
+  const current = usageOverview.agents.find(a => a.isCurrent);
+  const activeAccount = current?.accounts.find(a => a.active);
+  const usage = (activeAccount?.usage?.ok ? activeAccount.usage : null) ?? current?.usage ?? d.usage;
+  return {
+    ...d,
+    running: d.running ? { prompt: d.running.prompt, startedAt: d.running.startedAt } : null,
+    usage,
+    usageOverview,
+    git: readGitStatus(d.workdir),
+  };
+}
+
+export type HostData = ReturnType<Bot['getHostData']>;
+
+export function getHostDataSync(bot: Bot): HostData {
+  return bot.getHostData();
+}
+
+export { SKILL_CMD_PREFIX, indexSkillsByCommand };
+
+function relSkillPath(workdir: string, filePath: string): string {
+  const relative = path.relative(workdir, filePath).replace(/\\/g, '/');
+  return relative && !relative.startsWith('..') ? relative : filePath;
+}
+
+export function resolveSkillPrompt(bot: Bot, chatId: ChatId, cmd: string, args: string): { prompt: string; skillName: string } | null {
+  const wd = bot.chatWorkdir(chatId);
+  const skills = bot.fetchSkills(wd).skills;
+  const skill = indexSkillsByCommand(skills).get(cmd);
+  if (!skill) return null;
+  const extra = args.trim();
+  const suffix = extra ? ` Additional context: ${extra}` : '';
+  const workdirHint = `[Project directory: ${wd}]\n\n`;
+  let prompt: string;
+  const paths = getProjectSkillPaths(wd, skill.name);
+  const skillFile = paths.claudeSkillFile || paths.sharedSkillFile || paths.agentsSkillFile;
+  if (skillFile) {
+    prompt = `${workdirHint}Read the skill definition at \`${relSkillPath(wd, skillFile)}\` and execute the instructions defined there.${suffix}`;
+  } else {
+    const fallbackPath = relSkillPath(wd, path.join(wd, '.swarmdeck', 'skills', skill.name, 'SKILL.md'));
+    prompt = `${workdirHint}Read the skill definition at \`${fallbackPath}\` and execute the instructions defined there.${suffix}`;
+  }
+  return { prompt, skillName: skill.name };
+}
+
+export interface ExtensionSummaryData {
+  mcpCount: number;
+  mcpExtensions: Array<{ name: string; scope: string; enabled: boolean; command: string }>;
+  skillCount: number;
+  skills: Array<{ name: string; scope: string; label: string }>;
+}
+
+export function getExtensionSummaryData(bot: Bot, chatId: ChatId): ExtensionSummaryData {
+  const workdir = bot.chatWorkdir(chatId);
+  const mcpExts = listAllMcpExtensions(workdir) as Array<{ name: string; scope: string; config: { enabled?: boolean; disabled?: boolean; command?: string; args?: string[] } }>;
+  const skillResult = listAllSkills(workdir) as { skills: Array<{ name: string; scope: string; label: string | null }> };
+
+  return {
+    mcpCount: mcpExts.length,
+    mcpExtensions: mcpExts.map(e => ({
+      name: e.name,
+      scope: e.scope,
+      enabled: e.config.enabled !== false && !e.config.disabled,
+      command: [e.config.command || '', ...(e.config.args || [])].join(' ').trim(),
+    })),
+    skillCount: skillResult.skills.length,
+    skills: skillResult.skills.map((s: any) => ({
+      name: s.name,
+      scope: s.scope || 'project',
+      label: s.label || s.name,
+    })),
+  };
+}
+
+export { summarizePromptForStatus, fmtTokens, fmtUptime, fmtBytes, VERSION };
