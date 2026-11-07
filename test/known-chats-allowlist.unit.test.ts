@@ -23,3 +23,57 @@ beforeEach(() => {
   delete process.env.PIKILOOM_ALLOWED_IDS;
   delete process.env.TELEGRAM_ALLOWED_CHAT_IDS;
   delete process.env.FEISHU_ALLOWED_CHAT_IDS;
+});
+
+describe('known chats never pollute the allowlist (regression for #22)', () => {
+  it('Telegram: known chats stay out of allowedChatIds, config reload, and restart env', () => {
+    recordKnownChatId('telegram', '12345');
+    recordKnownChatId('telegram', '67890');
+
+    const bot = new TelegramBot();
+    expect((bot as any).allowedChatIds.size).toBe(0);
+    expect((bot as any).allowedChatIds.has(12345)).toBe(false);
+
+    (bot as any).onManagedConfigChange({}, { initial: true });
+    expect((bot as any).allowedChatIds.size).toBe(0);
+
+    const env = (bot as any).buildRestartEnv();
+    expect(env.TELEGRAM_ALLOWED_CHAT_IDS).toBeUndefined();
+  });
+
+  it('Telegram: an explicit allowlist is preserved without absorbing known chats', () => {
+    recordKnownChatId('telegram', '12345');
+    process.env.PIKILOOM_ALLOWED_IDS = '999';
+
+    const bot = new TelegramBot();
+    expect([...(bot as any).allowedChatIds]).toEqual([999]);
+    expect((bot as any).allowedChatIds.has(12345)).toBe(false);
+
+    const env = (bot as any).buildRestartEnv();
+    expect(env.TELEGRAM_ALLOWED_CHAT_IDS).toBe('999');
+  });
+
+  it('Feishu: known chats stay out of allowedChatIds and the restart env', () => {
+    recordKnownChatId('feishu', 'oc_known1');
+    recordKnownChatId('feishu', 'oc_known2');
+
+    const bot = new FeishuBot();
+    expect((bot as any).allowedChatIds.size).toBe(0);
+    expect((bot as any).allowedChatIds.has('oc_known1')).toBe(false);
+
+    const env = (bot as any).buildRestartEnv();
+    expect(env.FEISHU_ALLOWED_CHAT_IDS).toBeUndefined();
+  });
+
+  it('Feishu: an explicit allowlist is preserved without absorbing known chats', () => {
+    recordKnownChatId('feishu', 'oc_known');
+    process.env.FEISHU_ALLOWED_CHAT_IDS = 'oc_allow';
+
+    const bot = new FeishuBot();
+    expect([...(bot as any).allowedChatIds]).toEqual(['oc_allow']);
+    expect((bot as any).allowedChatIds.has('oc_known')).toBe(false);
+
+    const env = (bot as any).buildRestartEnv();
+    expect(env.FEISHU_ALLOWED_CHAT_IDS).toBe('oc_allow');
+  });
+});
