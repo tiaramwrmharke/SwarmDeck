@@ -23,3 +23,15 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           # bundled-npm cache probe would trip the devEngines npm pin (see ci.yml)
           package-manager-cache: false
+
+      - run: bash scripts/activate-toolchain.sh
+      - run: npm ci
+      - run: npm run verify:toolchain
+
+      - name: Build @swarmdeck/kernel
+        run: npx tsc -p packages/kernel/tsconfig.json
+
+      - name: Publish @swarmdeck/kernel to npm
+        run: npm publish ./packages/kernel --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
