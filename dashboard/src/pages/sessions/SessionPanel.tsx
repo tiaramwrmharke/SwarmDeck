@@ -206,3 +206,943 @@ export const SessionPanel = memo(function SessionPanel({
       setPendingImageUrls(initialPendingImageUrls);
       pendingImageUrlsRef.current = initialPendingImageUrls;
     }
+    setLoading(false);
+    setStreamPollNonce(n => n + 1);
+    onPendingPromptConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInitialPending, onPendingPromptConsumed]);
+
+  const clearPending = useCallback(() => {
+    setPendingPrompt(null);
+    setPendingImageUrls(prev => { for (const u of prev) URL.revokeObjectURL(u); return []; });
+    pendingImageUrlsRef.current = [];
+    setPendingTaskId(null);
+  }, []);
+
+  const clearPendingQueuedSends = useCallback(() => {
+    setPendingQueuedSends(prev => {
+      if (!prev.length) return prev;
+      for (const s of prev) for (const url of s.imageUrls) URL.revokeObjectURL(url);
+      return [];
+    });
+    lastSendQueuedLocalIdRef.current = null;
+  }, []);
+
+  const handleSendStart = useCallback((prompt: string, imageUrls?: string[]) => {
+    holdAnchorRef.current = Date.now();
+    const willBeQueued = sendWillQueue({
+      streaming: streamingRef.current,
+      liveStreamPhase: liveStreamRef.current?.phase ?? null,
+      streamPhase: streamPhaseRef.current,
+      queuedTaskCount: queuedTaskIdsRef.current.length,
+      pendingQueuedCount: pendingQueuedSendsRef.current.length,
+    });
+    const urls = imageUrls || [];
+    if (willBeQueued) {
+      const localId = `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      lastSendQueuedLocalIdRef.current = localId;
+      setPendingQueuedSends(prev => [...prev, { localId, taskId: null, prompt: prompt || '', imageUrls: urls }]);
+      return;
+    }
+    if (liveStreamRef.current?.phase === 'done') setLiveStream(null);
+    for (const u of pendingImageUrlsRef.current) URL.revokeObjectURL(u);
+    lastSendQueuedLocalIdRef.current = null;
+    setPendingPrompt(prompt || null);
+    setPendingImageUrls(urls);
+    pendingImageUrlsRef.current = urls;
+    setPendingTaskId(null);
+  }, []);
+
+  const handleSendTaskAssigned = useCallback((taskId: string) => {
+    const queuedLocalId = lastSendQueuedLocalIdRef.current;
+    if (queuedLocalId) {
+      lastSendQueuedLocalIdRef.current = null;
+      setPendingQueuedSends(prev => {
+        const idx = prev.findIndex(s => s.localId === queuedLocalId);
+        if (idx < 0) return prev;
+        const next = prev.slice();
+        next[idx] = { ...next[idx], taskId };
+        return next;
+      });
+      return;
+    }
+    setPendingTaskId(taskId);
+  }, []);
+
+  const submitFork = useCallback(async () => {
+    if (!forkRequest) return;
+    const trimmed = forkPrompt.trim();
+    if (!trimmed) return;
+    setForkSubmitting(true);
+    try {
+      const res = await api.forkSession(
+        workdir,
+        session.agent || '',
+        session.sessionId,
+        forkRequest.atTurn,
+        trimmed,
+        {},
+      );
+      if (!res.ok || !res.sessionKey) {
+        setForkSubmitting(false);
+        return;
+      }
+      const [agent, sessionId] = res.sessionKey.split(':');
+      setForkRequest(null);
+      setForkPrompt('');
+      onSessionChange?.({ agent, sessionId, workdir });
+    } finally {
+      setForkSubmitting(false);
+    }
+  }, [forkRequest, forkPrompt, workdir, session.agent, session.sessionId, onSessionChange]);
+  submitForkRef.current = submitFork;
+
+  const fetchTurnWindow = useCallback(async (
+    query: { turnOffset?: number; turnLimit?: number; lastNTurns?: number },
+    opts: { force?: boolean } = {},
+  ) => {
+    try {
+      const res = await loadSessionMessages({
+        workdir,
+        agent: session.agent || '',
+        sessionId: session.sessionId,
+        rich: true,
+        turnOffset: query.turnOffset,
+        turnLimit: query.turnLimit,
+        lastNTurns: query.lastNTurns,
+      }, { force: opts.force });
+      if (!res.ok) return null;
+      return normalizeTurnHistory(res);
+    } catch {
+      return null;
+    }
+  }, [workdir, session.agent, session.sessionId]);
+
+  const loadLatestTurns = useCallback(async ({ keepOlder, force = false, scrollToBottom = false }: { keepOlder: boolean; force?: boolean; scrollToBottom?: boolean }): Promise<TurnHistoryWindow | null> => {
+    const callSessionId = session.sessionId;
+    if (loadingLatestRef.current === callSessionId) return null;
+    loadingLatestRef.current = callSessionId;
+    try {
+      const next = await fetchTurnWindow({ turnOffset: 0, turnLimit: SESSION_PAGE_TURNS }, { force });
+      if (!next) return null;
+      if (session.sessionId !== callSessionId) return null;
+      if (scrollToBottom) scrollToBottomRef.current = true;
+      setHistory(current => {
+        if (!current || !keepOlder) return next;
+        return mergeLatestHistory(current, next);
+      });
+      setLoading(false);
+      if (clearPendingOnLoadRef.current) {
+        clearPendingOnLoadRef.current = false;
+        clearPending();
+      }
+      if (clearLiveStreamOnLoadRef.current) {
+        const pending = clearLiveStreamOnLoadRef.current;
+        clearLiveStreamOnLoadRef.current = false;
+        const scopedTaskId = pending !== true ? pending.taskId : null;
+        const owned = !!liveStreamRef.current
+          && (pending === true || liveStreamRef.current.taskId === scopedTaskId);
+        if (owned) setLiveStream(null);
+      }
+      return next;
+    } finally {
+      if (loadingLatestRef.current === callSessionId) {
+        loadingLatestRef.current = null;
+      }
+    }
+  }, [fetchTurnWindow, clearPending, session.sessionId]);
+
+  const loadOlderTurns = useCallback(async () => {
+    if (!history?.hasOlder || loadingOlderRef.current) return;
+    const el = scrollRef.current;
+    if (el) prependAnchorRef.current = { scrollHeight: el.scrollHeight, scrollTop: el.scrollTop };
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    try {
+      const next = await fetchTurnWindow({
+        turnOffset: Math.max(0, history.totalTurns - history.startTurn),
+        turnLimit: SESSION_PAGE_TURNS,
+      });
+      if (next) setHistory(current => current ? mergeOlderHistory(current, next) : next);
+      else prependAnchorRef.current = null;
+    } finally {
+      loadingOlderRef.current = false;
+      setLoadingOlder(false);
+    }
+  }, [fetchTurnWindow, history]);
+
+  const prevPhaseRef = useRef<'queued' | 'streaming' | 'done' | null>(null);
+
+  // Retention-gate reconcile for a just-completed turn: re-pull history until the tail turn
+  // actually carries a renderable assistant, then retire the streamed live preview. Until that
+  // happens the streamed reply keeps rendering (never blanked), so a `done` that arrives before
+  // the transcript flush can no longer swallow the answer. Bounded retries converge once the CLI
+  // finishes writing the reply; if they're exhausted the streamed snapshot stays as the answer.
+  const reconcileDoneTurn = useCallback((taskId: string | null) => {
+    if (doneSettleTimerRef.current) { clearTimeout(doneSettleTimerRef.current); doneSettleTimerRef.current = null; }
+    const startKey = sessionKeyRef.current;
+    const retireLiveIfOwned = () => {
+      const live = liveStreamRef.current;
+      if (live && (taskId == null || live.taskId === taskId)) setLiveStream(null);
+    };
+    const tailSettled = (win: TurnHistoryWindow | null): boolean => {
+      const w = win ?? historyRef.current;
+      if (!w || !w.turns.length) return false;
+      const tail = w.turns[w.turns.length - 1];
+      return !!tail.assistant && hasRenderableAssistant(tail.assistant);
+    };
+    let attempt = 0;
+    const run = async () => {
+      if (sessionKeyRef.current !== startKey) return;
+      const win = await loadLatestTurns({ keepOlder: true, force: true, scrollToBottom: stickToBottomRef.current });
+      if (sessionKeyRef.current !== startKey) return;
+      if (tailSettled(win)) { retireLiveIfOwned(); return; }
+      if (attempt < DONE_RECONCILE_BACKOFF_MS.length) {
+        const delay = DONE_RECONCILE_BACKOFF_MS[attempt++];
+        doneSettleTimerRef.current = setTimeout(() => { doneSettleTimerRef.current = null; void run(); }, delay);
+      }
+    };
+    void run();
+  }, [loadLatestTurns]);
+
+  const applyStreamSnapshot = useCallback((state: any | null, source: SnapshotSource = 'ws') => {
+    const holdsActiveState = streamingRef.current || queuedTaskIdsRef.current.length > 0;
+    const holdExpired = Date.now() - holdAnchorRef.current > STREAM_HOLD_TTL_MS;
+    const decision = snapshotGate({
+      updatedAt: state?.updatedAt,
+      isNull: !state,
+      source,
+      lastAppliedUpdatedAt: lastAppliedUpdatedAtRef.current,
+      localStreamPending: localStreamPendingRef.current,
+      holdsActiveState,
+      holdExpired,
+    });
+    if (decision !== 'apply') return;
+    // An applied null that only got through because the hold expired = the worker serving this
+    // tab was replaced (or the send's task died with it). Reconcile from disk instead of
+    // wedging: drop the local echo and reload the transcript — the self-service version of the
+    // manual refresh users had to do.
+    const expiredHoldReconcile = !state && holdExpired && (localStreamPendingRef.current || holdsActiveState);
+    if (state) {
+      holdAnchorRef.current = Date.now();
+      lastAppliedUpdatedAtRef.current = nextAppliedUpdatedAt(lastAppliedUpdatedAtRef.current, state.updatedAt);
+    }
+    if (state?.sessionId && state.sessionId !== session.sessionId) {
+      promotingRef.current = true;
+      sessionKeyRef.current = `${session.agent}:${state.sessionId}`;
+      onSessionChange?.({ agent: session.agent || '', sessionId: state.sessionId, workdir });
+    }
+    if (!state) {
+      const prev = prevPhaseRef.current;
+      setStreaming(false);
+      if (expiredHoldReconcile) {
+        localStreamPendingRef.current = false;
+        clearPendingOnLoadRef.current = true;
+        clearLiveStreamOnLoadRef.current = true;
+        clearPendingQueuedSends();
+        void loadLatestTurns({ keepOlder: true, force: true, scrollToBottom: stickToBottomRef.current });
+      } else if (prev === 'streaming') {
+        clearPendingOnLoadRef.current = true;
+        clearLiveStreamOnLoadRef.current = true;
+        void loadLatestTurns({ keepOlder: true, force: true, scrollToBottom: stickToBottomRef.current });
+      } else {
+        setLiveStream(null);
+      }
+      if (expiredHoldReconcile) {
+        // handled above — echo dropped, transcript reload in flight
+      } else if (localStreamPendingRef.current && prev !== 'streaming') {
+        void loadLatestTurns({ keepOlder: true, force: true });
+      } else {
+        if (prev === 'done') {
+          clearPending();
+          clearPendingQueuedSends();
+        }
+        if (prev !== null) localStreamPendingRef.current = false;
+      }
+      setStreamTaskId(null);
+      setStreamPhase(null);
+      setQueuedTaskIds([]);
+      setQueuedTasks([]);
+      setInteractions([]);
+      prevPhaseRef.current = null;
+      return;
+    }
+    setStreamPhase(state.phase);
+    setStreamTaskId(state.taskId || null);
+    const authoritativeIds: string[] = [];
+    if (state.taskId) authoritativeIds.push(state.taskId);
+    if (Array.isArray(state.queuedTaskIds)) authoritativeIds.push(...state.queuedTaskIds);
+    recalledTombstonesRef.current = pruneTombstones(recalledTombstonesRef.current, authoritativeIds, Date.now(), RECALL_TOMBSTONE_TTL_MS);
+    const tomb = recalledTombstonesRef.current;
+    const visibleQueuedTaskIds = filterTombstonedIds(state.queuedTaskIds, tomb);
+    const visibleQueuedTasks = (Array.isArray(state.queuedTasks) ? state.queuedTasks : [])
+      .filter((qt: { taskId: string }) => !tomb.has(qt.taskId));
+    setQueuedTaskIds(visibleQueuedTaskIds.length ? visibleQueuedTaskIds : EMPTY_TASK_IDS);
+    setQueuedTasks(visibleQueuedTasks.length ? visibleQueuedTasks : EMPTY_QUEUED_TASKS);
+    setInteractions(Array.isArray(state.interactions) && state.interactions.length ? state.interactions : EMPTY_INTERACTIONS);
+    if (optimisticSendWasQueued({
+      pendingTaskId: pendingTaskIdRef.current,
+      streamTaskId: state.taskId || null,
+      queuedTaskIds: state.queuedTaskIds,
+    })) {
+      const pendingId = pendingTaskIdRef.current!;
+      const demotedPrompt = pendingPromptRef.current || '';
+      const demotedImages = pendingImageUrlsRef.current;
+      setPendingQueuedSends(prev => prev.some(s => s.taskId === pendingId)
+        ? prev
+        : [...prev, { localId: `demote-${pendingId}`, taskId: pendingId, prompt: demotedPrompt, imageUrls: demotedImages }]);
+      setPendingPrompt(null);
+      setPendingImageUrls([]);
+      pendingImageUrlsRef.current = [];
+      setPendingTaskId(null);
+      pendingTaskIdRef.current = null;
+    }
+    if (state.phase === 'streaming') {
+      // A fresh streaming turn supersedes any in-flight settle loop from the previous turn.
+      if (doneSettleTimerRef.current) { clearTimeout(doneSettleTimerRef.current); doneSettleTimerRef.current = null; }
+      setLiveStream({
+        taskId: state.taskId || null,
+        phase: 'streaming',
+        text: state.text || '',
+        thinking: state.thinking || '',
+        activity: state.activity,
+        plan: state.plan ?? null,
+        model: state.model ?? null,
+        effort: state.effort ?? null,
+        previewMeta: state.previewMeta ?? null,
+        subAgents: state.previewMeta?.subAgents ?? null,
+        generatingImages: state.previewMeta?.generatingImages ?? 0,
+        artifacts: state.artifacts ?? null,
+        startedAt: typeof state.startedAt === 'number' ? state.startedAt : null,
+        error: null,
+        question: state.question ?? null,
+        questionBlocks: state.questionBlocks ?? null,
+      });
+      setStreaming(true);
+      if (state.taskId && state.taskId !== pendingTaskIdRef.current) {
+        const queue = pendingQueuedSendsRef.current;
+        const idx = queue.findIndex(s => s.taskId === state.taskId);
+        if (idx >= 0) {
+          const promoted = queue[idx];
+          for (const url of pendingImageUrlsRef.current) URL.revokeObjectURL(url);
+          setPendingPrompt(promoted.prompt || null);
+          setPendingImageUrls(promoted.imageUrls);
+          pendingImageUrlsRef.current = promoted.imageUrls;
+          setPendingTaskId(state.taskId);
+          setPendingQueuedSends(prev => prev.filter((_, i) => i !== idx));
+        }
+      }
+      if (stickToBottomRef.current) scrollToBottomRef.current = true;
+    } else if (state.phase === 'queued') {
+      setLiveStream(null);
+      setStreaming(false);
+    } else if (state.phase === 'done') {
+      const doneForCurrent = doneAppliesToLivePreview(liveStreamRef.current?.taskId ?? null, state.taskId || null);
+      const hasMoreQueued = visibleQueuedTaskIds.length > 0;
+      if (doneForCurrent) {
+        setStreaming(false);
+        setLiveStream(prev => prev
+          ? { ...prev, phase: 'done', error: state.error ?? null }
+          : state.error
+            ? {
+                taskId: state.taskId || null,
+                phase: 'done',
+                text: '',
+                thinking: '',
+                activity: '',
+                plan: null,
+                model: state.model ?? null,
+                effort: state.effort ?? null,
+                previewMeta: state.previewMeta ?? null,
+                subAgents: state.previewMeta?.subAgents ?? null,
+                generatingImages: state.previewMeta?.generatingImages ?? 0,
+                artifacts: state.artifacts ?? null,
+                error: state.error,
+                question: state.question ?? null,
+                questionBlocks: state.questionBlocks ?? null,
+              }
+            : prev);
+        const live = liveStreamRef.current;
+        const hasPartialBody = !!live && liveStreamHasBody(live);
+        const freezePartial = !!state.incomplete && hasPartialBody && !hasMoreQueued;
+        if (prevPhaseRef.current !== 'done') {
+          if (!hasMoreQueued) clearPendingOnLoadRef.current = true;
+          const expectAssistant = !freezePartial && !state.error && !state.incomplete;
+          if (expectAssistant) {
+            // Retention gate: keep the streamed reply on screen and retire it only once the
+            // reconciled transcript actually carries this turn's assistant (reconcileDoneTurn).
+            // A single reload can race the CLI's transcript flush — clearing the live preview then
+            // would blank the reply the user just watched stream in.
+            clearLiveStreamOnLoadRef.current = false;
+            reconcileDoneTurn(state.taskId || null);
+          } else {
+            // Incomplete / errored / frozen-partial turn: keep the prior one-shot reconcile (the
+            // live preview either freezes the partial answer or yields to the run-failure notice).
+            clearLiveStreamOnLoadRef.current = freezePartial ? false : { taskId: state.taskId || null };
+            void loadLatestTurns({ keepOlder: true, force: true, scrollToBottom: stickToBottomRef.current });
+          }
+          const recAgent = session.agent || '';
+          const recSid = session.sessionId;
+          const recKey = sessionKeyRef.current;
+          if (reconcileTimerRef.current) clearTimeout(reconcileTimerRef.current);
+          reconcileTimerRef.current = setTimeout(() => {
+            reconcileTimerRef.current = null;
+            void api.getSessionStreamState(recAgent, recSid)
+              .then(res => { if (sessionKeyRef.current === recKey) applyStreamSnapshotRef.current(res.state, 'seed'); })
+              .catch(() => {});
+          }, 900);
+        }
+      }
+      if (!hasMoreQueued) localStreamPendingRef.current = false;
+    }
+    const liveTaskIds = new Set<string>();
+    if (state.taskId) liveTaskIds.add(state.taskId);
+    if (Array.isArray(state.queuedTaskIds)) for (const id of state.queuedTaskIds) liveTaskIds.add(id);
+    setPendingQueuedSends(prev => {
+      let changed = false;
+      const next: PendingQueuedSend[] = [];
+      for (const send of prev) {
+        if (!send.taskId || liveTaskIds.has(send.taskId)) {
+          next.push(send);
+        } else {
+          for (const url of send.imageUrls) URL.revokeObjectURL(url);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+    prevPhaseRef.current = state.phase;
+  }, [clearPending, clearPendingQueuedSends, loadLatestTurns, reconcileDoneTurn, session.sessionId, session.agent, onSessionChange, workdir]);
+
+  const applyStreamSnapshotRef = useRef(applyStreamSnapshot);
+  applyStreamSnapshotRef.current = applyStreamSnapshot;
+
+  const requestStreamPolling = useCallback(() => {
+    localStreamPendingRef.current = true;
+    holdAnchorRef.current = Date.now();
+    setStreamPollNonce(current => current + 1);
+  }, []);
+
+  useEffect(() => () => {
+    if (reconcileTimerRef.current) { clearTimeout(reconcileTimerRef.current); reconcileTimerRef.current = null; }
+    if (doneSettleTimerRef.current) { clearTimeout(doneSettleTimerRef.current); doneSettleTimerRef.current = null; }
+  }, []);
+
+  const handleRecallTask = useCallback(async (taskId: string) => {
+    try {
+      recalledTombstonesRef.current.set(taskId, Date.now());
+      await api.recallSessionMessage(taskId);
+      if (pendingTaskIdRef.current === taskId) clearPending();
+      setPendingQueuedSends(prev => {
+        let changed = false;
+        const next: PendingQueuedSend[] = [];
+        for (const send of prev) {
+          if (send.taskId === taskId) {
+            for (const url of send.imageUrls) URL.revokeObjectURL(url);
+            changed = true;
+          } else {
+            next.push(send);
+          }
+        }
+        return changed ? next : prev;
+      });
+      setQueuedTaskIds(prev => prev.filter(id => id !== taskId));
+      setQueuedTasks(prev => prev.filter(t => t.taskId !== taskId));
+      setStreamTaskId(prev => prev === taskId ? null : prev);
+    } catch {}
+  }, [clearPending]);
+
+  const handleSteerTask = useCallback(async (taskId: string) => {
+    // Steering interrupts the current turn so this queued task jumps ahead as a fresh turn.
+    // During the interrupt→start transition the task briefly leaves both the running slot and
+    // the queue, so the queue-prune (which revokes blob URLs of sends that leave liveTaskIds)
+    // would drop its attached images before the snapshot-driven promotion can claim them — the
+    // bubble then falls back to the live-question path, which renders text but no image.
+    // Promote the send's prompt + images into the live bubble HERE (transfer blob ownership,
+    // never revoke) so the image survives and renders via the optimistic pending path.
+    const promoted = pendingQueuedSendsRef.current.find(s => s.taskId === taskId) || null;
+    if (promoted && promoted.imageUrls.length > 0) {
+      for (const u of pendingImageUrlsRef.current) URL.revokeObjectURL(u);
+      setPendingPrompt(promoted.prompt || null);
+      setPendingImageUrls(promoted.imageUrls);
+      pendingImageUrlsRef.current = promoted.imageUrls;
+      setPendingTaskId(taskId);
+      pendingTaskIdRef.current = taskId;
+      setPendingQueuedSends(prev => prev.filter(s => s.taskId !== taskId));
+    }
+    try { await api.steerSession(taskId); } catch {}
+  }, []);
+
+  const handleStopAll = useCallback(async () => {
+    try {
+      await api.stopSession(session.agent || '', session.sessionId);
+    } catch {  }
+  }, [session.agent, session.sessionId]);
+
+  const sk = snapshotKey(session.agent || '', session.sessionId);
+  useEffect(() => {
+    if (doneSettleTimerRef.current) { clearTimeout(doneSettleTimerRef.current); doneSettleTimerRef.current = null; }
+    if (promotingRef.current) {
+      promotingRef.current = false;
+      let cancelled = false;
+      void loadLatestTurns({ keepOlder: true, force: true }).finally(() => { if (!cancelled) setLoading(false); });
+      return () => { cancelled = true; };
+    }
+    let c = false;
+    const cachedLatest = peekSessionMessages({
+      workdir,
+      agent: session.agent || '',
+      sessionId: session.sessionId,
+      rich: true,
+      turnOffset: 0,
+      turnLimit: SESSION_PAGE_TURNS,
+    }, { allowStale: true });
+    const isNewSession = hasInitialPending && !initialPendingConsumedRef.current;
+    const initialHistory = cachedLatest?.ok
+      ? normalizeTurnHistory(cachedLatest)
+      : historySnapshots.get(sk) || null;
+    setLoading(isNewSession ? false : !initialHistory);
+    setHistory(initialHistory);
+    setLiveStream(null);
+    setStreaming(false);
+    setStreamPhase(null);
+    setQueuedTaskIds([]);
+    setQueuedTasks([]);
+    setInteractions([]);
+    lastAppliedUpdatedAtRef.current = 0;
+    holdAnchorRef.current = Date.now();
+    recalledTombstonesRef.current = new Map();
+    if (!isNewSession) {
+      clearPending();
+      clearPendingQueuedSends();
+      localStreamPendingRef.current = false;
+      clearPendingOnLoadRef.current = false;
+      clearLiveStreamOnLoadRef.current = false;
+    }
+    stickToBottomRef.current = true;
+    scrollToBottomRef.current = true;
+    if (!isNewSession) {
+      loadLatestTurns({ keepOlder: false, force: true }).finally(() => { if (!c) setLoading(false); });
+    }
+    return () => { c = true; };
+  }, [loadLatestTurns, session.agent, session.sessionId, workdir, sk, clearPending, clearPendingQueuedSends]);
+
+  useEffect(() => {
+    if (history && history.turns.length > 0) saveHistorySnapshot(sk, history);
+  }, [sk, history]);
+
+  useEffect(() => {
+    if (!active) return;
+    void loadLatestTurns({ keepOlder: true, force: true });
+  }, [active, loadLatestTurns]);
+
+  const sessionKeyRef = useRef(`${session.agent}:${session.sessionId}`);
+  sessionKeyRef.current = `${session.agent}:${session.sessionId}`;
+
+  useDashboardEvent(
+    'stream-update',
+    useCallback((event: DashboardEvent) => {
+      if (event.key !== sessionKeyRef.current) return;
+      applyStreamSnapshot(event.snapshot ?? null);
+    }, [applyStreamSnapshot]),
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    void api.getSessionStreamState(session.agent || '', session.sessionId).then(res => {
+      if (mounted) applyStreamSnapshotRef.current(res.state, 'seed');
+    }).catch(() => {});
+    return () => { mounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.agent, session.sessionId, streamPollNonce]);
+
+  useDashboardReconnect(useCallback(() => {
+    void api.getSessionStreamState(session.agent || '', session.sessionId).then(res => {
+      applyStreamSnapshot(res.state, 'seed');
+    }).catch(() => {});
+    void loadLatestTurns({ keepOlder: true, force: true });
+  }, [applyStreamSnapshot, session.agent, session.sessionId, loadLatestTurns]));
+
+  // WS-independent safety net: while this panel believes a task is live (streaming, queued, or
+  // a just-sent local echo), re-seed stream-state on an interval. If the worker was replaced
+  // under the tab (socket silently dead, task gone with the old worker), the polls return null
+  // and the hold-TTL path in applyStreamSnapshot reconciles the panel from disk — instead of a
+  // send that shows nothing and a view that only recovers on manual refresh.
+  const pollHoldActive = streaming || !!streamPhase || queuedTaskIds.length > 0
+    || !!pendingPrompt || pendingQueuedSends.length > 0;
+  useEffect(() => {
+    if (!active || !pollHoldActive) return;
+    const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      void api.getSessionStreamState(session.agent || '', session.sessionId)
+        .then(res => applyStreamSnapshotRef.current(res.state, 'seed'))
+        .catch(() => {});
+    }, STREAM_POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [active, pollHoldActive, session.agent, session.sessionId]);
+
+  useEffect(() => {
+    if (!localStreamPendingRef.current
+        && displayState !== 'running' && !streaming && !liveStream
+        && !streamPhase && queuedTaskIds.length === 0) {
+      clearPending();
+      clearPendingQueuedSends();
+    }
+  }, [displayState, streaming, liveStream, streamPhase, queuedTaskIds.length, clearPending, clearPendingQueuedSends]);
+
+  useLayoutEffect(() => {
+    const anchor = prependAnchorRef.current;
+    const el = scrollRef.current;
+    if (!anchor || !el) return;
+    prependAnchorRef.current = null;
+    el.scrollTop = anchor.scrollTop + (el.scrollHeight - anchor.scrollHeight);
+  }, [history?.turns.length]);
+
+  useLayoutEffect(() => {
+    if (!scrollToBottomRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    scrollToBottomRef.current = false;
+    el.scrollTop = el.scrollHeight;
+    requestAnimationFrame(() => {
+      if (stickToBottomRef.current) el.scrollTop = el.scrollHeight;
+    });
+  }, [history, liveStream]);
+
+  useLayoutEffect(() => {
+    if (!pendingPrompt) return;
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [pendingPrompt]);
+
+  useEffect(() => {
+    if (!history?.hasOlder || loading || loadingOlder) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    if (el.scrollHeight <= el.clientHeight + TOP_LOAD_THRESHOLD_PX) {
+      void loadOlderTurns();
+    }
+  }, [history?.hasOlder, history?.turns.length, loadOlderTurns, loading, loadingOlder]);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = remaining <= BOTTOM_STICK_THRESHOLD_PX;
+    if (el.scrollTop <= TOP_LOAD_THRESHOLD_PX) void loadOlderTurns();
+  }, [loadOlderTurns]);
+
+  const displayModel = (liveStream?.model || session.model || globalModel) || null;
+  const displayEffort = foldUltraEffort(
+    session.agent || '',
+    (liveStream?.effort || session.thinkingEffort || globalEffort) || null,
+    session.workflowEnabled ?? agentRuntime?.workflowEnabled,
+  ) || null;
+  const displayModelShort = (byokProfileName && (!displayModel || displayModel === globalModel))
+    ? byokProfileName
+    : (displayModel ? shortenModel(displayModel) : null);
+  const runFailureDetail = getSessionRunFailureDetail(session, {
+    streaming,
+    hasLiveStream: !!liveStream,
+    streamPhase,
+    queuedTaskCount: queuedTaskIds.length,
+  });
+
+  const rawTurns = history?.turns || [];
+  // The session's current task list = the LAST plan snapshot anywhere in history (TodoWrite or
+  // TaskCreate/TaskUpdate — latest wins). Carried ONLY into the actively-streaming live turn (see
+  // `livePlanToShow`) so a background/wake-up continuation that hasn't re-emitted its todos still
+  // shows the up-to-date list. It is NEVER grafted onto a settled/reconciled history turn — each
+  // completed turn renders its own plan only, or none — so a new, unrelated turn no longer
+  // inherits the previous turn's (often completed) plan card.
+  const latestSessionPlan = useMemo<StreamPlan | null>(() => {
+    for (let i = rawTurns.length - 1; i >= 0; i--) {
+      const blocks = rawTurns[i].assistant?.blocks;
+      if (!blocks) continue;
+      for (let j = blocks.length - 1; j >= 0; j--) {
+        const b = blocks[j];
+        if (b.type === 'plan' && hasPlan(b.plan)) return b.plan;
+      }
+    }
+    return null;
+  }, [rawTurns]);
+  const optimisticBridgesImages = useMemo(() => {
+    if (!pendingImageUrls.length || !rawTurns.length) return false;
+    const last = rawTurns[rawTurns.length - 1];
+    if (!last.user) return false;
+    if (!sameUserText(last.user.text, pendingPrompt)) return false;
+    const serverImages = last.user.blocks.filter(b => b.type === 'image').length;
+    return serverImages < pendingImageUrls.length;
+  }, [rawTurns, pendingPrompt, pendingImageUrls.length]);
+  const pendingBubbleBlocks = useMemo<MessageBlock[]>(() => {
+    if (pendingImageUrls.length) {
+      return pendingImageUrls.map(u => ({ type: 'image' as const, content: u }));
+    }
+    if (!pendingPrompt || !liveStream?.questionBlocks?.length) return [];
+    if (!sameUserText(pendingPrompt, liveStream.question)) return [];
+    return liveStream.questionBlocks;
+  }, [pendingImageUrls, pendingPrompt, liveStream]);
+  const liveQuestion = liveStream?.question || null;
+  const effectiveStreamPrompt = displayPromptForPending(pendingPrompt, liveQuestion);
+  const livePlanToShow = liveStream && hasPlan(liveStream.plan)
+    ? liveStream.plan
+    : (liveStream && shouldCarryLatestPlanIntoLiveStream(pendingPrompt, liveQuestion) ? latestSessionPlan : null);
+  const liveQuestionCoversPending = promptEndsWithUserPrompt(liveQuestion, pendingPrompt);
+  const rawLastUserText = rawTurns.length > 0 ? rawTurns[rawTurns.length - 1]?.user?.text : null;
+  const pendingAlreadyInHistory = !!effectiveStreamPrompt
+    && rawTurns.length > 0
+    && streamPromptMatchesTurnText(rawLastUserText, effectiveStreamPrompt);
+
+  const turns = useMemo(() => {
+    let result = rawTurns;
+    if (optimisticBridgesImages) {
+      const last = result[result.length - 1];
+      result = [...result.slice(0, -1), { ...last, user: null }];
+    }
+    if (!liveStream || !result.length) return result;
+    const last = result[result.length - 1];
+    const streamPrompt = effectiveStreamPrompt;
+    if (!last.assistant) {
+      const shouldReplaceUser = !!last.user && !!streamPrompt
+        && !sameUserText(last.user.text, streamPrompt)
+        && (streamPromptMatchesTurnText(last.user.text, streamPrompt)
+          || promptEndsWithUserPrompt(streamPrompt, last.user.text));
+      return shouldReplaceUser
+        ? [...result.slice(0, -1), { ...last, user: { ...last.user!, text: streamPrompt } }]
+        : result;
+    }
+    const liveText = (liveStream.text || '').trim();
+    const lastAssistantText = last.assistant.text?.trim() || '';
+    const isStreamingTurn = streamPrompt != null
+      ? streamPromptMatchesTurnText(last.user?.text, streamPrompt)
+      : !!lastAssistantText && !!liveText
+        && (liveText.startsWith(lastAssistantText) || lastAssistantText.startsWith(liveText));
+    if (!isStreamingTurn) return result;
+    // If the history turn is only a truncated preview of the streaming prompt, show the
+    // authoritative full prompt instead of the truncated text.
+    const user = last.user && streamPrompt && !sameUserText(last.user.text, streamPrompt)
+      ? { ...last.user, text: streamPrompt }
+      : last.user;
+    return [...result.slice(0, -1), { ...last, user, assistant: null }];
+  }, [rawTurns, liveStream, effectiveStreamPrompt, optimisticBridgesImages]);
+
+  // A loading affordance is already on screen when the optimistic pending bubble shows its own
+  // dots, or when the live preview is actively streaming (it renders its own live-status row).
+  const pendingBubbleShown = (!!pendingPrompt || pendingBubbleBlocks.length > 0)
+    && !liveQuestionCoversPending
+    && (optimisticBridgesImages || !pendingAlreadyInHistory);
+  const pendingBubbleDots = pendingBubbleShown && !liveStream;
+  const liveTurnStreaming = !!liveStream && liveStreamShouldRender(liveStream) && liveStream.phase === 'streaming';
+  // Keep the "still working" affordance alive whenever the session is in progress but nothing
+  // above is already showing it — e.g. a turn has reconciled into history while the next task
+  // is only queued, or a follow-up turn is running but its snapshot hasn't reached us yet.
+  const showTrailingLoader = shouldShowTrailingLoader({
+    sessionRunning: displayState === 'running',
+    streaming,
+    streamPhase,
+    queuedTaskCount: queuedTaskIds.length,
+    pendingQueuedCount: pendingQueuedSends.length,
+    liveTurnStreaming,
+    pendingBubbleDots,
+  });
+  // When the running turn's partial content has already reconciled into history, the loader must
+  // CONTINUE that turn — the standard status row (dots + tools + ctx% + tokens + elapsed) appended
+  // under the same header, fed from the turn's own usage — never a second agent header, which
+  // would read as a new reply inside the same conversation. The header-and-dots scaffold is only
+  // for a running turn with no history content yet (a turn genuinely starting).
+  const trailingLastTurn = showTrailingLoader && turns.length > 0 ? turns[turns.length - 1] : null;
+  const trailingContinuesLastTurn = !!trailingLastTurn?.assistant && hasRenderableAssistant(trailingLastTurn.assistant);
+  const trailingUsage = trailingContinuesLastTurn ? (trailingLastTurn!.assistant!.usage ?? null) : null;
+  const trailingToolCount = trailingContinuesLastTurn
+    ? trailingLastTurn!.assistant!.blocks.filter(b => b.type === 'tool_use').length
+    : 0;
+  // Turn start approximation when no stream snapshot exists: runUpdatedAt is stamped when the
+  // run flips to 'running' server-side, so the elapsed timer stays meaningful. Once a real
+  // snapshot arrives, LivePreview takes over with its authoritative startedAt.
+  const trailingStartedAt = (() => {
+    if (!showTrailingLoader || displayState !== 'running') return null;
+    const ms = session.runUpdatedAt ? Date.parse(session.runUpdatedAt) : NaN;
+    return Number.isFinite(ms) ? ms : null;
+  })();
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overscroll-contain">
+        {loading && !pendingPrompt && !pendingImageUrls.length && !liveStream ? (
+          <div className="flex items-center justify-center py-20"><Spinner className="h-5 w-5 text-fg-4" /></div>
+        ) : turns.length === 0 && !pendingPrompt && !pendingImageUrls.length && !liveStream && !runFailureDetail ? (
+          <div className="py-20 text-center text-[13px] text-fg-5">{t('hub.noMessages')}</div>
+        ) : (
+          <div className="max-w-[900px] mx-auto px-6 py-6 space-y-0">
+            {(history?.hasOlder || loadingOlder) && (
+              <div className="mb-4 flex items-center justify-center gap-2 text-[11px] text-fg-5">
+                {loadingOlder ? <Spinner className="h-3 w-3 text-fg-5" /> : <span className="h-1.5 w-1.5 rounded-full bg-fg-5/35" />}
+                <span>{loadingOlder ? t('hub.loadingOlderTurns') : t('hub.loadOlderTurnsHint')}</span>
+              </div>
+            )}
+            {session.migratedFrom?.kind === 'fork' && session.migratedFrom.sessionId && (
+              <button
+                type="button"
+                onClick={() => onSessionChange?.({
+                  agent: session.migratedFrom!.agent || session.agent || '',
+                  sessionId: session.migratedFrom!.sessionId,
+                  workdir,
+                })}
+                className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-edge bg-panel-alt px-2.5 py-1 text-[11px] text-fg-5 transition hover:border-edge-h hover:text-fg-2"
+                title={`#${session.migratedFrom.sessionId.slice(0, 8)}`}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="6" cy="6" r="2" /><circle cx="18" cy="6" r="2" /><circle cx="12" cy="20" r="2" />
+                  <path d="M6 8v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V8" /><path d="M12 14v4" />
+                </svg>
+                <span>{t('hub.forkBadge')}</span>
+                <span className="font-mono">#{session.migratedFrom.sessionId.slice(0, 8)}</span>
+                {typeof session.migratedFrom.forkedAtTurn === 'number' && (
+                  <span className="text-fg-5/70">· {t('hub.forkBadgeAt').replace('{turn}', String(session.migratedFrom.forkedAtTurn + 1))}</span>
+                )}
+              </button>
+            )}
+            {turns.map((turn, i) => {
+              const absoluteTurnIndex = (history?.startTurn || 0) + i;
+              return (
+                <TurnView key={`${history?.startTurn || 0}:${i}`}
+                  turn={turn}
+                  turnIndex={absoluteTurnIndex}
+                  hideHeaderUsage={trailingContinuesLastTurn && i === turns.length - 1}
+                  isTail={i === turns.length - 1}
+                  agent={session.agent || ''} meta={meta} model={displayModelShort} effort={displayEffort} providerName={byokProviderName} t={t}
+                  workdir={workdir}
+                  onResend={(txt) => {
+                    scrollToBottomRef.current = true;
+                    handleSendStart(txt);
+                    const sel = composerSelectionRef.current;
+                    api.sendSessionMessage(workdir, session.agent || '', session.sessionId, txt, {
+                      model: sel.model || displayModel || undefined,
+                      effort: sel.effort || displayEffort || undefined,
+                    })
+                      .then((res) => { if (res.ok) requestStreamPolling(); })
+                      .catch(() => { clearPending(); });
+                  }}
+                  onEdit={(txt) => setEditDraft(txt)}
+                  onFork={canFork ? (atTurn) => { setForkPrompt(''); setForkRequest({ atTurn }); } : undefined}
+                />
+              );
+            })}
+            {runFailureDetail && <div className="mb-5 animate-in"><RunEndNotice detail={runFailureDetail} t={t} /></div>}
+            {(pendingPrompt || pendingBubbleBlocks.length > 0)
+              && !liveQuestionCoversPending
+              && (optimisticBridgesImages || !pendingAlreadyInHistory) && (
+              <div className="session-turn session-turn--live">
+                <UserBubble text={pendingPrompt || ''} blocks={pendingBubbleBlocks} t={t} />
+                {!liveStream && (
+                  <div className="mt-3 mb-5 animate-in">
+                    <ThinkingDots className="text-fg-5" />
+                  </div>
+                )}
+              </div>
+            )}
+            {liveStream && liveStreamShouldRender(liveStream) && liveStream.question
+              && (!pendingPrompt || liveQuestionCoversPending)
+              && !(rawTurns.length > 0
+                   && streamPromptMatchesTurnText(rawLastUserText, liveStream.question)) && (
+              <div className="session-turn session-turn--live">
+                <UserBubble text={liveStream.question} blocks={liveStream.questionBlocks || undefined} t={t} />
+              </div>
+            )}
+            {liveStream && liveStreamShouldRender(liveStream) && (
+              <div className="mb-6">
+                <TurnDivider agent={session.agent || ''} meta={meta} model={displayModelShort} effort={displayEffort} providerName={byokProviderName} previewMeta={liveStream.previewMeta} hideContextUsage />
+                <LivePreview stream={livePlanToShow === liveStream.plan ? liveStream : { ...liveStream, plan: livePlanToShow }} t={t} workdir={workdir} />
+              </div>
+            )}
+            {showTrailingLoader && (
+              trailingContinuesLastTurn ? (
+                // TurnView's assistant block ends with mb-6; pull the row back up to the same
+                // 12px rhythm LivePreview uses between its content and the live-status row.
+                <div className="-mt-3 mb-6 animate-in">
+                  <LiveStatusRow
+                    toolCount={trailingToolCount}
+                    ctxPct={trailingUsage?.contextPercent ?? null}
+                    ctxTokens={trailingUsage?.contextUsedTokens ?? 0}
+                    turnOutTokens={trailingUsage?.turnOutputTokens ?? 0}
+                    startedAt={trailingStartedAt}
+                  />
+                </div>
+              ) : (
+                <div className="mb-6">
+                  <TurnDivider agent={session.agent || ''} meta={meta} model={displayModelShort} effort={displayEffort} providerName={byokProviderName} hideContextUsage />
+                  <LivePreview stream={{ ...TRAILING_LOADER_STREAM, startedAt: trailingStartedAt }} t={t} workdir={workdir} />
+                </div>
+              )
+            )}
+            <div className="h-4" />
+          </div>
+        )}
+      </div>
+
+      <InputComposer
+        session={session}
+        workdir={workdir}
+        onStreamQueued={requestStreamPolling}
+        onSendStart={handleSendStart}
+        onSendTaskAssigned={handleSendTaskAssigned}
+        onSessionChange={onSessionChange}
+        t={t}
+        streamPhase={streamPhase}
+        streamTaskId={streamTaskId}
+        queuedTaskIds={queuedTaskIds}
+        queuedTasks={queuedTasks}
+        pendingQueuedSends={pendingQueuedSends}
+        onRecall={handleRecallTask}
+        onSteer={handleSteerTask}
+        onStopAll={handleStopAll}
+        editDraft={editDraft}
+        onEditDraftConsumed={() => setEditDraft(null)}
+        onSelectionChange={handleComposerSelectionChange}
+      />
+
+      {forkRequest && (
+        <Modal open onClose={() => { if (!forkSubmitting) setForkRequest(null); }}>
+          <ModalHeader
+            title={t('hub.forkPromptTitle')}
+            description={t('hub.forkPromptHint')}
+            onClose={() => { if (!forkSubmitting) setForkRequest(null); }}
+          />
+          <textarea
+            autoFocus
+            value={forkPrompt}
+            disabled={forkSubmitting}
+            onChange={(e) => setForkPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && forkPrompt.trim() && !forkSubmitting) {
+                e.preventDefault();
+                void submitForkRef.current?.();
+              }
+            }}
+            placeholder={t('hub.forkPromptPlaceholder')}
+            className="w-full min-h-[120px] resize-y rounded-md border border-edge bg-panel-alt px-3 py-2 text-[13px] leading-relaxed text-fg outline-none focus:border-edge-h"
+          />
+          <div className="mt-4 flex items-center justify-end gap-2">
+            <Button variant="ghost" disabled={forkSubmitting} onClick={() => setForkRequest(null)}>
+              {t('modal.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={forkSubmitting || !forkPrompt.trim()}
+              onClick={() => void submitForkRef.current?.()}
+            >
+              {forkSubmitting ? t('hub.forkSubmitting') : t('hub.forkSubmit')}
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {active && interactions.length > 0 && (
+        <InteractionPromptModal
+          key={interactions[interactions.length - 1].promptId}
+          snapshot={interactions[interactions.length - 1]}
+        />
+      )}
+    </div>
+  );
+});
