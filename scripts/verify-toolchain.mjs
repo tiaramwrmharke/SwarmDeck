@@ -54,3 +54,54 @@ for (const [location, metadata] of Object.entries(lock.packages ?? {})) {
     || (!location.startsWith('node_modules/') && location.endsWith('/node_modules/typescript'));
   if (isProjectTypeScript) {
     expectEqual(`lockfile ${location} version`, metadata.version, expectedTypeScript);
+    lockedTypeScriptPackages.push(location);
+  }
+}
+
+// devEngines.runtime.version is an "exact || ^x.y.z" alternative list. The FIRST
+// alternative is the canonical pin (.nvmrc, CI, release, Docker, @types/node major);
+// later alternatives are tolerated local dev runtimes.
+function satisfiesRuntimeAlternative(version, alternative) {
+  const caret = alternative.startsWith('^');
+  const base = caret ? alternative.slice(1) : alternative;
+  if (!/^\d+\.\d+\.\d+$/.test(base)) fail(`unsupported devEngines runtime alternative: ${alternative}`);
+  if (!caret) return version === base;
+  const [major, minor, patch] = base.split('.').map(Number);
+  const [vMajor, vMinor, vPatch] = version.split('.').map(Number);
+  return vMajor === major && (vMinor > minor || (vMinor === minor && vPatch >= patch));
+}
+
+const runtimeAlternatives = (pkg.devEngines?.runtime?.version ?? '')
+  .split('||').map((alternative) => alternative.trim()).filter(Boolean);
+expectEqual('devEngines.runtime.name', pkg.devEngines?.runtime?.name, 'node');
+expectEqual('devEngines.runtime canonical pin', runtimeAlternatives[0], expectedNode);
+expectEqual('devEngines.packageManager.name', pkg.devEngines?.packageManager?.name, 'npm');
+expectEqual('devEngines.packageManager.version', pkg.devEngines?.packageManager?.version, expectedNpm);
+expectEqual('kernel TypeScript spec', kernelPkg.devDependencies?.typescript, expectedTypeScript);
+expectEqual('lockfile root @types/node spec', lock.packages?.['']?.devDependencies?.['@types/node'], expectedNodeTypes);
+expectEqual('lockfile @types/node version', lock.packages?.['node_modules/@types/node']?.version, expectedNodeTypes);
+
+const dockerfile = fs.readFileSync(path.join(root, 'Dockerfile'), 'utf8');
+const dockerNode = /^ARG NODE_VERSION=(\d+\.\d+\.\d+)-bookworm-slim$/m.exec(dockerfile)?.[1];
+const dockerNpm = /^ARG NPM_VERSION=(\d+\.\d+\.\d+)$/m.exec(dockerfile)?.[1];
+expectEqual('Docker Node.js', dockerNode, expectedNode);
+expectEqual('Docker npm', dockerNpm, expectedNpm);
+if (!runtimeAlternatives.some((alternative) => satisfiesRuntimeAlternative(process.versions.node, alternative))) {
+  fail(`Node.js: expected ${runtimeAlternatives.join(' || ')}, got ${process.versions.node}`);
+}
+expectEqual('npm', npmVersion(), expectedNpm);
+
+if (!runtimeOnly) {
+  for (const location of lockedTypeScriptPackages) {
+    const installedTypeScript = readJson(`${location}/package.json`).version;
+    expectEqual(`installed ${location}`, installedTypeScript, expectedTypeScript);
+  }
+  const kernelTypeScriptManifest = path.join(root, 'packages/kernel/node_modules/typescript/package.json');
+  if (fs.existsSync(kernelTypeScriptManifest)) {
+    expectEqual('installed kernel TypeScript', JSON.parse(fs.readFileSync(kernelTypeScriptManifest, 'utf8')).version, expectedTypeScript);
+  }
+  expectEqual('installed @types/node', readJson('node_modules/@types/node/package.json').version, expectedNodeTypes);
+  console.log(`toolchain ok: node ${process.versions.node} (canonical ${expectedNode}), npm ${expectedNpm}, typescript ${expectedTypeScript}, @types/node ${expectedNodeTypes}`);
+} else {
+  console.log(`runtime toolchain ok: node ${process.versions.node} (canonical ${expectedNode}), npm ${expectedNpm}`);
+}
