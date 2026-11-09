@@ -34,3 +34,7 @@ export function CollapsibleCard({
   return (
     <div className={cn(
       'rounded-md border border-edge bg-panel overflow-hidden',
+      'shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+      className,
+    )}>
+      <button
