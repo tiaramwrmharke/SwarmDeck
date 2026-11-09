@@ -49,3 +49,45 @@ describe('recoverProfileIdForModel — recover a lost provider binding by model 
   });
   afterEach(() => { fs.rmSync(tmpDir, { recursive: true, force: true }); });
 
+  async function addCodexProfile(modelId: string, baseURL = 'https://api.deepseek.com', kind: ProviderKind = 'openai-compatible') {
+    const provider = await addProvider({
+      kind, name: 'test', baseURL,
+      credentialRef: { source: 'inline', sealed: sealInline('sk-test-key') },
+    });
+    return addProfile({ providerId: provider.id, modelId });
+  }
+
+  it('recovers the unique profile that declares the requested model (the screenshot case)', async () => {
+    const profile = await addCodexProfile('deepseek-v4-pro');
+    expect(recoverProfileIdForModel('codex', 'deepseek-v4-pro')).toBe(profile.id);
+  });
+
+  it('recovers even when the profile is not the globally-bound active one', async () => {
+    const bound = await addCodexProfile('deepseek-v4-flash');
+    setActiveProfile('codex', bound.id);
+    const orphan = await addCodexProfile('deepseek-v4-pro');
+    // session asks for deepseek-v4-pro but the active binding is deepseek-v4-flash
+    expect(recoverProfileIdForModel('codex', 'deepseek-v4-pro')).toBe(orphan.id);
+  });
+
+  it('returns null for a native model that no profile backs (leave native spawn alone)', async () => {
+    await addCodexProfile('deepseek-v4-pro');
+    expect(recoverProfileIdForModel('codex', 'gpt-5.5')).toBeNull();
+  });
+
+  it('refuses to guess when the model id is ambiguous across multiple profiles', async () => {
+    await addCodexProfile('deepseek-v4-pro', 'https://api.deepseek.com');
+    await addCodexProfile('deepseek-v4-pro', 'https://openrouter.ai/api/v1');
+    expect(recoverProfileIdForModel('codex', 'deepseek-v4-pro')).toBeNull();
+  });
+
+  it('does not cross agent provider-kind boundaries (Gemini only accepts google)', async () => {
+    await addCodexProfile('deepseek-v4-pro'); // openai-compatible — not a google kind
+    expect(recoverProfileIdForModel('gemini' as Agent, 'deepseek-v4-pro')).toBeNull();
+  });
+
+  it('returns null for an empty/whitespace model id', () => {
+    expect(recoverProfileIdForModel('codex', '')).toBeNull();
+    expect(recoverProfileIdForModel('codex', '   ')).toBeNull();
+  });
+});
