@@ -29,3 +29,31 @@ const result = {
   generatedAt: new Date().toISOString(),
   workdir,
   claude: hasCmd('claude')
+    ? {
+        installed: true,
+        version: getVersion('claude'),
+        currentModel: claudeCurrentModel,
+        discovered: listModels('claude', { workdir, currentModel: claudeCurrentModel }),
+      }
+    : {
+        installed: false,
+        version: null,
+        currentModel: claudeCurrentModel,
+        discovered: null,
+      },
+  codex: hasCmd('codex')
+    ? {
+        installed: true,
+        version: getVersion('codex'),
+        currentModel: codexCurrentModel,
+        discovered: listModels('codex', { workdir, currentModel: codexCurrentModel }),
+      }
+    : {
+        installed: false,
+        version: null,
+        currentModel: codexCurrentModel,
+        discovered: null,
+      },
+};
+
+process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
