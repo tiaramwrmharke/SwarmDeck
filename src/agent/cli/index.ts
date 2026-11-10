@@ -7,3 +7,19 @@ export {
 export {
   detectCli, getCachedCliStatus, invalidateCliStatus, currentPlatform,
   type CliState, type CliStatus,
+} from './detector.js';
+
+export {
+  getCliCatalog, refreshCliStatus,
+  type CliCatalogItem,
+} from './catalog.js';
+
+export {
+  startCliAuthSession, getAuthSession, cancelAuthSession,
+  applyCliToken, logoutCli,
+  startCliInstallSession, resolveAutoInstallSpec,
+  type AuthSession, type AuthSessionEvent,
+  type ApplyTokenResult, type LogoutResult,
+  type StartAuthSessionResult,
+  type AutoInstallSpec,
+} from './auth.js';
