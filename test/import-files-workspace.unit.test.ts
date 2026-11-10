@@ -22,3 +22,24 @@ describe('importFilesIntoWorkspace', () => {
     cleanup.push(linkRoot);
     const wsViaLink = path.join(linkRoot, 'ws-link');
     fs.symlinkSync(ws, wsViaLink);
+
+    const result = importFilesIntoWorkspace(wsViaLink, [path.join(wsViaLink, 'pic.png')]);
+
+    expect(result).toEqual(['pic.png']);
+    expect(fs.readdirSync(ws).filter(f => f.endsWith('.png'))).toEqual(['pic.png']);
+  });
+
+  it('still copies a genuinely external file into the workspace', () => {
+    const realRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'imp-ext-'));
+    cleanup.push(realRoot);
+    const ws = path.join(realRoot, 'workspace');
+    fs.mkdirSync(ws);
+    const outside = path.join(realRoot, 'outside.png');
+    fs.writeFileSync(outside, 'imgdata');
+
+    const result = importFilesIntoWorkspace(ws, [outside]);
+
+    expect(result).toEqual(['outside.png']);
+    expect(fs.existsSync(path.join(ws, 'outside.png'))).toBe(true);
+  });
+});
