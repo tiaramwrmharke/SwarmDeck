@@ -29,3 +29,18 @@ export default function Layers() {
                 <p className="text-sm text-neutral-400">{layer.tagline}</p>
               </div>
             </div>
+            <p className="mt-4 text-sm leading-relaxed text-neutral-300">{layer.blurb}</p>
+            <ul className="mt-5 space-y-1.5">
+              {layer.bullets.map((b) => (
+                <li key={b} className="flex items-center gap-2 text-sm text-neutral-400">
+                  <span className="h-1 w-1 rounded-full bg-neutral-600" />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </SpotlightCard>
+        ))}
+      </div>
+    </section>
+  );
+}

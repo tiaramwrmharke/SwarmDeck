@@ -22,3 +22,12 @@ export function accountTokenSupported(agent: string): boolean {
 }
 
 /** The env-var name that overrides this agent's subscription identity, or null. */
+export function accountTokenEnvVar(agent: string): string | null {
+  return ACCOUNT_TOKEN_ENV[agent] ?? null;
+}
+
+/** Env to merge at spawn so the agent runs under the given account token. */
+export function accountTokenEnv(agent: string, token: string): Record<string, string> {
+  const key = accountTokenEnvVar(agent);
+  return key && token ? { [key]: token } : {};
+}
