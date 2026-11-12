@@ -38,3 +38,81 @@ beforeEach(() => {
 afterEach(() => {
   restoreEnv(envSnap);
   try { fs.rmSync(tmpHome, { recursive: true, force: true }); } catch {}
+  try { fs.rmSync(tmpWorkdir, { recursive: true, force: true }); } catch {}
+});
+
+describe('getClaudeNativeGoal', () => {
+  it('reads, parses, auto-clears, and validates goal_status attachments from the transcript', () => {
+    expect(getClaudeNativeGoal(tmpWorkdir, SID)).toBeNull();
+
+    expect(getClaudeNativeGoal(tmpWorkdir, '')).toBeNull();
+
+    writeTranscript([
+      JSON.stringify({ type: 'user', message: { role: 'user', content: 'hello' } }),
+      JSON.stringify({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'hi' }] } }),
+    ]);
+    expect(getClaudeNativeGoal(tmpWorkdir, SID)).toBeNull();
+
+    writeTranscript([
+      JSON.stringify({ type: 'user', message: { role: 'user', content: '/goal x' } }),
+      JSON.stringify({
+        type: 'attachment',
+        timestamp: '2026-05-13T00:15:01.374Z',
+        attachment: { type: 'goal_status', met: false, sentinel: true, condition: 'create file done.txt' },
+      }),
+    ]);
+    const goal = getClaudeNativeGoal(tmpWorkdir, SID);
+    expect(goal).not.toBeNull();
+    expect(goal!.condition).toBe('create file done.txt');
+    expect(goal!.met).toBe(false);
+    expect(goal!.status).toBe('active');
+    expect(goal!.updatedAtMs).toBe(Date.parse('2026-05-13T00:15:01.374Z'));
+
+    writeTranscript([
+      JSON.stringify({
+        type: 'attachment',
+        timestamp: '2026-05-13T00:15:01.000Z',
+        attachment: { type: 'goal_status', met: false, sentinel: true, condition: 'foo' },
+      }),
+      JSON.stringify({
+        type: 'attachment',
+        timestamp: '2026-05-13T00:16:01.000Z',
+        attachment: { type: 'goal_status', met: true, sentinel: true, condition: 'foo' },
+      }),
+    ]);
+    expect(getClaudeNativeGoal(tmpWorkdir, SID)).toBeNull();
+
+    writeTranscript([
+      JSON.stringify({
+        type: 'attachment',
+        timestamp: '2026-05-13T00:15:01.000Z',
+        attachment: { type: 'goal_status', met: false, sentinel: true, condition: 'first goal' },
+      }),
+      JSON.stringify({
+        type: 'attachment',
+        timestamp: '2026-05-13T00:20:00.000Z',
+        attachment: { type: 'goal_status', met: false, sentinel: true, condition: 'second goal' },
+      }),
+    ]);
+    expect(getClaudeNativeGoal(tmpWorkdir, SID)?.condition).toBe('second goal');
+
+    writeTranscript([
+      'not even json',
+      '{ broken',
+      JSON.stringify({ type: 'attachment', attachment: { type: 'budget_usd', used: 0.01 } }),
+      JSON.stringify({
+        type: 'attachment',
+        timestamp: '2026-05-13T00:15:01.000Z',
+        attachment: { type: 'goal_status', met: false, sentinel: true, condition: 'survived' },
+      }),
+    ]);
+    expect(getClaudeNativeGoal(tmpWorkdir, SID)?.condition).toBe('survived');
+  });
+});
+
+describe('slash-command prompt builders', () => {
+  it('builds /goal set and clear prompts', () => {
+    expect(buildClaudeSetGoalPrompt('  fix the auth bug ')).toBe('/goal fix the auth bug');
+    expect(buildClaudeClearGoalPrompt()).toBe('/goal clear');
+  });
+});
