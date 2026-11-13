@@ -38,3 +38,29 @@ export function CollapsibleCard({
       className,
     )}>
       <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left hover:bg-panel-h/40 transition-colors"
+      >
+        {dot && (
+          <span className={cn(
+            'h-[7px] w-[7px] shrink-0 rounded-full',
+            dot.color,
+            dot.pulse && 'animate-pulse',
+          )} />
+        )}
+        <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fg-5">
+          {label}
+        </span>
+        <span className="flex-1 min-w-0 overflow-hidden">{preview}</span>
+        {badge}
+        <ChevronIcon open={open} />
+      </button>
+      {!open && collapsedContent}
+      {open && children && (
+        <div className="border-t border-edge">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
