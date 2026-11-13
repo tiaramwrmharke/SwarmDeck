@@ -49,3 +49,29 @@ describe('session-control', () => {
     }
 
     vi.clearAllMocks();
+    vi.resetModules();
+
+    {
+      const cancelTask = vi.fn(() => ({ cancelled: true, interrupted: false, task: {} }));
+      const steerTask = vi.fn(async () => ({ steered: true, interrupted: true, task: {} }));
+      getBotRefMock.mockReturnValue({
+        getStreamSnapshot: vi.fn(() => ({ phase: 'queued', taskId: 'task-1', updatedAt: 1 })),
+        cancelTask,
+        steerTask,
+      });
+
+      const {
+        cancelSessionTask,
+        getSessionStreamState,
+        steerSessionTask,
+      } = await import('../src/dashboard/session-control.ts');
+
+      expect(getSessionStreamState('codex', 'sess-1')).toEqual({
+        ok: true,
+        state: { phase: 'queued', taskId: 'task-1', updatedAt: 1 },
+      });
+      expect(cancelSessionTask('task-1')).toEqual({ ok: true, recalled: true });
+      expect(await steerSessionTask('task-1')).toEqual({ ok: true, steered: true });
+    }
+  });
+});
