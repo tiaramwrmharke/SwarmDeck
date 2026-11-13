@@ -17,3 +17,23 @@ describe('dashboard session failure display', () => {
       runState: 'incomplete',
       runDetail: detail,
       awaiting: null,
+    }, {
+      streaming: false,
+      hasLiveStream: false,
+      streamPhase: null,
+      queuedTaskCount: 0,
+    })).toBe(detail);
+
+    expect(getSessionRunFailureDetail({
+      running: false,
+      runState: 'incomplete',
+      runDetail: 'Timed out.',
+      awaiting: null,
+    }, {
+      streaming: false,
+      hasLiveStream: true,
+      streamPhase: 'done',
+      queuedTaskCount: 0,
+    })).toBeNull();
+  });
+});
