@@ -25,3 +25,29 @@ const ASK_USER = [
   '[Asking the user]',
   'The built-in `AskUserQuestion` tool is disabled here and will fail. If you would otherwise call it, call `mcp__swarmdeck__im_ask_user` instead — same intent (a question plus optional choices), it blocks until the user replies via the IM/dashboard channel. Default behaviour is unchanged: infer obvious decisions yourself and only ask when you genuinely cannot proceed.',
 ].join('\n');
+
+export const SESSION_TOOL_CAPABILITIES: SessionToolCapability[] = [
+  {
+    id: 'artifact-delivery',
+    tools: ['im_send_file', 'im_list_files'],
+    promptFragment: () => ARTIFACT_RETURN,
+  },
+  {
+    id: 'ask-user',
+    tools: ['im_ask_user'],
+    // Only when the HITL path is wired and the agent is claude (codex/gemini handle asks natively).
+    promptFragment: ({ agent, onInteraction }) => (onInteraction && agent === 'claude') ? ASK_USER : null,
+  },
+];
+
+// Compose the session tool prompt = each capability's applicable fragment, in registration
+// order, joined by a blank line. Byte-identical to the prior inline assembly in bot.ts.
+export function composeSessionToolPrompt(ctx: SessionPromptContext): string {
+  const parts: string[] = [];
+  for (const cap of SESSION_TOOL_CAPABILITIES) {
+    const fragment = cap.promptFragment(ctx);
+    const trimmed = String(fragment || '').trim();
+    if (trimmed) parts.push(trimmed);
+  }
+  return parts.join('\n\n');
+}

@@ -60,3 +60,129 @@ describe('formatUsageWindowsSummary', () => {
     expect(formatUsageWindowsSummary(unavailable)).toBe('unavailable');
   });
   it('falls back to status when ok but no windows have a percent', () => {
+    expect(formatUsageWindowsSummary({ ...usage([]), status: 'allowed' })).toBe('status=allowed');
+  });
+  it('shows the window detail (Extra credit spend) inline', () => {
+    const u = usage([['5h', 42.4], ['Extra', 20.3]]);
+    u.windows[1].detail = '$101.61 / $500.00';
+    expect(formatUsageWindowsSummary(u, NOW)).toBe('5h 42% · Extra 20% ($101.61 / $500.00)');
+  });
+  it('appends plan type, credits and limit-reset coupons after the windows', () => {
+    const u = { ...usage([['1mo', 37]]), planType: 'team', resetCreditsAvailable: 1 };
+    expect(formatUsageWindowsSummary(u, NOW)).toBe('1mo 37% · plan team · limit resets ×1');
+    const c = { ...usage([['5h', 1]]), creditsSummary: 'unlimited' };
+    expect(formatUsageWindowsSummary(c, NOW)).toBe('5h 1% · credits unlimited');
+  });
+});
+
+describe('buildUsageOverviewLines', () => {
+  it('marks the active account and always lists the default login for account agents', () => {
+    const overview: UsageOverview = {
+      agents: [{
+        agent: 'claude', label: 'Claude Code', isCurrent: true, usage: usage([['5h', 12], ['7d', 5]]),
+        accounts: [
+          { id: 'a1', label: 'Work', active: true, usage: usage([['5h', 42], ['7d', 18]]) },
+          { id: 'a2', label: 'Personal', active: false, usage: usage([['5h', 90], ['7d', 70]]) },
+          { id: null, label: 'Default login', active: false, usage: usage([['5h', 12], ['7d', 5]]) },
+        ],
+      }],
+    };
+    expect(texts(overview)).toEqual([
+      '',
+      'Provider Usage',
+      '  Updated: 5m 0s ago',
+      'Claude Code (current)',
+      '  ● Work: 5h 42% · 7d 18%',
+      '  ○ Personal: 5h 90% · 7d 70%',
+      '  ○ Default login: 5h 12% · 7d 5%',
+    ]);
+  });
+
+  it('includes reset countdowns in account rows', () => {
+    const work = usage([['5h', 100], ['7d', 19]]);
+    work.windows[0].resetAt = '2026-06-30T00:35:00.000Z';
+    work.windows[1].resetAt = '2026-07-01T06:05:00.000Z';
+    const overview: UsageOverview = {
+      agents: [{
+        agent: 'claude', label: 'Claude Code', isCurrent: true, usage: usage([['5h', 12]]),
+        accounts: [
+          { id: 'a1', label: 'Work', active: true, usage: work },
+        ],
+      }],
+    };
+    expect(texts(overview)).toEqual([
+      '',
+      'Provider Usage',
+      '  Updated: 5m 0s ago',
+      'Claude Code (current)',
+      '  ● Work: 5h 100% (reset 30m) · 7d 19% (reset 1d6h)',
+    ]);
+  });
+
+  it('renders a single line for an agent without accounts', () => {
+    const overview: UsageOverview = {
+      agents: [{ agent: 'codex', label: 'Codex', isCurrent: false, usage: usage([['5h', 30]]), accounts: [] }],
+    };
+    expect(texts(overview)).toEqual(['', 'Provider Usage', '  Updated: 5m 0s ago', 'Codex', '  5h 30%']);
+  });
+
+  it('skips agents with neither usage nor accounts, and returns [] when nothing is left', () => {
+    const overview: UsageOverview = {
+      agents: [
+        { agent: 'gemini', label: 'Gemini CLI', isCurrent: false, usage: unavailable, accounts: [] },
+        { agent: 'codex', label: 'Codex', isCurrent: true, usage: usage([['5h', 7]]), accounts: [] },
+      ],
+    };
+    // gemini (no usage, no accounts) is dropped; codex remains.
+    expect(texts(overview)).toEqual(['', 'Provider Usage', '  Updated: 5m 0s ago', 'Codex (current)', '  5h 7%']);
+    expect(buildUsageOverviewLines({ agents: [
+      { agent: 'gemini', label: 'Gemini CLI', isCurrent: false, usage: unavailable, accounts: [] },
+    ] })).toEqual([]);
+  });
+
+  it('keeps an account agent even when its accounts have no usage yet (still actionable)', () => {
+    const overview: UsageOverview = {
+      agents: [{
+        agent: 'claude', label: 'Claude Code', isCurrent: true, usage: null,
+        accounts: [{ id: 'a1', label: 'Work', active: true, usage: null }],
+      }],
+    };
+    expect(texts(overview)).toEqual([
+      '', 'Provider Usage', 'Claude Code (current)', '  ● Work: unavailable',
+    ]);
+  });
+
+  it('omits the freshness stamp when no usage carries a capturedAt', () => {
+    const overview: UsageOverview = {
+      agents: [{ agent: 'codex', label: 'Codex', isCurrent: false, usage: { ...usage([['5h', 30]]), capturedAt: null }, accounts: [] }],
+    };
+    expect(texts(overview)).toEqual(['', 'Provider Usage', 'Codex', '  5h 30%']);
+  });
+});
+
+describe('oldestUsageCapturedAt', () => {
+  it('returns the oldest capturedAt across agents and their accounts, so a lagging row cannot hide', () => {
+    const overview: UsageOverview = {
+      agents: [{
+        agent: 'claude', label: 'Claude Code', isCurrent: true,
+        usage: { ...usage([['5h', 1]]), capturedAt: '2026-06-30T00:00:00.000Z' },
+        accounts: [
+          { id: 'a1', label: 'Work', active: true, usage: { ...usage([['5h', 2]]), capturedAt: '2026-06-30T00:02:00.000Z' } },
+          { id: 'a2', label: 'Old', active: false, usage: { ...usage([['5h', 3]]), capturedAt: '2026-06-29T00:00:00.000Z' } },
+        ],
+      }],
+    };
+    expect(oldestUsageCapturedAt(overview.agents)).toBe('2026-06-29T00:00:00.000Z');
+  });
+
+  it('ignores null timestamps and returns null when none are present', () => {
+    expect(oldestUsageCapturedAt([])).toBeNull();
+    const overview: UsageOverview = {
+      agents: [{
+        agent: 'claude', label: 'Claude Code', isCurrent: true, usage: null,
+        accounts: [{ id: 'a1', label: 'Work', active: true, usage: null }],
+      }],
+    };
+    expect(oldestUsageCapturedAt(overview.agents)).toBeNull();
+  });
+});
