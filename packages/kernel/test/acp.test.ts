@@ -49,3 +49,89 @@ rl.on('line', async (line) => {
   if (m.id != null) send({ jsonrpc: '2.0', id: m.id, result: {} });
 });
 `;
+
+describe('AcpDriver (generic ACP) — pure helpers', () => {
+  it('parses plan, tool statuses, and usage from session/update', () => {
+    const out: DriverEvent[] = [];
+    const s: any = {};
+    const tools = new Set<string>();
+    const updates = [
+      { sessionUpdate: 'plan', entries: [{ content: 'step A', status: 'in_progress' }, { content: 'step B', status: 'pending' }] },
+      { sessionUpdate: 'tool_call', toolCallId: 'x', title: 'grep', status: 'pending' },
+      { sessionUpdate: 'tool_call_update', toolCallId: 'x', status: 'failed' },
+      { sessionUpdate: 'usage_update', size: 200000, used: 1000 },
+    ];
+    for (const u of updates) applyAcpUpdate(u, s, tools, (e) => out.push(e));
+    const plan = out.find(e => e.type === 'plan') as any;
+    expect(plan.plan.steps).toEqual([{ text: 'step A', status: 'inProgress' }, { text: 'step B', status: 'pending' }]);
+    expect(out.filter(e => e.type === 'tool').map(e => (e as any).call.status)).toEqual(['running', 'failed']);
+    const usage = out.find(e => e.type === 'usage') as any;
+    expect(usage.usage).toMatchObject({ contextUsedTokens: 1000, contextPercent: 0.5 });
+  });
+
+  it('converts kernel McpServerSpec[] to ACP mcpServers (stdio + http)', () => {
+    const acp = toAcpMcpServers([
+      { name: 'fs', command: 'mcp-fs', args: ['--root', '/tmp'], env: { TOKEN: 'x' } },
+      { name: 'remote', type: 'http', url: 'https://h/mcp', headers: { Authorization: 'Bearer y' } },
+      { name: 'skipme' } as any,
+    ]);
+    expect(acp).toEqual([
+      { name: 'fs', command: 'mcp-fs', args: ['--root', '/tmp'], env: [{ name: 'TOKEN', value: 'x' }] },
+      { type: 'http', name: 'remote', url: 'https://h/mcp', headers: [{ name: 'Authorization', value: 'Bearer y' }] },
+    ]);
+  });
+
+  it('builds prompt blocks with a trailing text block', () => {
+    const blocks = buildAcpPromptBlocks('do it', ['/no/such/file.txt']);
+    expect(blocks[blocks.length - 1]).toEqual({ type: 'text', text: 'do it' });
+    expect(blocks[0]).toEqual({ type: 'text', text: '[Attached file: /no/such/file.txt]' });
+  });
+});
+
+describe('AcpDriver — end-to-end against a mock ACP agent', () => {
+  it('runs a turn: MCP forward, set_model, permission HITL, fs bridge, usage', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'acp-mock-'));
+    const agentPath = path.join(dir, 'mock-acp-agent.cjs');
+    fs.writeFileSync(agentPath, MOCK_ACP_AGENT);
+    const filePath = path.join(dir, 'out.txt');
+
+    const driver = new AcpDriver({ id: 'mock', command: process.execPath, args: [agentPath] });
+    const { result, snapshot } = await runTurn(
+      driver,
+      {
+        prompt: `FILE:${filePath}`,
+        workdir: dir,
+        model: 'opencode-x',
+        extraMcpServers: [{ name: 'fs', command: 'x' }, { name: 'web', type: 'http', url: 'https://h/mcp' }],
+      },
+      // a terminal that always grants the first (allow) option
+      { interactionHandler: { async askUser(i) { return { choice: [i.questions[0].choices![0].value!] }; } } },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.sessionId).toBe('mock-1');
+    expect(result.stopReason).toBe('end_turn');
+    expect(result.reasoning).toContain('thinking');
+    // proves: set_model applied, both MCP servers forwarded, permission granted ('ok'), fs round-trip
+    expect(result.text).toContain('model=opencode-x');
+    expect(result.text).toContain('mcp=2');
+    expect(result.text).toContain('perm=ok');
+    expect(result.text).toContain('file=written-by-agent');
+    expect(fs.readFileSync(filePath, 'utf8')).toBe('written-by-agent');
+    expect(result.usage).toMatchObject({ inputTokens: 11, outputTokens: 7, contextUsedTokens: 4242 });
+    expect(snapshot.toolCalls?.some(t => t.status === 'done')).toBe(true);
+  });
+
+  it('applies the permission fallback when no terminal answers (headless auto-cancel -> allow)', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'acp-mock-'));
+    const agentPath = path.join(dir, 'mock-acp-agent.cjs');
+    fs.writeFileSync(agentPath, MOCK_ACP_AGENT);
+    const filePath = path.join(dir, 'out.txt');
+
+    const driver = new AcpDriver({ id: 'mock', command: process.execPath, args: [agentPath], permissionFallback: 'allow' });
+    // no interactionHandler -> AutoCancelInteractionHandler -> {} -> fallback picks the allow_once option
+    const { result } = await runTurn(driver, { prompt: `FILE:${filePath}`, workdir: dir });
+    expect(result.ok).toBe(true);
+    expect(result.text).toContain('perm=ok');
+  });
+});

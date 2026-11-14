@@ -37,3 +37,74 @@ process.stdin.on('data', (d) => {
   }
 });
 process.stdin.on('end', () => process.exit(0));
+`;
+
+function ctxCollect(): { ctx: DriverContext; events: DriverEvent[]; abort: AbortController } {
+  const abort = new AbortController();
+  const events: DriverEvent[] = [];
+  const ctx: DriverContext = {
+    signal: abort.signal,
+    emit: (e) => events.push(e),
+    askUser: async () => ({}),
+    registerSteer: () => {},
+  };
+  return { ctx, events, abort };
+}
+
+describe('ClaudeDriver model-stall watchdog (severed-connection hang)', () => {
+  let tmp: string;
+  let fake: string;
+  let driver: ClaudeDriver | null;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-claude-stall-'));
+    fake = path.join(tmp, 'fake-claude.js');
+    fs.writeFileSync(fake, FAKE_CLAUDE, { mode: 0o755 });
+    driver = null;
+    // A short stall window so the test resolves fast instead of the 5-minute default — but safely
+    // above cold `node` subprocess spawn latency (a cold fake turn is ~0.6–1.2s here), so a healthy
+    // fake's reply clears the watchdog before it can misfire. Too tight and the test races the fake's
+    // own startup, not the model.
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '2500';
+  });
+  afterEach(() => {
+    driver?.dispose();
+    delete process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  const turnInput = (mode: string): AgentTurnInput => ({ prompt: 'ping', workdir: tmp, env: { FAKE_MODE: mode } });
+
+  it('bounds the INITIAL model wait: a model that never answers settles as stalled, not a forever spinner', async () => {
+    const d = new ClaudeDriver(fake);
+    driver = d;
+    const r = await d.run(turnInput('silent'), ctxCollect().ctx);
+    expect(r.stopReason).toBe('stalled');
+    expect(r.ok).toBe(false);
+  });
+
+  it('still stalls when the CLI reports an API error then goes silent (the retry never recovers)', async () => {
+    // Regression guard: the API-error assistant event must NOT clear the watchdog (previously any
+    // assistant/stream event did), or a connection that fails-then-retries-silently hangs unbounded.
+    const d = new ClaudeDriver(fake);
+    driver = d;
+    const r = await d.run(turnInput('apierr'), ctxCollect().ctx);
+    expect(r.stopReason).toBe('stalled');
+    expect(r.ok).toBe(false);
+  });
+
+  it('does NOT stall a healthy turn — real model output clears the watchdog', async () => {
+    // This case must NOT inherit the tight window above. What it asserts is that model output
+    // CLEARS the watchdog; with a 2.5 s window the pass condition also silently requires a cold
+    // `node` spawn to finish inside 2.5 s, which is a race against machine load rather than
+    // against the model — under a loaded suite it misfires and the turn settles 'stalled'.
+    // A window that cannot misfire keeps the assertion about the watchdog, which is the point.
+    process.env.PIKILOOM_CLAUDE_MODEL_STALL_MS = '60000';
+    const d = new ClaudeDriver(fake);
+    driver = d;
+    const r = await d.run(turnInput('healthy'), ctxCollect().ctx);
+    expect(r.ok).toBe(true);
+    expect(r.stopReason).not.toBe('stalled');
+    expect(r.text).toContain('answer');
+  });
+});
