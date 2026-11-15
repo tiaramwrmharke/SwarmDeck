@@ -152,3 +152,612 @@ export function decodeCommandAction(data: string): CommandAction | null {
     }
   }
   if (data.startsWith('mod:')) {
+    const modelId = data.slice(4);
+    if (!modelId) return null;
+    return { kind: 'model.switch', modelId };
+  }
+  if (data.startsWith('eff:')) {
+    const effort = data.slice(4);
+    if (!effort) return null;
+    return { kind: 'effort.set', effort };
+  }
+  if (data.startsWith('md:')) {
+    const rest = data.slice(3);
+    if (rest.startsWith('n:')) {
+      const modelId = rest.slice(2);
+      if (!modelId) return null;
+      return { kind: 'models.select.model', modelId, profileId: null };
+    }
+    if (rest.startsWith('p:')) {
+      const sep = rest.indexOf(':', 2);
+      if (sep < 0) return null;
+      const profileId = rest.slice(2, sep);
+      const modelId = rest.slice(sep + 1);
+      if (!profileId || !modelId) return null;
+      return { kind: 'models.select.model', modelId, profileId };
+    }
+    if (!rest) return null;
+    return { kind: 'models.select.model', modelId: rest, profileId: null };
+  }
+  if (data.startsWith('ed:')) {
+    const effort = data.slice(3);
+    if (!effort) return null;
+    return { kind: 'models.select.effort', effort };
+  }
+  if (data === 'mc') return { kind: 'models.confirm' };
+  if (data.startsWith('skr:')) {
+    const command = data.slice(4);
+    if (!command) return null;
+    return { kind: 'skill.run', command };
+  }
+  if (data.startsWith('pm:')) {
+    const mode = data.slice(3);
+    if (!mode) return null;
+    return { kind: 'mode.switch', mode };
+  }
+  if (data.startsWith('wf:')) {
+    const flag = data.slice(3);
+    if (flag !== '0' && flag !== '1') return null;
+    return { kind: 'workflow.toggle', enabled: flag === '1' };
+  }
+  return null;
+}
+
+export async function buildSessionsCommandView(
+  bot: Bot,
+  chatId: ChatId,
+  page: number,
+  pageSize = 5,
+): Promise<CommandSelectionView> {
+  const data = await getSessionsPageData(bot, chatId, page, pageSize);
+  const sessionButtons: CommandActionButton[][] = data.sessions.map(session => [{
+    label: `[${session.agent}] ${session.title} · ${session.time}`,
+    action: { kind: 'session.switch', sessionId: session.key } as CommandAction,
+    state: buttonStateFromFlags({ isCurrent: session.isCurrent, isRunning: session.isRunning }),
+    primary: session.isCurrent,
+  }]);
+  const navRow: CommandActionButton[] = [];
+  if (data.page > 0) navRow.push({ label: `◀ p${data.page}`, action: { kind: 'sessions.page', page: data.page - 1 } });
+  navRow.push({ label: '+ New', action: { kind: 'session.new' } });
+  if (data.page < data.totalPages - 1) navRow.push({ label: `p${data.page + 2} ▶`, action: { kind: 'sessions.page', page: data.page + 1 } });
+
+  const agentChips = Object.entries(data.agentTotals)
+    .sort((a, b) => b[1] - a[1])
+    .map(([agent, count]) => `${agent}:${count}`)
+    .join(' · ');
+  const headerDetail = data.workspaceName
+    ? (agentChips ? `${data.workspaceName} · ${agentChips}` : data.workspaceName)
+    : (agentChips || null);
+
+  return {
+    kind: 'sessions',
+    title: 'Sessions',
+    detail: headerDetail,
+    metaLines: [`${data.total} total · p${data.page + 1}/${data.totalPages}`],
+    items: data.sessions.map(session => ({
+      label: `[${session.agent}] ${session.title}`,
+      detail: session.time,
+      state: buttonStateFromFlags({ isCurrent: session.isCurrent, isRunning: session.isRunning }),
+    })),
+    emptyText: 'No sessions found in this workspace.',
+    helperText: data.totalPages > 1
+      ? `Pick a row to resume (agent/model/effort restore automatically).`
+      : 'Pick a row to resume, or start a new session.',
+    rows: navRow.length ? [...sessionButtons, navRow] : sessionButtons,
+  };
+}
+
+export function buildAgentsCommandView(bot: Bot, chatId: ChatId): CommandSelectionView {
+  const data = getAgentsListData(bot, chatId);
+  const installed = data.agents.filter(a => a.installed);
+
+  const actions = installed.map(agent => ({
+    label: agent.label,
+    action: { kind: 'agent.switch', agent: agent.agent as Agent } as CommandAction,
+    state: buttonStateFromFlags({ isCurrent: agent.isCurrent }),
+    primary: agent.isCurrent,
+  }));
+
+  const items = installed.map(agent => {
+    const main = agent.versionShort
+      ? `${agent.label} · v${agent.versionShort}`
+      : agent.label;
+    const detail = agent.boundProvider && agent.boundModel
+      ? `${agent.boundProvider} / ${agent.boundModel}`
+      : null;
+    return {
+      label: main,
+      detail,
+      state: buttonStateFromFlags({ isCurrent: agent.isCurrent }),
+    };
+  });
+
+  const current = installed.find(a => a.isCurrent);
+
+  // For the current agent, if it has local accounts (claude), surface them so the user can
+  // switch the active account right here — labelled with 👤 and each account's live usage.
+  const accountRows: CommandActionButton[][] = [];
+  const accountItems: CommandSelectionItem[] = [];
+  const curAgent = data.currentAgent;
+  if (accountAgentSupported(curAgent)) {
+    const accs = listAccounts(curAgent);
+    if (accs.length) {
+      warmAccountUsages(curAgent);
+      const activeAccId = getActiveAccountId(curAgent);
+      const entry = (label: string, accountId: string | null, summary: string | null) => {
+        const isActive = accountId === activeAccId;
+        accountRows.push([{
+          label: summary ? `👤 ${label} · ${summary}` : `👤 ${label}`,
+          action: { kind: 'agent.account.set', agent: curAgent as Agent, accountId },
+          state: isActive ? 'current' : 'default',
+          primary: isActive,
+        }]);
+        accountItems.push({ label: `👤 ${label}`, detail: summary, state: isActive ? 'current' : 'default' });
+      };
+      for (const acc of accs) entry(acc.label, acc.id, accountUsageSummary(curAgent, acc.id));
+      entry('Default login', null, null);
+    }
+  }
+
+  const helperText = actions.length
+    ? (accountRows.length ? 'Tap an agent to switch · 👤 = account' : 'Tap an agent to switch.')
+    : undefined;
+
+  return {
+    kind: 'agents',
+    title: 'Agents',
+    detail: current ? current.label : undefined,
+    metaLines: current ? [`Current: ${current.label}`] : [],
+    items: [...items, ...accountItems],
+    emptyText: actions.length ? undefined : 'No installed agents.',
+    helperText,
+    rows: [...actions.map(action => [action]), ...accountRows],
+  };
+}
+
+interface ModelsDraft {
+  modelId: string;
+  profileId: string | null;
+  effort: string | null;
+}
+
+const modelsDrafts = new Map<string, ModelsDraft>();
+
+async function initModelsDraft(bot: Bot, chatId: ChatId): Promise<ModelsDraft> {
+  const cs = bot.chat(chatId);
+  const data = await getModelsListData(bot, chatId);
+  const activeProfileId = bot.activeProfileIdForAgent(cs.agent);
+  const draft: ModelsDraft = {
+    modelId: data.currentModel,
+    profileId: activeProfileId,
+    effort: data.effort?.current ?? null,
+  };
+  modelsDrafts.set(String(chatId), draft);
+  return draft;
+}
+
+const MODEL_GROUP_LABELS: Record<'native' | 'cloud' | 'local', string> = {
+  native: '— Native —',
+  cloud: '— Cloud Profiles —',
+  local: '— Local Profiles —',
+};
+
+function modelRowMatchesDraft(
+  agent: Agent,
+  row: { id: string; profileId?: string | null; group?: 'native' | 'cloud' | 'local' },
+  draft: ModelsDraft,
+): boolean {
+  if (draft.profileId) return !!row.profileId && row.profileId === draft.profileId;
+  const isNativeRow = (row.group ?? 'native') === 'native';
+  return isNativeRow && modelMatchesSelection(agent, row.id, draft.modelId);
+}
+
+export async function buildModelsCommandView(
+  bot: Bot,
+  chatId: ChatId,
+  draft?: ModelsDraft,
+): Promise<CommandSelectionView> {
+  const data = await getModelsListData(bot, chatId);
+
+  const d: ModelsDraft = draft ?? {
+    modelId: data.currentModel,
+    profileId: bot.activeProfileIdForAgent(data.agent),
+    effort: data.effort?.current ?? null,
+  };
+  modelsDrafts.set(String(chatId), d);
+
+  const groups: Record<'native' | 'cloud' | 'local', typeof data.models> = {
+    native: [],
+    cloud: [],
+    local: [],
+  };
+  for (const model of data.models) {
+    const g = (model.group ?? 'native') as 'native' | 'cloud' | 'local';
+    groups[g].push(model);
+  }
+
+  const rows: CommandActionButton[][] = [];
+  for (const group of ['native', 'cloud', 'local'] as const) {
+    const rawItems = groups[group];
+    if (!rawItems.length) continue;
+    const items = [...rawItems].sort((a, b) =>
+      Number(modelRowMatchesDraft(data.agent, b, d)) - Number(modelRowMatchesDraft(data.agent, a, d))
+    );
+    rows.push([{
+      label: MODEL_GROUP_LABELS[group],
+      action: { kind: 'models.confirm' } as CommandAction,
+      state: 'default' as CommandItemState,
+      primary: false,
+    }]);
+    for (const model of items) {
+      const selected = modelRowMatchesDraft(data.agent, model, d);
+      const labelBase = model.alias || model.id;
+      const label = group === 'native' || !model.providerName
+        ? labelBase
+        : `${labelBase} · ${model.providerName}`;
+      rows.push([{
+        label,
+        action: {
+          kind: 'models.select.model',
+          modelId: model.id,
+          profileId: model.profileId ?? null,
+        } as CommandAction,
+        state: buttonStateFromFlags({ isCurrent: selected }),
+        primary: selected,
+      }]);
+    }
+  }
+
+  if (data.effort) {
+    const effortButtons = data.effort.levels.map(level => ({
+      label: level.label,
+      action: { kind: 'models.select.effort', effort: level.id } as CommandAction,
+      state: buttonStateFromFlags({ isCurrent: level.id === d.effort }),
+      primary: level.id === d.effort,
+    }));
+    rows.push([{
+      label: '— Thinking Effort —',
+      action: { kind: 'models.confirm' } as CommandAction,
+      state: 'default' as CommandItemState,
+      primary: false,
+    }]);
+    rows.push(...chunkRows(effortButtons, effortButtons.length <= 3 ? effortButtons.length : 2));
+  }
+
+  const currentProfileId = bot.activeProfileIdForAgent(data.agent);
+  const profileChanged = (d.profileId || null) !== (currentProfileId || null);
+  const modelChanged = !d.profileId && !currentProfileId
+    && !modelMatchesSelection(data.agent, d.modelId, data.currentModel);
+  const effortChanged = !!(data.effort && d.effort !== data.effort.current);
+  const hasChanges = profileChanged || modelChanged || effortChanged;
+
+  rows.push([{
+    label: hasChanges ? '✓ Apply' : '✓ OK',
+    action: { kind: 'models.confirm' } as CommandAction,
+    state: 'default' as CommandItemState,
+    primary: hasChanges,
+  }]);
+
+  return {
+    kind: 'models',
+    title: 'Models',
+    detail: data.agent,
+    metaLines: [
+      ...(data.sources.length ? [`Source: ${data.sources.join(', ')}`] : []),
+      ...(data.note ? [data.note] : []),
+      ...(data.effort ? [`Thinking Effort: ${d.effort}`] : []),
+    ],
+    items: data.models.map(model => ({
+      label: model.alias || model.id,
+      detail: model.providerName || (model.alias ? model.id : null),
+      state: buttonStateFromFlags({ isCurrent: modelRowMatchesDraft(data.agent, model, d) }),
+    })),
+    emptyText: 'No discoverable models found.',
+    helperText: data.models.length ? 'Pick a model (native or BYOK), then tap Apply.' : null,
+    rows,
+  };
+}
+
+export function buildSkillsCommandView(bot: Bot, chatId: ChatId): CommandSelectionView {
+  const data = getSkillsListData(bot, chatId);
+  const buttons = data.skills.map(skill => ({
+    label: skill.label,
+    action: { kind: 'skill.run', command: skill.command } as CommandAction,
+  }));
+
+  return {
+    kind: 'skills',
+    title: 'Skills',
+    detail: data.agent,
+    metaLines: [`Workdir: ${data.workdir}`],
+    items: data.skills.map(skill => ({
+      label: skill.label,
+      detail: skill.description || `/${skill.command}`,
+    })),
+    emptyText: 'No project skills found.',
+    helperText: data.skills.length ? 'Use the controls below to run a skill.' : null,
+    rows: chunkRows(buttons, buttons.some(button => button.label.length > 14) ? 1 : 2),
+  };
+}
+
+export function buildModeCommandView(bot: Bot, chatId: ChatId): CommandSelectionView {
+  const cs = bot.chat(chatId);
+  const isClaude = cs.agent === 'claude';
+  const isPlanMode = isClaude && bot.claudePermissionMode === 'plan';
+  const supportsWorkflow = getDriverCapabilities(cs.agent).workflow;
+  const workflowOn = supportsWorkflow && bot.workflowEnabledForAgent(cs.agent);
+
+  const rows: CommandActionButton[][] = [
+    [
+      { label: 'Code', action: { kind: 'mode.switch', mode: 'bypassPermissions' },
+        state: isPlanMode ? 'default' : 'current', primary: !isPlanMode },
+      { label: 'Plan', action: { kind: 'mode.switch', mode: 'plan' },
+        state: isPlanMode ? 'current' : 'default', primary: isPlanMode },
+    ],
+  ];
+
+  const metaLines: string[] = [];
+  if (!isClaude) metaLines.push('Permission mode is only available for Claude.');
+  if (supportsWorkflow) {
+    metaLines.push(`Workflow orchestration: ${workflowOn ? 'On (Ultra effort)' : 'Off'} — pick the Ultra rung in /models to toggle.`);
+  }
+
+  return {
+    kind: 'mode',
+    title: 'Agent Mode',
+    detail: `Current: ${isPlanMode ? 'Plan (read-only)' : 'Code (full access)'}`
+      + (supportsWorkflow && workflowOn ? ' · Ultra (workflow)' : ''),
+    metaLines,
+    items: [],
+    rows,
+  };
+}
+
+export async function executeCommandAction(
+  bot: Bot,
+  chatId: ChatId,
+  action: CommandAction,
+  opts: { sessionsPageSize?: number } = {},
+): Promise<CommandActionResult> {
+  const sessionsPageSize = opts.sessionsPageSize ?? 5;
+
+  switch (action.kind) {
+    case 'sessions.page':
+      return {
+        kind: 'view',
+        view: await buildSessionsCommandView(bot, chatId, action.page, sessionsPageSize),
+        callbackText: '',
+      };
+
+    case 'session.new': {
+      bot.resetConversationForChat(chatId);
+      return {
+        kind: 'notice',
+        callbackText: 'New session',
+        notice: { title: 'New Session', detail: 'Send a message to start.' },
+      };
+    }
+
+    case 'session.switch': {
+      const chat = bot.chat(chatId);
+      const result = await bot.fetchSessions(undefined, bot.chatWorkdir(chatId));
+      if (!result.ok) return { kind: 'noop', message: 'Failed to load sessions' };
+
+      const session = result.sessions.find(entry => entry.sessionId === action.sessionId);
+      if (!session) return { kind: 'noop', message: 'Session not found' };
+
+      const prevAgent = chat.agent;
+      const runtime = bot.adoptExistingSessionForChat(chatId, session);
+      if (session.model) {
+        bot.switchModelForChat(chatId, session.model, session.profileId ?? null);
+      } else if (session.profileId !== undefined) {
+        bot.switchModelForChat(chatId, bot.modelForAgent(session.agent), null);
+      }
+      if (session.thinkingEffort) {
+        bot.switchEffortForChat(chatId, session.thinkingEffort);
+      }
+      const displayId = session.sessionId || action.sessionId;
+      const sessionStatus = getSessionStatusForChat(bot, chat, session);
+      const runDetail = summarizeSessionRun({ ...session, running: sessionStatus.isRunning }).noticeDetail;
+      const restoreParts: string[] = [];
+      if (prevAgent !== session.agent) restoreParts.push(`agent → ${session.agent}`);
+      if (session.model) restoreParts.push(`model → ${session.model}`);
+      if (session.thinkingEffort) restoreParts.push(`effort → ${session.thinkingEffort}`);
+      const detail = restoreParts.length ? `${runDetail} · ${restoreParts.join(' · ')}` : runDetail;
+      return {
+        kind: 'notice',
+        callbackText: `Switched: ${displayId.slice(0, 12)}`,
+        notice: {
+          title: 'Session Switched',
+          value: displayId,
+          detail,
+          valueMode: 'code',
+        },
+        session: runtime,
+        previewSession: { agent: session.agent, sessionId: session.sessionId },
+      };
+    }
+
+    case 'agent.switch': {
+      const chat = bot.chat(chatId);
+      const hasAccounts = accountAgentSupported(action.agent) && listAccounts(action.agent).length > 0;
+      if (chat.agent === action.agent) {
+        // Already current: reopen the menu (now showing accounts) if it has any, else no-op.
+        if (hasAccounts) return { kind: 'view', view: buildAgentsCommandView(bot, chatId), callbackText: '' };
+        return { kind: 'noop', message: `Already using ${action.agent}` };
+      }
+      bot.switchAgentForChat(chatId, action.agent);
+      // For an account-capable agent, drop the user straight into its account picker.
+      if (hasAccounts) {
+        return { kind: 'view', view: buildAgentsCommandView(bot, chatId), callbackText: `Switched to ${action.agent}` };
+      }
+      const resumed = bot.selectedSession(chatId);
+      return {
+        kind: 'notice',
+        callbackText: `Switched to ${action.agent}`,
+        notice: {
+          title: 'Agent',
+          value: action.agent,
+          detail: resumed?.agent === action.agent && resumed.sessionId ? 'Resumed previous session' : 'Session reset',
+          valueMode: 'plain',
+        },
+        session: resumed?.agent === action.agent ? resumed : undefined,
+        previewSession: resumed?.agent === action.agent
+          ? { agent: resumed.agent, sessionId: resumed.sessionId }
+          : null,
+      };
+    }
+
+    case 'agent.account.set': {
+      if (!accountAgentSupported(action.agent)) return { kind: 'noop', message: `${action.agent} has no accounts` };
+      try {
+        setActiveAccount(action.agent, action.accountId);
+      } catch (e: any) {
+        return { kind: 'noop', message: e?.message || 'Switch failed' };
+      }
+      warmAccountUsages(action.agent);
+      const label = action.accountId ? (getAccount(action.agent, action.accountId)?.label ?? action.accountId) : 'Default login';
+      return { kind: 'view', view: buildAgentsCommandView(bot, chatId), callbackText: `Account → ${label}` };
+    }
+
+    case 'model.switch': {
+      const chat = bot.chat(chatId);
+      const currentModel = bot.modelForAgent(chat.agent);
+      if (modelMatchesSelection(chat.agent, action.modelId, currentModel)) {
+        return { kind: 'noop', message: `Already using ${action.modelId}` };
+      }
+      bot.switchModelForChat(chatId, action.modelId);
+      return {
+        kind: 'notice',
+        callbackText: `Switched to ${action.modelId}`,
+        notice: {
+          title: 'Model',
+          value: action.modelId,
+          detail: `${chat.agent} · session reset`,
+          valueMode: 'code',
+        },
+      };
+    }
+
+    case 'effort.set': {
+      const chat = bot.chat(chatId);
+      const currentEffort = bot.effortSelectionForAgent(chat.agent);
+      if (action.effort === currentEffort) {
+        return { kind: 'noop', message: `Already using ${action.effort} effort` };
+      }
+      bot.switchEffortForChat(chatId, action.effort);
+      return {
+        kind: 'notice',
+        callbackText: `Effort set to ${action.effort}`,
+        notice: {
+          title: 'Thinking Effort',
+          value: action.effort,
+          detail: `${chat.agent} · takes effect on next message`,
+          valueMode: 'code',
+        },
+      };
+    }
+
+    case 'models.select.model': {
+      const draft = modelsDrafts.get(String(chatId)) ?? await initModelsDraft(bot, chatId);
+      draft.modelId = action.modelId;
+      if (action.profileId !== undefined) draft.profileId = action.profileId;
+      return { kind: 'view', view: await buildModelsCommandView(bot, chatId, draft), callbackText: '' };
+    }
+
+    case 'models.select.effort': {
+      const draft = modelsDrafts.get(String(chatId)) ?? await initModelsDraft(bot, chatId);
+      draft.effort = action.effort;
+      return { kind: 'view', view: await buildModelsCommandView(bot, chatId, draft), callbackText: '' };
+    }
+
+    case 'models.confirm': {
+      const chat = bot.chat(chatId);
+      const draft = modelsDrafts.get(String(chatId));
+      modelsDrafts.delete(String(chatId));
+      if (!draft) return { kind: 'noop', message: 'No changes' };
+
+      const currentModel = bot.modelForAgent(chat.agent);
+      const currentEffort = bot.effortSelectionForAgent(chat.agent);
+      const currentProfileId = bot.activeProfileIdForAgent(chat.agent);
+      const profileChanged = (draft.profileId || null) !== (currentProfileId || null);
+      const modelChanged = profileChanged
+        || (!draft.profileId && !modelMatchesSelection(chat.agent, draft.modelId, currentModel));
+      const effortChanged = draft.effort != null && draft.effort !== currentEffort;
+
+      if (!modelChanged && !effortChanged) {
+        return { kind: 'noop', message: 'No changes' };
+      }
+
+      const parts: string[] = [];
+      if (modelChanged) {
+        bot.switchModelForChat(chatId, draft.modelId, draft.profileId ?? null);
+        parts.push(draft.profileId ? `Profile: ${draft.modelId}` : `Model: ${draft.modelId}`);
+      }
+      if (effortChanged) {
+        bot.switchEffortForChat(chatId, draft.effort!);
+        parts.push(`Effort: ${draft.effort}`);
+      }
+
+      return {
+        kind: 'notice',
+        callbackText: parts.join(', '),
+        notice: {
+          title: 'Configuration Updated',
+          value: parts.join('\n'),
+          detail: modelChanged
+            ? `${chat.agent} · session reset`
+            : `${chat.agent} · takes effect on next message`,
+          valueMode: 'plain',
+        },
+      };
+    }
+
+    case 'skill.run': {
+      const resolved = resolveSkillPrompt(bot, chatId, action.command, '');
+      if (!resolved) return { kind: 'noop', message: 'Skill not found' };
+      return {
+        kind: 'skill',
+        prompt: resolved.prompt,
+        skillName: resolved.skillName,
+        callbackText: `Run ${resolved.skillName}`,
+      };
+    }
+
+    case 'mode.switch': {
+      const cs = bot.chat(chatId);
+      if (cs.agent !== 'claude') {
+        return { kind: 'noop', message: 'Mode toggle is only available for Claude agent' };
+      }
+      bot.switchPermissionModeForChat(chatId, action.mode);
+      const label = action.mode === 'plan' ? 'Plan (read-only)' : 'Code (full access)';
+      return {
+        kind: 'notice',
+        callbackText: `Mode: ${label}`,
+        notice: { title: 'Agent Mode', value: label },
+      };
+    }
+
+    case 'workflow.toggle': {
+      const cs = bot.chat(chatId);
+      if (!getDriverCapabilities(cs.agent).workflow) {
+        return { kind: 'noop', message: `${cs.agent} does not support workflow orchestration` };
+      }
+      if (bot.workflowEnabledForAgent(cs.agent) === action.enabled) {
+        return { kind: 'noop', message: `Workflow already ${action.enabled ? 'on' : 'off'}` };
+      }
+      bot.switchWorkflowForChat(chatId, action.enabled);
+      return {
+        kind: 'notice',
+        callbackText: `Workflow ${action.enabled ? 'On' : 'Off'}`,
+        notice: {
+          title: 'Workflow Orchestration',
+          value: action.enabled ? 'On' : 'Off',
+          detail: action.enabled
+            ? `${cs.agent} · multi-agent fan-out enabled · takes effect next message`
+            : `${cs.agent} · Workflow tool disabled · takes effect next message`,
+        },
+      };
+    }
+  }
+}
