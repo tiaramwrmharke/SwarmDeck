@@ -54,3 +54,77 @@ export class ClaudeWarmPool {
   private readonly parked = new Map<string, ParkedClaude>();
 
   size(): number {
+    return this.parked.size;
+  }
+
+  /**
+   * Reclaim the parked process for `sessionId`, or null when there is none, it died while
+   * parked, or its spawn fingerprint no longer matches (that entry is destroyed — the turn
+   * must go cold so the new model/effort/config actually applies).
+   */
+  take(sessionId: string, fingerprint: string): ChildProcess | null {
+    const entry = this.parked.get(sessionId);
+    if (!entry) return null;
+    this.unpark(sessionId, entry);
+    if (entry.child.exitCode != null || entry.child.killed) return null;
+    if (entry.fingerprint !== fingerprint) {
+      destroyClaudeChild(entry.child);
+      return null;
+    }
+    return entry.child;
+  }
+
+  /** Park a process after a clean settle. The caller has already detached its turn listeners. */
+  put(sessionId: string, fingerprint: string, child: ChildProcess): void {
+    if (child.exitCode != null || child.killed || !child.stdin || child.stdin.destroyed) {
+      destroyClaudeChild(child);
+      return;
+    }
+    this.evictSession(sessionId); // never two processes for one session
+    while (this.parked.size >= Math.max(claudeWarmMaxProcesses(), 0)) {
+      const oldest = [...this.parked.entries()].sort((a, b) => a[1].parkedAt - b[1].parkedAt)[0];
+      if (!oldest) break;
+      this.evictSession(oldest[0]);
+    }
+    if (claudeWarmMaxProcesses() <= 0) {
+      destroyClaudeChild(child);
+      return;
+    }
+    const onClose = () => {
+      const cur = this.parked.get(sessionId);
+      if (cur?.child === child) { this.unpark(sessionId, cur); }
+    };
+    // Keep both pipes flowing while parked so the CLI can never block on a full pipe.
+    const drain = () => { /* discard between-turn chatter */ };
+    child.stdout?.on('data', drain);
+    child.stderr?.on('data', drain);
+    child.on('close', onClose);
+    const idleTimer = setTimeout(() => {
+      const cur = this.parked.get(sessionId);
+      if (cur?.child === child) this.evictSession(sessionId);
+    }, claudeWarmIdleTtlMs());
+    if (typeof idleTimer.unref === 'function') idleTimer.unref();
+    this.parked.set(sessionId, { child, fingerprint, parkedAt: Date.now(), idleTimer, onClose, drain });
+  }
+
+  /** Destroy the parked process for a session (rewind made its in-memory context stale, TTL, cap). */
+  evictSession(sessionId: string): void {
+    const entry = this.parked.get(sessionId);
+    if (!entry) return;
+    this.unpark(sessionId, entry);
+    destroyClaudeChild(entry.child);
+  }
+
+  dispose(): void {
+    for (const sessionId of [...this.parked.keys()]) this.evictSession(sessionId);
+  }
+
+  /** Remove bookkeeping without deciding the child's fate. */
+  private unpark(sessionId: string, entry: ParkedClaude): void {
+    clearTimeout(entry.idleTimer);
+    entry.child.stdout?.off('data', entry.drain);
+    entry.child.stderr?.off('data', entry.drain);
+    entry.child.off('close', entry.onClose);
+    this.parked.delete(sessionId);
+  }
+}

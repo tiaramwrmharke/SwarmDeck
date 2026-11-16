@@ -57,3 +57,94 @@ export type DriverEvent =
   | { type: 'artifact'; artifact: UniversalArtifact }
   | { type: 'activity'; line: string }
   | { type: 'compaction'; trigger: 'auto' | 'manual'; atTokens?: number | null };
+
+export type SteerFn = (prompt: string, attachments?: string[]) => Promise<boolean>;
+
+export interface DriverContext {
+  signal: AbortSignal;                                   // aborts on stop()
+  emit(event: DriverEvent): void;                        // stream a normalized event
+  askUser(interaction: UniversalInteraction): Promise<Record<string, string[]>>; // human-in-the-loop
+  registerSteer(fn: SteerFn): void;                      // drivers that support mid-turn steer call this
+}
+
+export interface DriverResult {
+  ok: boolean;
+  text: string;
+  reasoning?: string;
+  error?: string | null;
+  stopReason?: string | null;
+  sessionId?: string | null;
+  usage?: UniversalUsage | null;
+  // Agent-native boundary marker of THIS settled turn (claude: last transcript record uuid;
+  // codex: turn id) — persisted per turn so a later fork can cut exactly here (fork anchor).
+  anchor?: string | null;
+  // How the driver obtained this turn's process: 'warm' = reused from its warm pool
+  // (spawn+init skipped), 'cold' = freshly spawned. Absent for drivers that don't report it.
+  transport?: 'cold' | 'warm' | null;
+}
+
+// ---- TUI mode (the second, orthogonal shape) ----
+// run() yields a structured snapshot (for Web/IM). tui() yields a raw, full-screen
+// interactive process to passthrough over a PTY (for a terminal app like `swarmdeck code`).
+// Same driver registry, two outputs: structured frames vs raw bytes.
+
+export interface TuiInput {
+  workdir: string;
+  model?: string | null;
+  sessionId?: string | null;       // resume the agent's native interactive session
+  // Spawn a FRESH interactive session and PIN its native id to this value (mutually
+  // exclusive with `sessionId`/resume; if both are set, the fresh pin wins). This lets a
+  // host mint the id up front and bind a pane/record to `agent:<newSessionId>` BEFORE the
+  // CLI runs — the basis for a "terminal-first new session" where the user types the first
+  // prompt into the live TUI. Only drivers whose CLI can pin a fresh id honour it (Claude:
+  // `--session-id <uuid>`); drivers that cannot (Codex) ignore it and the host discovers the
+  // created id post-hoc via `listNativeSessions` + `createdAt`.
+  newSessionId?: string;
+  env?: Record<string, string>;    // injected by ModelResolver (BYOK)
+  extraArgs?: string[];
+}
+
+export interface TuiSpec {
+  command: string;
+  args: string[];
+  cwd: string;
+  env?: Record<string, string>;
+}
+
+// A session discovered from an agent's OWN on-disk transcript store (not created via the
+// kernel). Drivers that can read their CLI's native session history expose them here so the
+// kernel can present a unified list (managed + native). `agent` is stamped by the kernel.
+export interface NativeSessionInfo {
+  sessionId: string;
+  title: string | null;
+  preview: string | null;     // the latest message text (from the transcript tail, not just the head)
+  cwd: string | null;
+  model: string | null;
+  effort?: string | null;     // reasoning effort the session last ran with (codex), when discoverable
+  createdAt: string | null;   // ISO
+  updatedAt: string | null;   // ISO
+  running: boolean;
+  messageCount?: number | null;
+}
+
+export interface AgentDriver {
+  readonly id: string;
+  readonly capabilities?: { steer?: boolean; interact?: boolean; resume?: boolean; tui?: boolean; fork?: boolean; rewind?: boolean };
+  run(input: AgentTurnInput, ctx: DriverContext): Promise<DriverResult>;
+  // Optional: how to launch this agent's interactive TUI. Drivers that set capabilities.tui
+  // must implement this. The kernel spawns it in a PTY and passes terminal I/O through.
+  tui?(input: TuiInput): TuiSpec;
+  // Optional: discover the agent's own native sessions for a workdir (e.g. claude reads
+  // ~/.claude/projects/<enc>/*.jsonl). The kernel merges these with its managed sessions.
+  listNativeSessions?(opts: { workdir: string; limit?: number }): NativeSessionInfo[] | Promise<NativeSessionInfo[]>;
+  // Optional (fork-capable drivers): the CURRENT tail boundary of a native session, in the
+  // same terms as AgentTurnInput.fork.anchor. Hub.forkSession pins a tail cut with it at
+  // fork time, so the branch stays put even if the parent keeps running afterwards.
+  resolveNativeAnchor?(opts: { sessionId: string; workdir: string }): string | null | Promise<string | null>;
+  // Optional (fork/rewind-capable drivers): can the agent's own resume path still resolve an
+  // anchor pinned earlier? Claude hydrates only the active leaf chain back to the last /compact
+  // boundary and fails the run outright on anything older, so the kernel drops such an anchor
+  // instead of dispatching a branch that cannot start. Must answer false ONLY when the driver can
+  // prove it — an inconclusive probe answers true, so a fork is never downgraded on a bad read.
+  anchorResolvable?(opts: { sessionId: string; workdir: string; anchor: string }): boolean | Promise<boolean>;
+}

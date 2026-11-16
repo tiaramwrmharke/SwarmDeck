@@ -33,3 +33,24 @@ export type TextVariant = keyof typeof TEXT_VARIANTS;
 export interface TextProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: TextVariant;
   as?: 'span' | 'p' | 'div';
+  children: ReactNode;
+}
+
+export function Text({ variant = 'body', as = 'span', className, children, ...rest }: TextProps) {
+  return createElement(as, { className: cn(TEXT_VARIANTS[variant], className), ...rest }, children);
+}
+
+export function Mono({
+  children,
+  className,
+  ...rest
+}: HTMLAttributes<HTMLSpanElement> & { children: ReactNode }) {
+  return (
+    <span
+      className={cn('font-mono text-[12px] leading-[18px] text-fg-3', className)}
+      {...rest}
+    >
+      {children}
+    </span>
+  );
+}
