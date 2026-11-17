@@ -13,3 +13,21 @@ describe('projectActivity (kernel activity-line contract)', () => {
       { id: '4', name: 'Grep', summary: 'Search text: TODO', status: 'failed', result: 'no matches' },
     ] }));
     expect(out.split('\n')).toEqual([
+      'Read foo.ts',                       // running -> bare summary
+      'Edit bar.ts done',                  // done, no detail
+      'Run shell: npm test -> 12 passing', // done, with detail
+      'Search text: TODO failed: no matches',
+    ]);
+  });
+
+  it('renders sub-agents as Run task lines', () => {
+    const out = projectActivity(snap({ subAgents: [
+      { id: 's1', kind: 'Explore', description: 'find the bug', model: null, tools: [], status: 'running' },
+    ] }));
+    expect(out).toBe('Run task: find the bug');
+  });
+
+  it('is empty when there is nothing to project', () => {
+    expect(projectActivity(snap({}))).toBe('');
+  });
+});
