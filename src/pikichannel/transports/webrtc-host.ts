@@ -17,3 +17,30 @@ export class WebRTCTransport implements ChannelTransport {
     this.wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => this.runSignaling(ws, req));
   }
 
+  handleUpgrade(req: http.IncomingMessage, socket: internal.Duplex, head: Buffer): void {
+    this.wss.handleUpgrade(req, socket, head, (ws) => this.wss.emit('connection', ws, req));
+  }
+
+  stop(): void {
+    this.wss.close();
+  }
+
+  private runSignaling(ws: WebSocket, req: http.IncomingMessage): void {
+    const remote = req.socket.remoteAddress ? `${req.socket.remoteAddress}:${req.socket.remotePort}` : undefined;
+    const answerer = createAnswerer({
+      remote,
+      log: dlog,
+      onConnection: (conn) => this.onConn?.(conn),
+      sendSignal: (data) => { if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(data)); },
+    });
+
+    ws.on('message', (raw) => {
+      let msg: SignalData; try { msg = JSON.parse(String(raw)); } catch { return; }
+      void answerer.onSignal(msg);
+    });
+
+    const cleanup = () => { if (!answerer.isAdopted()) answerer.close(); };
+    ws.on('close', cleanup);
+    ws.on('error', cleanup);
+  }
+}
