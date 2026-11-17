@@ -39,3 +39,30 @@ function handleAwaitBackground(args: Record<string, unknown>, ctx: ToolContext):
   const reason = typeof args?.reason === 'string' ? args.reason.trim().slice(0, MAX_REASON_CHARS) : '';
   toolLog('await_background', `reason=${reason.slice(0, 80) || '(empty)'}`);
   if (!reason) {
+    return toolResult('Error: `reason` must be a non-empty description of the background work being awaited.', true);
+  }
+  const root = sessionRootFromCtx(ctx);
+  if (!root) return toolResult('Error: MCP workspace path is not configured', true);
+  const file = path.join(root, AWAIT_FILE);
+  try {
+    fs.mkdirSync(root, { recursive: true });
+    const tmp = `${file}.tmp-${process.pid}-${Date.now().toString(36)}`;
+    fs.writeFileSync(tmp, JSON.stringify({ reason, since: new Date().toISOString() }, null, 2));
+    fs.renameSync(tmp, file);
+  } catch (err: any) {
+    return toolResult(`Error: failed to write awaiting marker: ${err?.message || err}`, true);
+  }
+  return toolResult(
+    'Marked this session as waiting on background work. The dashboard will show a "waiting" state until the session next runs (which clears the marker). Reminder: this does not wake you — you must resume the turn yourself or be re-prompted.',
+  );
+}
+
+export const awaitResumeTools: McpToolModule = {
+  tools,
+  handle(name, args, ctx) {
+    switch (name) {
+      case 'await_background': return handleAwaitBackground(args, ctx);
+      default: return toolResult(`Unknown await tool: ${name}`, true);
+    }
+  },
+};

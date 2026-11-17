@@ -9,3 +9,10 @@ export class HeadlessBot extends Bot {
     return new Promise<void>(resolve => { this.resolveRun = resolve; });
   }
 
+  public requestStop(): void {
+    this.connected = false;
+    super.requestStop();
+    this.resolveRun?.();
+    this.resolveRun = null;
+  }
+}
