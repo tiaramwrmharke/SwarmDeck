@@ -24,3 +24,41 @@ function loomWith(tmp: string, handler?: InteractionHandler): Loom {
   return createLoom({ drivers: [new EchoDriver()], defaultAgent: 'echo', sessionStore: new FsSessionStore(tmp), ...(handler ? { interactionHandler: handler } : {}) });
 }
 
+describe('HITL interaction handler (hermetic)', () => {
+  let tmp: string;
+  beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-hitl-')); });
+  afterEach(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
+
+  it('default defers to the terminal: interaction stays pending until interact()', async () => {
+    const loom = loomWith(tmp); await loom.start();
+    const w = watch(loom.io);
+    await loom.io.prompt({ prompt: 'ASK: favorite color?' });
+    await waitFor(() => w.updates.some(u => (u.interactions?.length || 0) > 0));
+    const pid = w.updates.flatMap(u => u.interactions || []).find(Boolean)!.promptId;
+    expect(loom.io.interact(pid, 'text', 'blue')).toBe(true);
+    const final = await w.done;
+    expect(final.text).toBe('You said: blue');
+    expect(final.interactions).toEqual([]);
+    w.unsub(); await loom.stop();
+  });
+
+  it('AutoCancelInteractionHandler resolves interactions immediately (headless, no interact())', async () => {
+    const loom = loomWith(tmp, new AutoCancelInteractionHandler()); await loom.start();
+    const w = watch(loom.io);
+    await loom.io.prompt({ prompt: 'ASK: favorite color?' });
+    const final = await w.done;
+    expect(final.text).toBe('You said: (none)');
+    expect(final.interactions).toEqual([]);
+    w.unsub(); await loom.stop();
+  });
+
+  it('a programmatic handler answers based on the interaction (no interact())', async () => {
+    const handler: InteractionHandler = { async askUser(i) { return { [i.questions[0].id]: ['green'] }; } };
+    const loom = loomWith(tmp, handler); await loom.start();
+    const w = watch(loom.io);
+    await loom.io.prompt({ prompt: 'ASK: favorite color?' });
+    const final = await w.done;
+    expect(final.text).toBe('You said: green');
+    w.unsub(); await loom.stop();
+  });
+});

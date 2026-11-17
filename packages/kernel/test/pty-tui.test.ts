@@ -30,3 +30,70 @@ const waitForData = async (get: () => string, needle: string, ms = 5000) => {
   const t0 = Date.now();
   while (!get().includes(needle)) { if (Date.now() - t0 > ms) throw new Error(`timeout waiting for "${needle}" — got: ${get().slice(0, 200)}`); await new Promise(r => setTimeout(r, 10)); }
 };
+
+describe.skipIf(!ptyAvailable())('PtyBridge / TUI passthrough (hermetic)', () => {
+  let tmp: string; let script: string;
+  beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-pty-')); script = path.join(tmp, 'fake.mjs'); fs.writeFileSync(script, FAKE); });
+  afterEach(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
+
+  it('passes raw bytes both ways, tees to observers, resizes, and reports exit', async () => {
+    const bridge = PtyBridge.open({ command: process.execPath, args: [script], cwd: tmp }, { cols: 80, rows: 24 });
+    let primary = ''; let tee = '';
+    bridge.onData(d => { primary += d; });
+    bridge.onData(d => { tee += d; });            // second observer = tee/mirror
+    expect(bridge.pid).toBeGreaterThan(0);
+
+    await waitForData(() => primary, 'TUI-READY');
+    bridge.write('hello\r');                       // \r => line delivered (canonical pty mode)
+    await waitForData(() => primary, 'GOT:');
+    expect(primary).toContain('hello');           // input reached the child, echoed in its output
+    expect(tee).toContain('TUI-READY');           // tee observer saw the same stream
+
+    bridge.resize(120, 40);                        // must not throw
+
+    const exit = await new Promise<{ exitCode: number }>((resolve) => {
+      bridge.onExit(resolve);
+      bridge.write('Q\r');
+    });
+    expect(exit.exitCode).toBe(0);
+    expect(primary).toContain('BYE');
+  });
+
+  it('Loom.resolveTui applies the driver spec; Loom.openTui spawns it', async () => {
+    const loom = createLoom({ drivers: [new FakeTuiDriver(script)], defaultAgent: 'fake' });
+    const spec = await loom.resolveTui({ agent: 'fake', workdir: tmp });
+    expect(spec.command).toBe(process.execPath);
+    expect(spec.args).toEqual([script]);
+
+    const bridge = await loom.openTui({ agent: 'fake', workdir: tmp });
+    let out = '';
+    bridge.onData(d => { out += d; });
+    await waitForData(() => out, 'TUI-READY');
+    bridge.kill();
+  });
+
+  it('rejects TUI for a driver that does not support it', async () => {
+    const loom = createLoom({ drivers: [{ id: 'nope', async run() { return { ok: true, text: '' }; } } as AgentDriver], defaultAgent: 'nope' });
+    await expect(loom.resolveTui({ agent: 'nope' })).rejects.toThrow(/does not support TUI/);
+  });
+});
+
+// Real claude TUI passthrough — off by default (needs auth/network). Proves real raw
+// TUI bytes (ANSI) flow through the kernel's PtyBridge.
+function claudePresent(): boolean { try { execSync('command -v claude', { stdio: 'ignore' }); return true; } catch { return false; } }
+const realEnabled = process.env.KERNEL_E2E_REAL === '1' && claudePresent() && ptyAvailable();
+
+describe.skipIf(!realEnabled)('real Claude TUI passthrough', () => {
+  it('launches the real claude TUI in a PTY and streams raw ANSI frames', async () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-claude-tui-'));
+    const loom = createLoom({ drivers: [new (await import('../src/drivers/claude.js')).ClaudeDriver()], defaultAgent: 'claude' });
+    const bridge = await loom.openTui({ agent: 'claude', workdir: tmp });
+    let out = '';
+    bridge.onData(d => { out += d; });
+    await new Promise(r => setTimeout(r, 4000)); // let the TUI paint
+    bridge.kill();
+    fs.rmSync(tmp, { recursive: true, force: true });
+    expect(out.length).toBeGreaterThan(0);
+    expect(out).toContain('\x1b');               // ANSI escape => a real full-screen TUI rendered
+  }, 30_000);
+});
