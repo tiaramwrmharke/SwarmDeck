@@ -1,10 +1,10 @@
 {
-  "name": "swarmdeck",
+  "name": "helio",
   "version": "0.4.83",
-  "description": "Put the world's smartest AI agents in your pocket. Command local Claude & Gemini via IM. | 让最好用的 IM 变成你电脑上的顶级 Agent 控制台",
+  "description": "Helio - the assistant on helius.dev. Answers from the docs, triages RPC errors, drafts code against your own keys.",
   "type": "module",
   "bin": {
-    "swarmdeck": "dist/cli/main.js"
+    "helio": "dist/cli/main.js"
   },
   "files": [
     "dist/",
@@ -15,7 +15,9 @@
     "README.md"
   ],
   "keywords": [
-    "telegram",
+    "helius",
+    "solana",
+    "assistant",
     "ai",
     "coding",
     "claude",
@@ -23,12 +25,12 @@
     "bridge",
     "cli"
   ],
-  "author": "Elias Thornbury",
+  "author": "Helius Labs",
   "license": "MIT",
   "packageManager": "npm@11.6.2",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiaotonng/swarmdeck.git"
+    "url": "git+https://github.com/LiowNathan/helio.git"
   },
   "scripts": {
     "verify:toolchain": "node scripts/verify-toolchain.mjs",
