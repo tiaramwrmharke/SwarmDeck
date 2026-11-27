@@ -1,13 +1,13 @@
 <div align="center">
 
-# 🐾 swarmdeck
+# 🐾 helio
 
 ### Put the world's smartest AI agents in your pocket.
 
 **The open orchestrator for driving a _swarm_ of coding agents — any agent, any model, any tool — from whatever screen is closest: your IM, your browser, your phone.**
 
 ```bash
-npx swarmdeck@latest
+npx helio@latest
 ```
 
 </p>
@@ -15,7 +15,7 @@ npx swarmdeck@latest
 <b>English</b> | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-<img src="docs/promo-orchestrator.png" alt="swarmdeck — the open Agent orchestrator" width="820">
+<img src="docs/promo-orchestrator.png" alt="helio — the open Agent orchestrator" width="820">
 
 </div>
 
@@ -27,13 +27,13 @@ npx swarmdeck@latest
 
 <p align="center"><img src="docs/promo-demo.gif" alt="Ask from Telegram, agent works locally, result returns to chat" width="780"></p>
 
-swarmdeck turns **whatever messenger you already have open** into a control surface for the agents running on your own computer. Kick off a refactor, close the laptop, steer it from a coffee shop. Same agents, same files, streamed to your pocket.
+helio turns **whatever messenger you already have open** into a control surface for the agents running on your own computer. Kick off a refactor, close the laptop, steer it from a coffee shop. Same agents, same files, streamed to your pocket.
 
 ---
 
-## What is swarmdeck?
+## What is helio?
 
-The agents themselves are becoming extraordinary — they plan, spawn sub-agents, run their own workflows. **swarmdeck doesn't try to out-think them. It sets them free.**
+The agents themselves are becoming extraordinary — they plan, spawn sub-agents, run their own workflows. **helio doesn't try to out-think them. It sets them free.**
 
 It's a deliberately thin layer that wraps best-in-class agents (Claude Code · Codex · Gemini · Hermes · …) and gives them the three things they can't give themselves:
 
@@ -41,9 +41,9 @@ It's a deliberately thin layer that wraps best-in-class agents (Claude Code · C
 - **Freedom** — run them on any model: frontier, Chinese domestic, or fully local.
 - **Parallelism** — a whole swarm at once, each on its own workspace, steered by one operator.
 
-We never rewrite the brain. When an agent ships a new capability — a workflow engine, a sharper planner, a new tool — your swarmdeck sessions inherit it **the same day, for free**. Our job is everything *around* the agent: the terminals, the models, the tools, and the orchestration across them. The orchestrator is the product — and it's **built with itself**.
+We never rewrite the brain. When an agent ships a new capability — a workflow engine, a sharper planner, a new tool — your helio sessions inherit it **the same day, for free**. Our job is everything *around* the agent: the terminals, the models, the tools, and the orchestration across them. The orchestrator is the product — and it's **built with itself**.
 
-> **Thin on purpose.** As the frontier agents get smarter, swarmdeck gets stronger — for free. We never race the brain; we widen its reach.
+> **Thin on purpose.** As the frontier agents get smarter, helio gets stronger — for free. We never race the brain; we widen its reach.
 
 ```
             ┌─────────────────────────────────────────────┐
@@ -63,7 +63,7 @@ We never rewrite the brain. When an agent ships a new capability — a workflow 
 
 ## Why people use it
 
-🐝 **A swarm of _different_ agents.** A single agent already fans out its own sub-agents inside one task — swarmdeck runs _different_ agents across _different_ tasks. Claude in pane 1, Codex in pane 2, Gemini in pane 3, each on its own workspace, one operator steering them all.
+🐝 **A swarm of _different_ agents.** A single agent already fans out its own sub-agents inside one task — helio runs _different_ agents across _different_ tasks. Claude in pane 1, Codex in pane 2, Gemini in pane 3, each on its own workspace, one operator steering them all.
 
 📱 **Walk-away coding.** Start a long task, then watch and steer it from your phone over Telegram/Feishu/Slack. It runs locally and streams back.
 
@@ -83,7 +83,7 @@ We never rewrite the brain. When an agent ships a new capability — a workflow 
 
 ```bash
 cd your-workspace
-npx swarmdeck@latest
+npx helio@latest
 ```
 
 That's it — the **Web Dashboard** opens at `http://localhost:3939`. From there you drive sessions, connect IM channels, pick agents and models, and install skills & MCP servers. Everything is one click away.
@@ -92,16 +92,16 @@ That's it — the **Web Dashboard** opens at `http://localhost:3939`. From there
 <summary><b>Prefer the terminal, or running on a server?</b></summary>
 
 ```bash
-npx swarmdeck@latest --setup     # interactive terminal setup wizard
-npx swarmdeck@latest --doctor    # environment health check
+npx helio@latest --setup     # interactive terminal setup wizard
+npx helio@latest --doctor    # environment health check
 
 # Docker (multi-arch, bakes in claude-code + codex + gemini-cli)
-docker run -d --name swarmdeck -p 3939:3939 \
+docker run -d --name helio -p 3939:3939 \
   -e TELEGRAM_BOT_TOKEN=... \
   -e ANTHROPIC_API_KEY=sk-ant-... \
-  -v swarmdeck-config:/home/piki/.swarmdeck \
-  -v swarmdeck-workspace:/workspace \
-  ghcr.io/xiaotonng/swarmdeck:latest
+  -v helio-config:/home/piki/.helio \
+  -v helio-workspace:/workspace \
+  ghcr.io/expumpemployee/helio:latest
 ```
 
 On a headless box you can also point the agent at a **remote browser** over CDP (`PIKILOOM_BROWSER_CDP_URL`) instead of a local Chrome. Full reference: [docs/DOCKER.md](docs/DOCKER.md).
@@ -112,9 +112,9 @@ On a headless box you can also point the agent at a **remote browser** over CDP 
 
 ## How is this different?
 
-A small, healthy ecosystem now connects coding agents to your chat apps — [cc-connect](https://github.com/chenhg5/cc-connect) is the closest peer, and it's genuinely good. We're not here to win a feature-checklist war: most of these tools (swarmdeck included) already do multi-agent, multi-channel, parallel sessions, a web dashboard, and model switching. That's table stakes now — and we'd rather be honest about it than invent a column where we win.
+A small, healthy ecosystem now connects coding agents to your chat apps — [cc-connect](https://github.com/chenhg5/cc-connect) is the closest peer, and it's genuinely good. We're not here to win a feature-checklist war: most of these tools (helio included) already do multi-agent, multi-channel, parallel sessions, a web dashboard, and model switching. That's table stakes now — and we'd rather be honest about it than invent a column where we win.
 
-| | **swarmdeck** | **cc-connect & peers** |
+| | **helio** | **cc-connect & peers** |
 |---|:---:|:---:|
 | Multiple agents (Claude · Codex · Gemini · …) | ✅ | ✅ |
 | Many IM channels **+** Web Dashboard | ✅ | ✅ |
@@ -126,9 +126,9 @@ A small, healthy ecosystem now connects coding agents to your chat apps — [cc-
 Two things we actually bet on, neither of which a checklist can capture:
 
 - **We hand the agent a body.** Built-in computer-use lets it drive a real browser (Playwright) and the macOS desktop (Peekaboo) — see the screen, click, type, run apps — not just read and write files.
-- **Execution is the moat.** How the swarm *feels* in one cockpit, how cleanly it streams and lets you steer mid-task, how little it makes you think about plumbing. That's why we lead with the demo, not the table — and why swarmdeck is built with itself, every commit and release.
+- **Execution is the moat.** How the swarm *feels* in one cockpit, how cleanly it streams and lets you steer mid-task, how little it makes you think about plumbing. That's why we lead with the demo, not the table — and why helio is built with itself, every commit and release.
 
-Everything else, we don't fight for — we inherit it. As the agents and the chat platforms get better, so does swarmdeck, for free.
+Everything else, we don't fight for — we inherit it. As the agents and the chat platforms get better, so does helio, for free.
 
 ---
 
@@ -191,15 +191,15 @@ Everything else, we don't fight for — we inherit it. As the agents and the cha
 - **Deep injection** — run Claude Code on DeepSeek, Doubao, or a local model without editing the upstream client's config.
 
 ### Tool Layer
-- **Skills** — project skills in `.swarmdeck/skills/*/SKILL.md` (legacy `.claude/commands/*.md` still works); one-click install from any GitHub `owner/repo` or a curated set. Trigger anywhere with `/skills` and `/sk_<name>`.
-- **MCP ecosystem** — browse the MCP Registry; add stdio/HTTP servers; OAuth 2.1 + Dynamic Client Registration; real-handshake health checks. Plus two built-in computer-use servers: `swarmdeck-browser` (Chrome via Playwright) and `peekaboo` (macOS GUI).
+- **Skills** — project skills in `.helio/skills/*/SKILL.md` (legacy `.claude/commands/*.md` still works); one-click install from any GitHub `owner/repo` or a curated set. Trigger anywhere with `/skills` and `/sk_<name>`.
+- **MCP ecosystem** — browse the MCP Registry; add stdio/HTTP servers; OAuth 2.1 + Dynamic Client Registration; real-handshake health checks. Plus two built-in computer-use servers: `helio-browser` (Chrome via Playwright) and `peekaboo` (macOS GUI).
 - **CLI tools** — auto-detects versions & auth for gh, brew, npm, uv, …; OAuth-web login routes through the agent's normal tool surface.
 - **Session-scoped bridge** — `im_*`, `goal_*`, and computer-use tools auto-injected into every session.
 - **Three-way merge** — `global < workspace < built-in`, resolved silently per session.
 
 ### Runtime
 - **Dedicated session workspaces** — each session gets an isolated dir; uploads & generated assets land there.
-- **Computer-use (browser)** — `swarmdeck-browser` wraps `@playwright/mcp` with a process-level supervisor and a shared, persistent Chrome profile; can also attach to a **remote browser over CDP** for servers/Docker.
+- **Computer-use (browser)** — `helio-browser` wraps `@playwright/mcp` with a process-level supervisor and a shared, persistent Chrome profile; can also attach to a **remote browser over CDP** for servers/Docker.
 - **Computer-use (macOS)** — `peekaboo` exposes `see`/`click`/`type`/`window`/`menu`/`app`/`dock` plus a goal-directed sub-agent (needs Accessibility + Screen Recording).
 - **Hardened for long tasks** — sleep prevention, watchdog, auto-restart, daemon mode, channel supervisor; restart is blocked while tasks run, so a hot reload never kills a marathon job.
 
@@ -230,10 +230,10 @@ Everything else, we don't fight for — we inherit it. As the agents and the cha
 <details>
 <summary><b>⚙️ Configuration</b></summary>
 
-- **Persistent config:** `~/.swarmdeck/setting.json` (channels, agents, workspaces, MCP extensions, Profiles). **API keys are not stored here** — they're sealed into the OS keychain when available.
+- **Persistent config:** `~/.helio/setting.json` (channels, agents, workspaces, MCP extensions, Profiles). **API keys are not stored here** — they're sealed into the OS keychain when available.
 - The **Dashboard** is the primary config UI; `--setup` and `--doctor` cover headless/CLI-first users.
 - Global MCP extensions live under `extensions.mcp`; workspace MCP follows `.mcp.json` in the project root.
-- Project skills load from `.swarmdeck/skills/*/SKILL.md` (legacy `.claude/commands/*.md` supported).
+- Project skills load from `.helio/skills/*/SKILL.md` (legacy `.claude/commands/*.md` supported).
 - **Computer-use toggles** (Extensions dashboard): `browserEnabled` (managed Chrome), `peekabooEnabled` (macOS desktop — requires Accessibility + Screen Recording).
 
 </details>
@@ -242,19 +242,19 @@ Everything else, we don't fight for — we inherit it. As the agents and the cha
 
 ## Roadmap
 
-**SupporterAgent** — a meta-agent layered on top of the stack that owns a complex objective end-to-end: decompose, schedule the right sub-agents on the right models with the right tools, watch their streams, and step in when one stalls or drifts — so swarmdeck can drive long-horizon, multi-agent work without a human babysitting every turn.
+**SupporterAgent** — a meta-agent layered on top of the stack that owns a complex objective end-to-end: decompose, schedule the right sub-agents on the right models with the right tools, watch their streams, and step in when one stalls or drifts — so helio can drive long-horizon, multi-agent work without a human babysitting every turn.
 
 ---
 
 ## Development & Contributing
 
 ```bash
-git clone https://github.com/xiaotonng/swarmdeck.git
-cd swarmdeck && npm install && npm run build && npm test
-npm run dev    # local dev server (logs to ~/.swarmdeck/dev/dev.log)
+git clone https://github.com/expumpemployee/helio.git
+cd helio && npm install && npm run build && npm test
+npm run dev    # local dev server (logs to ~/.helio/dev/dev.log)
 ```
 
-Every layer is built to be extended — a new terminal, agent driver, model wrapper, or MCP tool is a first-class contribution. Start with the **[Contributing Guide](CONTRIBUTING.md)** and the [`good first issue`](https://github.com/xiaotonng/swarmdeck/labels/good%20first%20issue) label. Deep dives: [ARCHITECTURE.md](ARCHITECTURE.md) · [INTEGRATION.md](INTEGRATION.md) · [TESTING.md](TESTING.md).
+Every layer is built to be extended — a new terminal, agent driver, model wrapper, or MCP tool is a first-class contribution. Start with the **[Contributing Guide](CONTRIBUTING.md)** and the [`good first issue`](https://github.com/expumpemployee/helio/labels/good%20first%20issue) label. Deep dives: [ARCHITECTURE.md](ARCHITECTURE.md) · [INTEGRATION.md](INTEGRATION.md) · [TESTING.md](TESTING.md).
 
 | Extend | Where |
 |---|---|

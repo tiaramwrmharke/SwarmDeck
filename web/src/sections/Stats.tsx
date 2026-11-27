@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CountUp from '@/components/CountUp';
 import { LINKS } from '@/site';
 
-const PACKAGES = ['swarmdeck', 'pikiclaw'] as const;
+const PACKAGES = ['helio', 'pikiclaw'] as const;
 const FALLBACK_DOWNLOADS = 8386;
 
 function StatValue({ value, suffix }: { value: number | null; suffix?: string }) {

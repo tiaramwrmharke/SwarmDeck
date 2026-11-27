@@ -52,7 +52,7 @@ export function Sidebar({
     <header className="sticky top-0 z-40 border-b border-edge bg-[var(--th-sidebar)] backdrop-blur-[20px] [backdrop-filter:blur(20px)_saturate(1.2)]">
       <div className="mx-auto flex min-h-13 max-w-[1180px] flex-wrap items-center gap-2.5 px-4 py-2">
         <div className="mr-1.5 flex items-center gap-2.5 shrink-0">
-          <img src={theme === 'light' ? wordmarkLight : wordmark} alt="swarmdeck" className="h-[22px] w-auto shrink-0" />
+          <img src={theme === 'light' ? wordmarkLight : wordmark} alt="helio" className="h-[22px] w-auto shrink-0" />
           <span className="rounded-md border border-[var(--edge-subtle)] bg-transparent px-1.5 py-0.5 text-[10px] font-mono text-fg-5">
             v{version}
           </span>

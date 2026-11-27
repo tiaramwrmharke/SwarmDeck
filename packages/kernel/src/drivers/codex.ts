@@ -30,7 +30,7 @@ function codexFileChangeSummary(item: any): string {
   return 'Edit files';
 }
 
-// Normalize a codex app-server item -> {id, name, summary}. The summary mirrors swarmdeck's
+// Normalize a codex app-server item -> {id, name, summary}. The summary mirrors helio's
 // vocabulary ("Run shell: <cmd>", "Edit <path>") so the activity projection reads naturally.
 // Only ACTUAL tool calls become Activity rows. agentMessage (the answer text) and reasoning
 // (thinking) are CONTENT — they render below as message text / thinking, never as tools. The old
@@ -360,7 +360,7 @@ export class CodexDriver implements AgentDriver {
     });
 
     try {
-      const init = await srv.request('initialize', { clientInfo: { name: '@swarmdeck/kernel', version: '0.1.0' }, capabilities: { experimentalApi: true } }, 15_000);
+      const init = await srv.request('initialize', { clientInfo: { name: '@helio/kernel', version: '0.1.0' }, capabilities: { experimentalApi: true } }, 15_000);
       if (init.error) return { ok: false, text: '', error: 'failed to start codex app-server', stopReason: 'error' };
       const threadParams: any = { cwd: input.workdir, model: input.model || null };
       if (input.systemPrompt) threadParams.developerInstructions = input.systemPrompt;
@@ -661,7 +661,7 @@ function buildTurnInput(prompt: string, attachments: string[]): any[] {
   return input;
 }
 
-// ── Token usage / context projection (ported from swarmdeck's codex driver) ──────
+// ── Token usage / context projection (ported from helio's codex driver) ──────
 // Codex reports usage as a nested {info:{last, total, model_context_window}} (and
 // sometimes a flat shape). The live UI wants contextUsedTokens / context% / this-turn
 // output — none of which the raw input/output counts carry. This is the codex-side

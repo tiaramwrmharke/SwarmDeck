@@ -39,7 +39,7 @@ const AGENT_INSTALLS: Record<string, AgentInstallSpec> = {
     method: 'manual',
     command: 'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash',
     docsUrl: 'https://github.com/NousResearch/hermes-agent#quick-install',
-    note: 'Hermes is a Python agent with its own installer — swarmdeck can\'t install it via npm. Run this command, then refresh.',
+    note: 'Hermes is a Python agent with its own installer — helio can\'t install it via npm. Run this command, then refresh.',
   },
 };
 

@@ -211,7 +211,7 @@ export interface RunningTask {
 }
 
 export interface SessionGoalView {
-  source: 'swarmdeck' | 'codex' | 'claude';
+  source: 'helio' | 'codex' | 'claude';
   objective: string;
   status: GoalStatus;
   tokenBudget: number | null;
@@ -220,9 +220,9 @@ export interface SessionGoalView {
   continuationCount: number | null;
 }
 
-function normalizeFromSwarmDeck(goal: ThreadGoal): SessionGoalView {
+function normalizeFromHelio(goal: ThreadGoal): SessionGoalView {
   return {
-    source: 'swarmdeck',
+    source: 'helio',
     objective: goal.objective,
     status: goal.status,
     tokenBudget: goal.tokenBudget,
@@ -770,7 +770,7 @@ export class Bot {
   }
 
   log(msg: string, level: LogLevel = 'info') {
-    writeScopedLog('swarmdeck', msg, { level });
+    writeScopedLog('helio', msg, { level });
   }
 
   debug(msg: string) {
@@ -1721,7 +1721,7 @@ export class Bot {
       return goal ? normalizeFromClaudeNative(goal) : null;
     }
     const goal = readGoal(workdir, agent, sessionId);
-    return goal ? normalizeFromSwarmDeck(goal) : null;
+    return goal ? normalizeFromHelio(goal) : null;
   }
 
   async setSessionGoal(
@@ -1784,7 +1784,7 @@ export class Bot {
         goalContinuation: { kind: 'continuation', goalId: goal.goalId },
       });
     }
-    return normalizeFromSwarmDeck(goal);
+    return normalizeFromHelio(goal);
   }
 
   async pauseSessionGoal(workdir: string, agent: Agent, sessionId: string): Promise<SessionGoalView | null> {
@@ -1799,7 +1799,7 @@ export class Bot {
       throw new Error('Claude native /goal does not support pause/resume — only `/goal clear`. Re-issue `/goal <objective>` to start fresh.');
     }
     const goal = pauseGoal(workdir, agent, sessionId);
-    return goal ? normalizeFromSwarmDeck(goal) : null;
+    return goal ? normalizeFromHelio(goal) : null;
   }
 
   async resumeSessionGoal(
@@ -1819,7 +1819,7 @@ export class Bot {
       throw new Error('Claude native /goal does not support pause/resume — re-issue `/goal <objective>` to start fresh.');
     }
     const goal = resumeGoal(workdir, agent, sessionId);
-    if (!goal || goal.status !== 'active') return goal ? normalizeFromSwarmDeck(goal) : null;
+    if (!goal || goal.status !== 'active') return goal ? normalizeFromHelio(goal) : null;
     if (!isPendingSessionId(sessionId)) {
       const prompt = renderContinuationPrompt(goal);
       this.submitSessionTask({
@@ -1833,7 +1833,7 @@ export class Bot {
         goalContinuation: { kind: 'continuation', goalId: goal.goalId },
       });
     }
-    return normalizeFromSwarmDeck(goal);
+    return normalizeFromHelio(goal);
   }
 
   async clearSessionGoal(workdir: string, agent: Agent, sessionId: string, opts: { chatId?: ChatId; modelId?: string | null; thinkingEffort?: string | null } = {}): Promise<void> {
@@ -2479,7 +2479,7 @@ export class Bot {
       const bin = whichSync('systemd-inhibit');
       if (bin) {
         this.keepAliveProc = spawn('systemd-inhibit', [
-          '--what=idle', '--who=swarmdeck', '--why=AI coding agent running', 'sleep', 'infinity',
+          '--what=idle', '--who=helio', '--why=AI coding agent running', 'sleep', 'infinity',
         ], { stdio: 'ignore', detached: true });
         this.keepAliveProc.unref();
         this.log(`keep-alive: systemd-inhibit (PID ${this.keepAliveProc.pid})`);

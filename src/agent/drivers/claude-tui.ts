@@ -37,7 +37,7 @@ function writeStallDiag(record: Record<string, unknown>): void {
   if (stallDiagSink === null) return;
   try {
     if (stallDiagSink === undefined) {
-      const file = path.join(getHome(), '.swarmdeck', 'diagnostics', 'claude-tui-stall.jsonl');
+      const file = path.join(getHome(), '.helio', 'diagnostics', 'claude-tui-stall.jsonl');
       stallDiagSink = createRetainedLogSink(file, {
         maxLines: 50_000,
         maxAgeMs: 14 * 24 * 60 * 60_000,
@@ -736,7 +736,7 @@ export async function doClaudeTuiStream(opts: StreamOpts): Promise<StreamResult>
 
   let workDir: string;
   try {
-    workDir = fs.mkdtempSync(path.join(tmpdir(), 'swarmdeck-claude-tui-'));
+    workDir = fs.mkdtempSync(path.join(tmpdir(), 'helio-claude-tui-'));
   } catch (e: any) {
     return makeErrorResult(opts, start, `Failed to create temp dir: ${e?.message || e}`);
   }
@@ -1169,9 +1169,9 @@ export async function doClaudeTuiStream(opts: StreamOpts): Promise<StreamResult>
       looksLikePrompt: true, screenState, action: 'terminate-prompt-unanswered', screenSample: sample,
     });
     s.stopReason = 'prompt_unanswered';
-    if (!s.errors) s.errors = ['Claude paused for a confirmation swarmdeck could not auto-approve. Your session is intact — re-send your message (or reply "continue") to proceed.'];
+    if (!s.errors) s.errors = ['Claude paused for a confirmation helio could not auto-approve. Your session is intact — re-send your message (or reply "continue") to proceed.'];
     agentWarn(`[claude-tui] confirm dialog (${screenState}) did not clear after auto-answer — ending turn without auto-resume pid=${proc.pid}`);
-    pushRecentActivity(s.recentActivity, 'Waiting on a confirmation swarmdeck could not auto-approve — re-send to continue');
+    pushRecentActivity(s.recentActivity, 'Waiting on a confirmation helio could not auto-approve — re-send to continue');
     s.activity = s.recentActivity.join('\n');
     emit();
     killProc('SIGTERM');

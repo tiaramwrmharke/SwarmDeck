@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { toSwarmDeckPlan } from '../src/agent/kernel-bridge.js';
+import { toHelioPlan } from '../src/agent/kernel-bridge.js';
 
-// Regression: the kernel emits plan steps keyed { text }, but swarmdeck's StreamPlan and the whole
+// Regression: the kernel emits plan steps keyed { text }, but helio's StreamPlan and the whole
 // dashboard pipeline (pikichannel adapter -> ws.ts -> PlanProgressCard) key them { step }. The
 // bridge must translate at the seam, else the task list renders the progress count but blank rows
 // (the codex "0/4 项任务已完成" with empty dots bug).
-describe('kernel-bridge toSwarmDeckPlan (text -> step)', () => {
-  it('maps kernel { text } plan steps to swarmdeck { step }', () => {
-    const out = toSwarmDeckPlan({
+describe('kernel-bridge toHelioPlan (text -> step)', () => {
+  it('maps kernel { text } plan steps to helio { step }', () => {
+    const out = toHelioPlan({
       explanation: 'doing work',
       steps: [
         { text: 'read code', status: 'completed' },
@@ -26,7 +26,7 @@ describe('kernel-bridge toSwarmDeckPlan (text -> step)', () => {
   });
 
   it('drops empty-text steps and normalizes unknown status to pending', () => {
-    const out = toSwarmDeckPlan({
+    const out = toHelioPlan({
       explanation: null,
       steps: [
         { text: 'keep', status: 'weird' },
@@ -38,14 +38,14 @@ describe('kernel-bridge toSwarmDeckPlan (text -> step)', () => {
   });
 
   it('returns null for missing / empty / all-blank plans', () => {
-    expect(toSwarmDeckPlan(null)).toBeNull();
-    expect(toSwarmDeckPlan({ steps: [] })).toBeNull();
-    expect(toSwarmDeckPlan({ steps: [{ text: '  ', status: 'pending' }] })).toBeNull();
-    expect(toSwarmDeckPlan({})).toBeNull();
+    expect(toHelioPlan(null)).toBeNull();
+    expect(toHelioPlan({ steps: [] })).toBeNull();
+    expect(toHelioPlan({ steps: [{ text: '  ', status: 'pending' }] })).toBeNull();
+    expect(toHelioPlan({})).toBeNull();
   });
 
-  it('accepts an already-swarmdeck-shaped { step } plan idempotently', () => {
-    const out = toSwarmDeckPlan({ explanation: null, steps: [{ step: 'already', status: 'completed' }] });
+  it('accepts an already-helio-shaped { step } plan idempotently', () => {
+    const out = toHelioPlan({ explanation: null, steps: [{ step: 'already', status: 'completed' }] });
     expect(out).toEqual({ explanation: null, steps: [{ step: 'already', status: 'completed' }] });
   });
 });

@@ -21,7 +21,7 @@ export interface TuiLaunchOptions {
 }
 
 export interface LoomConfig {
-  // The top-level directory name (no leading dot), default 'swarmdeck' → `.swarmdeck`. Governs
+  // The top-level directory name (no leading dot), default 'helio' → `.helio`. Governs
   // the skills registry + per-workspace/global roots (loom.paths/skills/mcp). Falls back to
   // appNamespace for back-compat.
   stateDirName?: string;
@@ -65,9 +65,9 @@ export interface Loom {
 }
 
 export function createLoom(config: LoomConfig = {}): Loom {
-  // The top-level dir defaults to 'swarmdeck'; appNamespace (the default session-store base)
+  // The top-level dir defaults to 'helio'; appNamespace (the default session-store base)
   // falls back to it so a single knob configures everything for a fresh consumer.
-  const stateDirName = config.stateDirName || config.appNamespace || 'swarmdeck';
+  const stateDirName = config.stateDirName || config.appNamespace || 'helio';
   const appNamespace = config.appNamespace || stateDirName;
   const workdir = config.workdir || process.cwd();
   const log = config.log || (() => {});

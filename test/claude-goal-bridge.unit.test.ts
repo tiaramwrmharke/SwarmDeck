@@ -29,8 +29,8 @@ function writeTranscript(lines: string[]): void {
 
 beforeEach(() => {
   envSnap = captureEnv(HOME_KEYS);
-  tmpHome = makeTmpDir('swarmdeck-claude-goal-home-');
-  tmpWorkdir = makeTmpDir('swarmdeck-claude-goal-wd-');
+  tmpHome = makeTmpDir('helio-claude-goal-home-');
+  tmpWorkdir = makeTmpDir('helio-claude-goal-wd-');
   process.env.HOME = tmpHome;
   process.env.USERPROFILE = tmpHome;
 });

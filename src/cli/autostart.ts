@@ -9,7 +9,7 @@ import { STATE_DIR_NAME } from '../core/constants.js';
 
 const execFileAsync = promisify(execFile);
 
-const PLIST_LABEL = 'ai.swarmdeck.gateway';
+const PLIST_LABEL = 'ai.helio.gateway';
 const PLIST_DIR = path.join(os.homedir(), 'Library', 'LaunchAgents');
 const PLIST_PATH = path.join(PLIST_DIR, `${PLIST_LABEL}.plist`);
 const PIKILOOM_HOME = path.join(os.homedir(), STATE_DIR_NAME);
@@ -35,11 +35,11 @@ function detectInvocation(): InvocationCommand | null {
   if (entry.includes('/_npx/') || entry.includes('\\_npx\\')) {
     const npxBin = whichSync('npx');
     if (!npxBin) return null;
-    return { program: npxBin, args: ['-y', 'swarmdeck@latest', ...userArgs] };
+    return { program: npxBin, args: ['-y', 'helio@latest', ...userArgs] };
   }
 
-  const swarmdeckBin = whichSync('swarmdeck');
-  if (swarmdeckBin) return { program: swarmdeckBin, args: userArgs };
+  const helioBin = whichSync('helio');
+  if (helioBin) return { program: helioBin, args: userArgs };
   return null;
 }
 
@@ -112,11 +112,11 @@ function plistIsStale(invocation: InvocationCommand): boolean {
 async function showEnableDialog(): Promise<DialogChoice> {
   const script = [
     'display dialog ',
-    '"Start swarmdeck automatically when you log in?\\n\\n',
+    '"Start helio automatically when you log in?\\n\\n',
     'You can change this anytime in:\\n',
     'System Settings → General → Login Items" ',
     'buttons {"Not now", "Enable"} default button "Enable" ',
-    'with title "swarmdeck" with icon note',
+    'with title "helio" with icon note',
   ].join('');
   try {
     const { stdout } = await execFileAsync('osascript', ['-e', script]);
@@ -201,7 +201,7 @@ export function maybePromptAutostart(log: LogFn): void {
         if (choice === 'enable') {
           await installAutostart(log, invocation);
         } else {
-          log('autostart: not enabled this run; will ask again next time `swarmdeck --daemon` runs');
+          log('autostart: not enabled this run; will ask again next time `helio --daemon` runs');
         }
       } catch (err: any) {
         log(`autostart: prompt failed: ${err?.message || err}`);

@@ -9,12 +9,12 @@ export function ensureGitignore(dir: string) {
     const gi = path.join(dir, '.gitignore');
     if (!fs.existsSync(gi)) return;
     const managedLines = [
-      '.swarmdeck/*',
-      '!.swarmdeck/skills/',
-      '!.swarmdeck/skills/**',
+      '.helio/*',
+      '!.helio/skills/',
+      '!.helio/skills/**',
     ];
     const legacyLines = new Set([
-      '.swarmdeck/',
+      '.helio/',
       '.claude/skills/',
       '.agents/skills/',
     ]);

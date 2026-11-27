@@ -1,4 +1,4 @@
-# swarmdeck — brand marks & colors
+# helio — brand marks & colors
 
 8-bit pixel mosaic of a woven knot (piki + **loom** = weaving). Cyan brand color, with a
 deep-cyan variant for light backgrounds.
@@ -8,8 +8,8 @@ deep-cyan variant for light backgrounds.
 | File | What | Size |
 |------|------|------|
 | `logo.png` | icon — the knot | 502×512 |
-| `logo-wordmark.png` | knot + `swarmdeck` | 1000×229 |
-| `logo-word.png` | `swarmdeck` word only | 792×187 |
+| `logo-wordmark.png` | knot + `helio` | 1000×229 |
+| `logo-word.png` | `helio` word only | 792×187 |
 
 Transparent background, brand cyan `#45e0f5` (mosaic grid edge `#144349`).
 

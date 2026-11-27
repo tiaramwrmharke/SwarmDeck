@@ -422,7 +422,7 @@ export const api = {
     post<{
       ok: boolean;
       recordRemoved?: boolean;
-      swarmdeckPathsRemoved?: string[];
+      helioPathsRemoved?: string[];
       nativePathsRemoved?: string[];
       error?: string;
     }>(

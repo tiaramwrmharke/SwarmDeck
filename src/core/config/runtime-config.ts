@@ -199,7 +199,7 @@ const CODEX_56_EFFORTS: Record<(typeof CODEX_56_MODEL_IDS)[number], readonly str
 const AGENT_EFFORT_LEVELS: Partial<Record<Agent, EffortLevel[]>> = {
   claude: effortLevels('low', 'medium', 'high', 'xhigh', 'max', ULTRA_EFFORT),
   codex: effortLevels(...CODEX_BASE_EFFORTS),
-  // gemini intentionally has no UI-exposed effort levels: swarmdeck sends it no reasoning-effort
+  // gemini intentionally has no UI-exposed effort levels: helio sends it no reasoning-effort
   // (see the gemini→null guards in InputComposer). Add a gemini entry here to surface low/high.
   hermes: effortLevels('minimal', 'low', 'medium', 'high', 'xhigh'),
 };

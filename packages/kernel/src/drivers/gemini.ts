@@ -5,7 +5,7 @@ import { discoverGeminiNativeSessions } from './native.js';
 import { createLineBuffer, parseJsonLine, sigterm, wireAbort } from './shared.js';
 
 // Native kernel Gemini driver: `gemini --output-format stream-json ... -p <prompt>` and
-// parse its stream-json events into kernel DriverEvents. Faithful to swarmdeck's geminiParse.
+// parse its stream-json events into kernel DriverEvents. Faithful to helio's geminiParse.
 export class GeminiDriver implements AgentDriver {
   readonly id = 'gemini';
   readonly capabilities = { steer: false, interact: false, resume: true, tui: true };

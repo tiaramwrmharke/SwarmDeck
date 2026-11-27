@@ -25,7 +25,7 @@ describe('Gemini usage resolution', () => {
     vi.setSystemTime(new Date('2026-03-16T00:00:00Z'));
 
     execSyncMock.mockReset();
-    homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-usage-'));
+    homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-usage-'));
     process.env.HOME = homeDir;
     fs.mkdirSync(path.join(homeDir, '.gemini'), { recursive: true });
     fs.writeFileSync(path.join(homeDir, '.gemini', 'oauth_creds.json'), JSON.stringify({
@@ -109,7 +109,7 @@ describe('Gemini session tail', () => {
 
   beforeEach(() => {
     vi.resetModules();
-    process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-tail-'));
+    process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-tail-'));
   });
 
   afterEach(() => {
@@ -118,14 +118,14 @@ describe('Gemini session tail', () => {
   });
 
   it('reads prior Gemini conversation turns from native session files', async () => {
-    const workdir = '/tmp/swarmdeck';
+    const workdir = '/tmp/helio';
     const geminiDir = path.join(process.env.HOME!, '.gemini');
     fs.mkdirSync(geminiDir, { recursive: true });
     fs.writeFileSync(path.join(geminiDir, 'projects.json'), JSON.stringify({
-      projects: { [workdir]: 'swarmdeck' },
+      projects: { [workdir]: 'helio' },
     }));
 
-    const chatsDir = path.join(geminiDir, 'tmp', 'swarmdeck', 'chats');
+    const chatsDir = path.join(geminiDir, 'tmp', 'helio', 'chats');
     fs.mkdirSync(chatsDir, { recursive: true });
     fs.writeFileSync(path.join(chatsDir, 'session-2026-03-16T00-00-abc.json'), JSON.stringify({
       sessionId: 'gemini-session-1',
@@ -182,7 +182,7 @@ describe('Gemini session listing', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-16T00:02:00Z'));
     execSyncMock.mockReset();
-    process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-sessions-'));
+    process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-sessions-'));
   });
 
   afterEach(() => {
@@ -193,21 +193,21 @@ describe('Gemini session listing', () => {
 
   it('reads native session titles, hides stub files, and returns empty when chats are missing', async () => {
     const { getSessions } = await import('../src/agent/index.ts');
-    const workdir = '/tmp/swarmdeck';
+    const workdir = '/tmp/helio';
 
     const freshHome = () => {
-      process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-sessions-'));
+      process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-sessions-'));
       const geminiDir = path.join(process.env.HOME!, '.gemini');
       fs.mkdirSync(geminiDir, { recursive: true });
       fs.writeFileSync(path.join(geminiDir, 'projects.json'), JSON.stringify({
-        projects: { [workdir]: 'swarmdeck' },
+        projects: { [workdir]: 'helio' },
       }));
       return geminiDir;
     };
 
     {
       const geminiDir = freshHome();
-      const chatsDir = path.join(geminiDir, 'tmp', 'swarmdeck', 'chats');
+      const chatsDir = path.join(geminiDir, 'tmp', 'helio', 'chats');
       fs.mkdirSync(chatsDir, { recursive: true });
       fs.writeFileSync(path.join(chatsDir, 'session-2026-03-16T00-00-abc.json'), JSON.stringify({
         sessionId: 'gemini-session-1',
@@ -233,7 +233,7 @@ describe('Gemini session listing', () => {
 
     {
       const geminiDir = freshHome();
-      const chatsDir = path.join(geminiDir, 'tmp', 'swarmdeck', 'chats');
+      const chatsDir = path.join(geminiDir, 'tmp', 'helio', 'chats');
       fs.mkdirSync(chatsDir, { recursive: true });
       fs.writeFileSync(path.join(chatsDir, 'session-2026-03-16T00-00-a2a-serv.jsonl'),
         JSON.stringify({
@@ -291,8 +291,8 @@ describe('Gemini session messages content cleanup', () => {
 
   beforeEach(() => {
     vi.resetModules();
-    process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-msgs-'));
-    workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-msgs-work-'));
+    process.env.HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-msgs-'));
+    workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-msgs-work-'));
   });
 
   afterEach(() => {
@@ -304,9 +304,9 @@ describe('Gemini session messages content cleanup', () => {
     const geminiDir = path.join(process.env.HOME!, '.gemini');
     fs.mkdirSync(geminiDir, { recursive: true });
     fs.writeFileSync(path.join(geminiDir, 'projects.json'), JSON.stringify({
-      projects: { [workdir]: 'swarmdeck-msgs' },
+      projects: { [workdir]: 'helio-msgs' },
     }));
-    const chatsDir = path.join(geminiDir, 'tmp', 'swarmdeck-msgs', 'chats');
+    const chatsDir = path.join(geminiDir, 'tmp', 'helio-msgs', 'chats');
     fs.mkdirSync(chatsDir, { recursive: true });
     fs.writeFileSync(path.join(chatsDir, 'session-2026-03-16T00-00-abc.json'), JSON.stringify({
       sessionId: 'gemini-session-clean',
@@ -353,7 +353,7 @@ describe('Gemini session messages content cleanup', () => {
     }
 
     {
-      const imageDir = path.join(workdir, '.swarmdeck', 'sessions', 'gemini', 'pending_abc', 'workspace');
+      const imageDir = path.join(workdir, '.helio', 'sessions', 'gemini', 'pending_abc', 'workspace');
       fs.mkdirSync(imageDir, { recursive: true });
       fs.writeFileSync(path.join(imageDir, 'image.png'), PNG_BYTES);
 
@@ -361,7 +361,7 @@ describe('Gemini session messages content cleanup', () => {
         '[Browser Automation]',
         'noise line',
         '',
-        '@.swarmdeck/sessions/gemini/pending_abc/workspace/image.png',
+        '@.helio/sessions/gemini/pending_abc/workspace/image.png',
         '',
         'what is in this image?',
         '',

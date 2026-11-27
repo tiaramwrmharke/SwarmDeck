@@ -9,7 +9,7 @@ describe('ensureGitignore', () => {
   let gi: string;
 
   beforeEach(() => {
-    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gi-'));
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gi-'));
     gi = path.join(dir, '.gitignore');
   });
   afterEach(() => {
@@ -24,9 +24,9 @@ describe('ensureGitignore', () => {
   it('leaves the file byte-for-byte unchanged when managed lines already present, even below user rules', () => {
     const content = [
       'node_modules/',
-      '.swarmdeck/*',
-      '!.swarmdeck/skills/',
-      '!.swarmdeck/skills/**',
+      '.helio/*',
+      '!.helio/skills/',
+      '!.helio/skills/**',
       '',
       'products/eval-studio/package-lock.json',
       '',
@@ -39,7 +39,7 @@ describe('ensureGitignore', () => {
   });
 
   it('preserves blank lines', () => {
-    const content = 'node_modules/\n\n.swarmdeck/*\n!.swarmdeck/skills/\n!.swarmdeck/skills/**\n';
+    const content = 'node_modules/\n\n.helio/*\n!.helio/skills/\n!.helio/skills/**\n';
     fs.writeFileSync(gi, content);
     ensureGitignore(dir);
     expect(fs.readFileSync(gi, 'utf8')).toBe(content);
@@ -50,18 +50,18 @@ describe('ensureGitignore', () => {
     ensureGitignore(dir);
     const out = fs.readFileSync(gi, 'utf8');
     expect(out.startsWith('node_modules/\n')).toBe(true);
-    expect(out).toContain('.swarmdeck/*');
-    expect(out).toContain('!.swarmdeck/skills/');
-    expect(out).toContain('!.swarmdeck/skills/**');
+    expect(out).toContain('.helio/*');
+    expect(out).toContain('!.helio/skills/');
+    expect(out).toContain('!.helio/skills/**');
   });
 
   it('removes legacy lines while keeping managed ones in place', () => {
-    fs.writeFileSync(gi, '.swarmdeck/\n.claude/skills/\n.swarmdeck/*\n!.swarmdeck/skills/\n!.swarmdeck/skills/**\n');
+    fs.writeFileSync(gi, '.helio/\n.claude/skills/\n.helio/*\n!.helio/skills/\n!.helio/skills/**\n');
     ensureGitignore(dir);
     const out = fs.readFileSync(gi, 'utf8').split('\n');
-    expect(out).not.toContain('.swarmdeck/');
+    expect(out).not.toContain('.helio/');
     expect(out).not.toContain('.claude/skills/');
-    expect(out.filter(l => l === '.swarmdeck/*')).toHaveLength(1);
+    expect(out.filter(l => l === '.helio/*')).toHaveLength(1);
   });
 
   it('is idempotent across repeated runs', () => {

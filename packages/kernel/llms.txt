@@ -1,4 +1,4 @@
-# @swarmdeck/kernel
+# @helio/kernel
 
 > Reusable core that turns heterogeneous coding-agent CLIs (Claude Code, Codex, Gemini, ACP/Hermes)
 > into ONE uniform, accumulating `UniversalSnapshot` + control verbs (prompt/stop/steer/interact),
@@ -10,15 +10,15 @@ This file is an LLM-oriented summary. Full prose: README.md. Exact types: the bu
 ## Install & import
 
 ```
-npm i @swarmdeck/kernel
+npm i @helio/kernel
 ```
-ESM only. Main export re-exports everything; subpaths: `@swarmdeck/kernel/drivers`, `/surfaces`, `/protocol`.
+ESM only. Main export re-exports everything; subpaths: `@helio/kernel/drivers`, `/surfaces`, `/protocol`.
 
 ## Three usage tiers
 
 1) ONE turn, no persistence — `runTurn(driver, input, opts?) => Promise<{ result, snapshot }>`:
 ```ts
-import { runTurn, ClaudeDriver } from '@swarmdeck/kernel';
+import { runTurn, ClaudeDriver } from '@helio/kernel';
 const { result, snapshot } = await runTurn(
   new ClaudeDriver(),
   { prompt: 'hi', workdir: process.cwd(), effort: 'high' },            // AgentTurnInput
@@ -29,7 +29,7 @@ const { result, snapshot } = await runTurn(
 
 2) FULL multi-session backend — `createLoom(config) => Loom`:
 ```ts
-import { createLoom, ClaudeDriver, WebSurface } from '@swarmdeck/kernel';
+import { createLoom, ClaudeDriver, WebSurface } from '@helio/kernel';
 const loom = createLoom({ drivers: [new ClaudeDriver()], surfaces: [new WebSurface({ port: 8787 })], defaultAgent: 'claude' });
 await loom.start();
 const { sessionKey, taskId } = await loom.io.prompt({ prompt: 'hi', agent: 'claude' });
@@ -74,9 +74,9 @@ Concurrent prompts to one session queue by default (serialPerSession=true).
 
 ## Workspace: unified top-level directory + session/skill/mcp management (loom.paths/sessions/skills/mcp)
 
-One explicitly-configurable top-level dir (`createLoom({ stateDirName })`, default `'swarmdeck'` → `.swarmdeck`)
+One explicitly-configurable top-level dir (`createLoom({ stateDirName })`, default `'helio'` → `.helio`)
 governs a session index, a skills registry and per-agent symlinks, resolved in two scopes: global
-(`~/.swarmdeck`) and per-workspace (`<workdir>/.swarmdeck`). Exposed off the Loom:
+(`~/.helio`) and per-workspace (`<workdir>/.helio`). Exposed off the Loom:
 
 - `loom.paths: LoomPaths` — `resolveLoomPaths({stateDirName})`. `globalRoot`, `workspaceRoot(wd)`,
   `sessionsDir/skillsDir/mcpConfigPath(scope, wd?)`, `agentHome(scope, wd?)`. (`scope: 'global'|'workspace'`.)

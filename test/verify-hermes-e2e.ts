@@ -59,8 +59,8 @@ async function main() {
   const prompt = process.env.HERMES_E2E_PROMPT || 'Reply only with: OK';
   const model = process.env.HERMES_E2E_MODEL || '';
   const timeoutS = Number(process.env.HERMES_E2E_TIMEOUT || '60');
-  const workdir = mkdtempSync(join(tmpdir(), 'swarmdeck-hermes-e2e-'));
-  writeFileSync(join(workdir, 'README.md'), '# swarmdeck hermes e2e\n');
+  const workdir = mkdtempSync(join(tmpdir(), 'helio-hermes-e2e-'));
+  writeFileSync(join(workdir, 'README.md'), '# helio hermes e2e\n');
   console.log(`workdir:          ${workdir}`);
   console.log(`prompt:           ${JSON.stringify(prompt)}`);
   console.log(`override model:   ${model || '(use hermes config default)'}`);
@@ -114,7 +114,7 @@ async function main() {
     return /sorry.*cannot/.test(msg) || /unable to/.test(msg);
   });
   if (failed > 0 && refusalOnly) {
-    console.log('\n  ℹ  Failures appear to be model safety refusals, not swarmdeck bugs.');
+    console.log('\n  ℹ  Failures appear to be model safety refusals, not helio bugs.');
     console.log('     Try setting HERMES_E2E_MODEL=openrouter:anthropic/claude-haiku-4.5 to bypass.');
     return 0;
   }

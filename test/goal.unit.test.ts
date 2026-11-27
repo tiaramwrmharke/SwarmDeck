@@ -15,7 +15,7 @@ let workdir: string;
 const sid = 'session_test_001';
 
 beforeEach(() => {
-  workdir = makeTmpDir('swarmdeck-goal-');
+  workdir = makeTmpDir('helio-goal-');
 });
 
 afterEach(() => {

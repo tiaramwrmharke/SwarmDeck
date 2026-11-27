@@ -717,7 +717,7 @@ export function resolveSkillPrompt(bot: Bot, chatId: ChatId, cmd: string, args: 
   if (skillFile) {
     prompt = `${workdirHint}Read the skill definition at \`${relSkillPath(wd, skillFile)}\` and execute the instructions defined there.${suffix}`;
   } else {
-    const fallbackPath = relSkillPath(wd, path.join(wd, '.swarmdeck', 'skills', skill.name, 'SKILL.md'));
+    const fallbackPath = relSkillPath(wd, path.join(wd, '.helio', 'skills', skill.name, 'SKILL.md'));
     prompt = `${workdirHint}Read the skill definition at \`${fallbackPath}\` and execute the instructions defined there.${suffix}`;
   }
   return { prompt, skillName: skill.name };

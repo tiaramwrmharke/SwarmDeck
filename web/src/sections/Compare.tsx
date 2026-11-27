@@ -1,4 +1,4 @@
-const COLS = ['swarmdeck', 'IDE assistants', 'Cloud agents', 'Single-agent IM bots'];
+const COLS = ['helio', 'IDE assistants', 'Cloud agents', 'Single-agent IM bots'];
 
 const ROWS: { feature: string; cells: [string, string, string, string] }[] = [
   { feature: 'Terminal access', cells: ['7 IM channels + Web + extensible', 'Locked inside the IDE', 'Confined to a web app', 'One specific IM app'] },

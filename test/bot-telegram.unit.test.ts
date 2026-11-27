@@ -138,8 +138,8 @@ describe('TelegramBot', () => {
 
       const connectSpy = vi.spyOn(TelegramChannel.prototype, 'connect').mockResolvedValue({
         id: 1,
-        username: 'swarmdeck_test_bot',
-        displayName: 'SwarmDeck Test Bot',
+        username: 'helio_test_bot',
+        displayName: 'Helio Test Bot',
       });
       const skipPendingSpy = vi.spyOn(TelegramChannel.prototype, 'skipPendingUpdatesOnNextListen').mockImplementation(() => {});
       const listenSpy = vi.spyOn(TelegramChannel.prototype, 'listen').mockImplementation(async () => {
@@ -213,7 +213,7 @@ describe('TelegramBot', () => {
     {
       const spawnMock = vi.mocked(spawn);
       const oldArgv = process.argv;
-      process.argv = ['node', 'swarmdeck', '-c', 'telegram'];
+      process.argv = ['node', 'helio', '-c', 'telegram'];
       const shutdownSpy = vi.spyOn(agentDriver, 'shutdownAllDrivers').mockImplementation(() => {});
 
       const defaultBot = createBot().bot;
@@ -227,7 +227,7 @@ describe('TelegramBot', () => {
         expect(shutdownSpy).toHaveBeenCalledTimes(1);
         expect(spawnMock).toHaveBeenCalledWith(
           'npx',
-          ['--yes', 'swarmdeck@latest', '-c', 'telegram'],
+          ['--yes', 'helio@latest', '-c', 'telegram'],
           expect.objectContaining({
             stdio: 'inherit',
             detached: true,
@@ -351,7 +351,7 @@ describe('TelegramBot', () => {
           sessionId,
           agent: 'claude',
           workdir: process.env.PIKILOOM_WORKDIR!,
-          workspacePath: path.join(process.env.PIKILOOM_WORKDIR!, '.swarmdeck', 'sessions', 'claude', sessionId, 'workspace'),
+          workspacePath: path.join(process.env.PIKILOOM_WORKDIR!, '.helio', 'sessions', 'claude', sessionId, 'workspace'),
           model: 'claude-opus-4-7',
           createdAt: new Date().toISOString(),
           title: 'history preview',

@@ -11,7 +11,7 @@ export interface WelcomeIntro {
 
 export function buildWelcomeIntro(version: string): WelcomeIntro {
   return {
-    title: "Hi, I'm swarmdeck",
+    title: "Hi, I'm helio",
     subtitle: 'Send me a message to get started.',
     version,
   };

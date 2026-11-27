@@ -44,8 +44,8 @@ function trimSessionText(value: unknown, max = 24_000): string | null {
 export function _detectBrowserMcpFailure(rawLine: string): string | null {
   if (!rawLine) return null;
   if (rawLine.includes('Frame has been detached')) return 'playwright Frame detached';
-  if (rawLine.includes('swarmdeck-browser') && rawLine.includes('Connection closed')) {
-    return 'swarmdeck-browser MCP stdio closed';
+  if (rawLine.includes('helio-browser') && rawLine.includes('Connection closed')) {
+    return 'helio-browser MCP stdio closed';
   }
   return null;
 }
@@ -593,7 +593,7 @@ export async function doStream(opts: StreamOpts): Promise<StreamResult> {
     }
     await awaitAgentUpdateIdle(prepared.agent, AGENT_UPDATE_TIMEOUTS.spawnWait);
     // Cutover seam: when enabled (default ON for claude/codex/gemini/hermes), route the
-    // agent turn through @swarmdeck/kernel. kernelStream throws ONLY if the kernel package
+    // agent turn through @helio/kernel. kernelStream throws ONLY if the kernel package
     // can't be loaded (missing dist) — every in-turn error is returned as a result. So a
     // throw here means "kernel unavailable": fall back to the legacy driver rather than
     // failing the turn. See agent/kernel-bridge.ts.

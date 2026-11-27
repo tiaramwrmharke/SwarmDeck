@@ -163,7 +163,7 @@ export class WeComBot extends Bot {
           '/digest - Recent session digest',
           '/skills - List project skills',
           '/stop - Stop current task',
-          '/restart - Restart swarmdeck',
+          '/restart - Restart helio',
         ].join('\n'));
         return true;
       case 'new': this.resetConversationForChat(ctx.chatId); await ctx.reply('Started a new session.'); return true;
@@ -186,7 +186,7 @@ export class WeComBot extends Bot {
 
   private async cmdStart(ctx: WeComContext) {
     const d = getStartData(this, ctx.chatId);
-    const lines = [`swarmdeck v${d.version}`, `Workdir: ${d.workdir}`, '', `Agent: ${d.agent}`];
+    const lines = [`helio v${d.version}`, `Workdir: ${d.workdir}`, '', `Agent: ${d.agent}`];
     for (const a of d.agentDetails) {
       const parts = [`  ${a.agent}: ${a.model}`];
       if (a.effort) parts[0] += ` (effort: ${a.effort})`;
@@ -205,7 +205,7 @@ export class WeComBot extends Bot {
     const d = await getStatusDataAsync(this, ctx.chatId);
     const gitLine = formatGitStatusLine(d.git);
     const lines = [
-      `swarmdeck v${d.version}`,
+      `helio v${d.version}`,
       `Uptime: ${fmtUptime(d.uptime)}`,
       `PID: ${d.pid} | RSS: ${fmtBytes(d.memRss)} | Heap: ${fmtBytes(d.memHeap)}`,
       `Workdir: ${d.workdir}`,
@@ -426,7 +426,7 @@ export class WeComBot extends Bot {
   }
 
   private async cmdRestart(ctx: WeComContext) {
-    await ctx.reply('Restarting swarmdeck...');
+    await ctx.reply('Restarting helio...');
     void requestProcessRestart({ log: msg => this.log(msg) });
   }
 
@@ -517,7 +517,7 @@ export class WeComBot extends Bot {
   }
 
   async run() {
-    const tmpDir = path.join(os.tmpdir(), 'swarmdeck');
+    const tmpDir = path.join(os.tmpdir(), 'helio');
     fs.mkdirSync(tmpDir, { recursive: true });
 
     this.channel = new WeComChannel({

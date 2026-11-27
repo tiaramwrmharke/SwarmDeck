@@ -1,6 +1,6 @@
 # Integrating a New IM Channel
 
-This guide reflects the current `swarmdeck` source layout, where Telegram, Feishu, and WeChat already share the same `bot/` runtime and only differ in `channels/<name>/`.
+This guide reflects the current `helio` source layout, where Telegram, Feishu, and WeChat already share the same `bot/` runtime and only differ in `channels/<name>/`.
 
 ## What Already Exists
 

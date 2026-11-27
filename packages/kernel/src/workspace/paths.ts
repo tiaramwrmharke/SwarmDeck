@@ -5,20 +5,20 @@ import path from 'node:path';
 //
 // One explicitly-configurable root governs where the kernel keeps its session index,
 // skills registry and per-agent symlinks. It resolves in two scopes:
-//   - global:    ~/.<stateDirName>            (default ~/.swarmdeck)
-//   - workspace: <workdir>/.<stateDirName>    (default <workdir>/.swarmdeck)
+//   - global:    ~/.<stateDirName>            (default ~/.helio)
+//   - workspace: <workdir>/.<stateDirName>    (default <workdir>/.helio)
 //
-// The name defaults to 'swarmdeck' (so the dotted dir is `.swarmdeck`) and is overridable
+// The name defaults to 'helio' (so the dotted dir is `.helio`) and is overridable
 // per Loom via `createLoom({ stateDirName })`. Everything else (sessions, skills, mcp
 // config, native-agent symlinks) is derived from this one knob so a consuming app gets a
-// single, unified directory to manage — the same model swarmdeck itself uses.
+// single, unified directory to manage — the same model helio itself uses.
 
 export type LoomScope = 'global' | 'workspace';
 
 export interface LoomPaths {
-  /** The bare name (no leading dot), e.g. 'swarmdeck'. */
+  /** The bare name (no leading dot), e.g. 'helio'. */
   readonly stateDirName: string;
-  /** The dotted directory name, e.g. '.swarmdeck'. */
+  /** The dotted directory name, e.g. '.helio'. */
   readonly dirName: string;
   readonly home: string;
   /** ~/.<stateDirName> */
@@ -45,7 +45,7 @@ export interface LoomPaths {
 /** Normalize a state dir name to its bare form: strip a leading dot, trim. */
 export function normalizeStateDirName(name: string | null | undefined): string {
   const trimmed = (name ?? '').trim().replace(/^\.+/, '');
-  return trimmed || 'swarmdeck';
+  return trimmed || 'helio';
 }
 
 export function resolveLoomPaths(opts: { stateDirName?: string | null; home?: string } = {}): LoomPaths {

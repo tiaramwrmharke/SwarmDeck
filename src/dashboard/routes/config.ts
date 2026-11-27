@@ -58,7 +58,7 @@ export async function buildBrowserStatusResponse(config = loadUserConfig(), brow
       detail: !gui.browserEnabled
         ? 'Browser automation is disabled. No browser MCP server will be injected into agent sessions. On macOS, operate your main browser directly with open, osascript, and screencapture when needed.'
         : remoteCdpUrl
-          ? `Attached to an external Chrome over CDP at ${remoteCdpUrl} (PIKILOOM_BROWSER_CDP_URL). swarmdeck does not launch or manage a local browser in this mode — sign in to sites from the Chrome that owns this endpoint (e.g. your sidecar's web VNC).`
+          ? `Attached to an external Chrome over CDP at ${remoteCdpUrl} (PIKILOOM_BROWSER_CDP_URL). helio does not launch or manage a local browser in this mode — sign in to sites from the Chrome that owns this endpoint (e.g. your sidecar's web VNC).`
           : browserState.detail,
     },
   };
@@ -463,7 +463,7 @@ app.post('/api/browser/setup', async (c) => {
     if (!gui.browserEnabled) {
       return c.json({
         ok: false,
-        error: 'Browser automation is disabled. Enable it first if you want swarmdeck to launch the managed browser profile.',
+        error: 'Browser automation is disabled. Enable it first if you want helio to launch the managed browser profile.',
       }, 400);
     }
     if (getConfiguredRemoteCdpUrl()) {
@@ -478,7 +478,7 @@ app.post('/api/browser/setup', async (c) => {
       browser: {
         ...payload.browser,
         detail: launch.running
-          ? 'Managed browser is open. Sign in to the sites you want swarmdeck to reuse. If it is still open later, swarmdeck will close it automatically before browser automation starts.'
+          ? 'Managed browser is open. Sign in to the sites you want helio to reuse. If it is still open later, helio will close it automatically before browser automation starts.'
           : payload.browser.detail,
       },
     });
@@ -592,7 +592,7 @@ app.post('/api/open-diff', async (c) => {
       return c.json({ ok: true });
     }
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-diff-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-diff-'));
     const origPath = path.join(tmpDir, `${relFile}.orig`);
     fs.writeFileSync(origPath, origResult.stdout);
 

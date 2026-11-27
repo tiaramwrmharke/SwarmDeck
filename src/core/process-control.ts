@@ -8,7 +8,7 @@ import { STATE_DIR_NAME } from './constants.js';
 export const PROCESS_RESTART_EXIT_CODE = 75;
 export const PROCESS_RESTART_STATE_FILE_ENV = 'PIKILOOM_RESTART_STATE_FILE';
 
-const DAEMON_PID_FILENAME = 'swarmdeck.pid';
+const DAEMON_PID_FILENAME = 'helio.pid';
 
 export function getDaemonPidFilePath(): string {
   return path.join(os.homedir(), STATE_DIR_NAME, DAEMON_PID_FILENAME);
@@ -119,12 +119,12 @@ export function getDefaultRestartCmd(): string {
     const parts = isTsxLoader ? ['tsx', argv1] : process.argv.slice(0, 2);
     return parts.map(arg => arg.includes(' ') ? `"${arg}"` : arg).join(' ');
   }
-  if (argv1.endsWith('.js') && (argv1.includes('swarmdeck') || argv1.includes('swarmdeck'))) {
+  if (argv1.endsWith('.js') && (argv1.includes('helio') || argv1.includes('helio'))) {
     const nodeBin = argv0.includes(' ') ? `"${argv0}"` : argv0;
     const entry = argv1.includes(' ') ? `"${argv1}"` : argv1;
     return `${nodeBin} ${entry}`;
   }
-  return 'npx --yes swarmdeck@latest';
+  return 'npx --yes helio@latest';
 }
 
 export function buildRestartCommand(argv: string[], restartCmd = process.env.PIKILOOM_RESTART_CMD || getDefaultRestartCmd()) {
@@ -208,7 +208,7 @@ export async function killChildProcesses(rootPid = process.pid, opts: { graceMs?
 }
 
 export function createRestartStateFilePath(ownerPid = process.pid): string {
-  const dir = path.join(os.tmpdir(), 'swarmdeck');
+  const dir = path.join(os.tmpdir(), 'helio');
   fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, `restart-${ownerPid}.json`);
 }

@@ -1,6 +1,6 @@
 // A complete kernel-backed web app on ONE port: http serves the console UI, and the
 // SAME server is the WebSurface ws host. Drives a real `claude` turn by default.
-// This is "a swarmdeck-like project, built on @swarmdeck/kernel" — proving the kernel
+// This is "a helio-like project, built on @helio/kernel" — proving the kernel
 // is a usable core, not just a library.
 //
 //   node packages/kernel/examples/server.mjs            # real claude on :3941
@@ -25,7 +25,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(404); res.end('not found');
 });
 
-const web = new WebSurface({ server, name: 'swarmdeck-kernel' });
+const web = new WebSurface({ server, name: 'helio-kernel' });
 const loom = createLoom({
   appNamespace: 'loom-console',
   drivers: [useReal ? new ClaudeDriver() : new EchoDriver()],

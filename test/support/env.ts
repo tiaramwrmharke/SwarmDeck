@@ -34,7 +34,7 @@ export async function withEnv<T>(
 
 export async function withTempHome<T>(
   run: (homeDir: string) => Promise<T> | T,
-  prefix = 'swarmdeck-home-',
+  prefix = 'helio-home-',
 ): Promise<T> {
   const homeDir = makeTmpDir(prefix);
   return withEnv({ HOME: homeDir }, () => run(homeDir));

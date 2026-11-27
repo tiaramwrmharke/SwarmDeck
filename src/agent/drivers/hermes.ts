@@ -13,7 +13,7 @@ import {
   type UsageOpts, type UsageResult, type UsageWindowInfo,
   type TailMessage, type RichMessage, type MessageBlock,
   agentLog, agentWarn, emptyUsage, normalizeErrorMessage,
-  listSwarmDeckSessions, managedRecordToSessionInfo, findSwarmDeckSession,
+  listHelioSessions, managedRecordToSessionInfo, findHelioSession,
   buildStreamPreviewMeta, applyTurnWindow, pushRecentActivity,
   IMAGE_EXTS, mimeForExt,
 } from '../index.js';
@@ -150,7 +150,7 @@ async function doHermesStream(opts: StreamOpts): Promise<StreamResult> {
       return;
     }
     if (method === 'fs/read_text_file' || method === 'fs/write_text_file') {
-      client.respondError(id, -32601, 'fs methods not supported by swarmdeck client');
+      client.respondError(id, -32601, 'fs methods not supported by helio client');
       return;
     }
     client.respondError(id, -32601, `Method not implemented: ${method}`);
@@ -306,11 +306,11 @@ async function doHermesStream(opts: StreamOpts): Promise<StreamResult> {
 
 async function getHermesSessions(workdir: string, limit?: number): Promise<SessionListResult> {
   const resolvedWorkdir = resolvePath(workdir);
-  const records = listSwarmDeckSessions(resolvedWorkdir, 'hermes');
+  const records = listHelioSessions(resolvedWorkdir, 'hermes');
   const sessions = records.map(managedRecordToSessionInfo);
   sessions.sort((a, b) => Date.parse(b.createdAt || '') - Date.parse(a.createdAt || ''));
   const sliced = typeof limit === 'number' ? sessions.slice(0, limit) : sessions;
-  agentLog(`[sessions:hermes] workdir=${resolvedWorkdir} swarmdeck=${records.length} returned=${sliced.length}`);
+  agentLog(`[sessions:hermes] workdir=${resolvedWorkdir} helio=${records.length} returned=${sliced.length}`);
   return { ok: true, sessions: sliced, error: null };
 }
 
@@ -468,7 +468,7 @@ function getHermesSessionMessagesFromJson(opts: SessionMessagesOpts): SessionMes
 }
 
 function getHermesSessionMessagesFromRecord(opts: SessionMessagesOpts): SessionMessagesResult {
-  const record = findSwarmDeckSession(opts.workdir, 'hermes', opts.sessionId);
+  const record = findHelioSession(opts.workdir, 'hermes', opts.sessionId);
   if (!record || (!record.lastQuestion && !record.lastAnswer && !record.lastThinking)) {
     return { ok: true, messages: [], totalTurns: 0, error: null };
   }
@@ -526,8 +526,8 @@ async function listHermesModels(_opts: ModelListOpts): Promise<ModelListResult> 
     models,
     sources: native ? [`~/.hermes/config.yaml · ${native.provider}`] : ['~/.hermes/config.yaml (not configured)'],
     note: native
-      ? `Reading Hermes' own config. Bind a swarmdeck Provider on the agent card to override.`
-      : `Run \`hermes config\` to set a default model, or bind a swarmdeck Provider on the agent card.`,
+      ? `Reading Hermes' own config. Bind a helio Provider on the agent card to override.`
+      : `Run \`hermes config\` to set a default model, or bind a helio Provider on the agent card.`,
   };
 }
 

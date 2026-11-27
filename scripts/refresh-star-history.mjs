@@ -6,7 +6,7 @@
 // only when the curve changes, refreshed weekly by star-history-badge.yml.
 import { writeFileSync } from 'node:fs';
 
-const REPO = 'xiaotonng/swarmdeck';
+const REPO = 'expumpemployee/helio';
 const OUT = new URL('../docs/star-history.svg', import.meta.url);
 const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
 
@@ -21,7 +21,7 @@ const GRID = '#8b949e';
 async function fetchStarredAt() {
   const headers = {
     Accept: 'application/vnd.github.star+json',
-    'User-Agent': 'swarmdeck-star-history',
+    'User-Agent': 'helio-star-history',
   };
   if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
   const dates = [];

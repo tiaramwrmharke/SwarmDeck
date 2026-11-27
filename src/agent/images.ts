@@ -26,7 +26,7 @@ export function codexHome(): string {
 }
 
 export function sessionAttachmentsDir(agent: Agent, sessionId: string): string {
-  return path.join(getHome(), '.swarmdeck', 'attachments', agent, sessionId);
+  return path.join(getHome(), '.helio', 'attachments', agent, sessionId);
 }
 
 export function allowedAttachmentRoots(workdir?: string | readonly string[] | null): string[] {
@@ -36,7 +36,7 @@ export function allowedAttachmentRoots(workdir?: string | readonly string[] | nu
     path.join(codexHome(), 'sessions'),
     path.join(home, '.claude', 'projects'),
     path.join(home, '.gemini'),
-    path.join(home, '.swarmdeck', 'attachments'),
+    path.join(home, '.helio', 'attachments'),
     os.tmpdir(),
   ];
   const workdirs = typeof workdir === 'string' ? [workdir] : (workdir ?? []);
