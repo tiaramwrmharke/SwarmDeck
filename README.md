@@ -2,6 +2,10 @@
 
 <img src="docs/logo-wordmark-gradient.png" alt="swarmdeck" width="440">
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Node 20+](https://img.shields.io/badge/node-%3E%3D20-00ADD8.svg)](package.json)
+[![Tests](https://img.shields.io/badge/tests-vitest-6E9F18.svg)](package.json)
+
 ## Put the world's smartest AI agents in your pocket.
 
 ##### *The open Agent orchestrator for the era when creators no longer need to read code.*
