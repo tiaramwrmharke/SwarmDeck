@@ -9,7 +9,7 @@ import {
   resolveCanonicalSessionId,
   getSessionPromotions,
 } from '../src/agent/session.js';
-import { findSwarmDeckSession, deleteAgentSession } from '../src/agent/index.js';
+import { findHelioSession, deleteAgentSession } from '../src/agent/index.js';
 import type { ManagedSessionRecord } from '../src/agent/types.js';
 
 function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSessionRecord> = {}): ManagedSessionRecord {
@@ -17,7 +17,7 @@ function makeRecord(workdir: string, sessionId: string, opts: Partial<ManagedSes
     agent: 'claude',
     sessionId,
     threadId: `thread-${sessionId}`,
-    workspacePath: path.join(workdir, '.swarmdeck', 'sessions', 'claude', sessionId, 'workspace'),
+    workspacePath: path.join(workdir, '.helio', 'sessions', 'claude', sessionId, 'workspace'),
     model: 'claude-sonnet-4-6',
     thinkingEffort: null,
     title: 'test',
@@ -53,8 +53,8 @@ describe('durable session promotions', () => {
 
     expect(resolveCanonicalSessionId(workdir, 'claude', 'pending_aaaaaa')).toBe('native-1');
     expect(getSessionPromotions(workdir)['claude:pending_aaaaaa']).toBe('native-1');
-    expect(findSwarmDeckSession(workdir, 'claude', 'native-1')).not.toBeNull();
-    expect(findSwarmDeckSession(workdir, 'claude', 'pending_aaaaaa')).toBeNull();
+    expect(findHelioSession(workdir, 'claude', 'native-1')).not.toBeNull();
+    expect(findHelioSession(workdir, 'claude', 'pending_aaaaaa')).toBeNull();
   });
 
   it('compacts a multi-hop chain (pending → n1 → n2) so every stale id resolves in one lookup', () => {
@@ -109,7 +109,7 @@ describe('durable session promotions', () => {
     const native = makeRecord(workdir, 'native-legacy');
     saveSessionRecord(workdir, native);
 
-    const pendingDir = path.join(workdir, '.swarmdeck', 'sessions', 'claude', 'pending_legacy0000');
+    const pendingDir = path.join(workdir, '.helio', 'sessions', 'claude', 'pending_legacy0000');
     fs.symlinkSync('native-legacy', pendingDir, 'dir');
     expect(getSessionPromotions(workdir)['claude:pending_legacy0000']).toBeUndefined();
 

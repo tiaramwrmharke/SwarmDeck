@@ -7,19 +7,19 @@ import { agentLog, agentWarn } from './utils.js';
 import { normalizeClaudeSessionEntrypoint } from './drivers/claude.js';
 import { humanizeCodexError } from './drivers/codex.js';
 
-// ── The cutover seam: route an agent turn through @swarmdeck/kernel ──────────────
+// ── The cutover seam: route an agent turn through @helio/kernel ──────────────
 //
 // DEFAULT: ON — claude/codex/gemini/hermes turns run on the kernel drivers (via runTurn).
 // Escape hatches to the legacy driver path:
 //   LOOM_KERNEL_PIPELINE=0             (env; force legacy at startup; survives dev.sh scrub)
-//   ~/.swarmdeck/dev/kernel-legacy.on   (file; hot-toggle legacy without restart)
+//   ~/.helio/dev/kernel-legacy.on   (file; hot-toggle legacy without restart)
 //   LOOM_KERNEL_PIPELINE=1             (env; force kernel, overriding the file)
 // Tests always run legacy (the unit suite asserts legacy driver behavior). The bridge
 // re-applies app-level parity the pure kernel must not own (claude jsonl entrypoint, codex humanize).
 
 const KERNEL_AGENTS = new Set(['claude', 'codex', 'gemini', 'hermes']);
 
-// Generic ACP agents the kernel can drive via @swarmdeck/kernel's AcpDriver. Hermes is its
+// Generic ACP agents the kernel can drive via @helio/kernel's AcpDriver. Hermes is its
 // own built-in preset; this registry is for ANY other ACP CLI (OpenCode, Zed, …). Extend
 // without a code edit via PIKILOOM_ACP_AGENTS='{"zed":{"command":"zed","args":["--acp"]}}'.
 const DEFAULT_ACP_AGENTS: Record<string, { command: string; args: string[] }> = {
@@ -35,7 +35,7 @@ export function acpAgentConfig(agent: string): { command: string; args: string[]
   return null;
 }
 
-// swarmdeck's mcpServers (Record) -> kernel McpServerSpec[] for ACP session/new forwarding.
+// helio's mcpServers (Record) -> kernel McpServerSpec[] for ACP session/new forwarding.
 function mcpRecordToKernelSpecs(servers?: Record<string, any>): any[] {
   if (!servers) return [];
   const out: any[] = [];
@@ -53,11 +53,11 @@ export function shouldUseKernelPipeline(agent: string): boolean {
   if (process.env.VITEST || process.env.NODE_ENV === 'test') return false;   // tests assert legacy
   if (process.env.LOOM_KERNEL_PIPELINE === '0') return false;                 // explicit legacy
   if (process.env.LOOM_KERNEL_PIPELINE === '1') return true;                  // explicit kernel
-  try { if (fs.existsSync(path.join(os.homedir(), '.swarmdeck', 'dev', 'kernel-legacy.on'))) return false; } catch { /* ignore */ }
+  try { if (fs.existsSync(path.join(os.homedir(), '.helio', 'dev', 'kernel-legacy.on'))) return false; } catch { /* ignore */ }
   return true;                                                                // default: kernel
 }
 
-// Build the kernel driver instance + the per-agent AgentTurnInput from swarmdeck StreamOpts.
+// Build the kernel driver instance + the per-agent AgentTurnInput from helio StreamOpts.
 function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input: any } {
   const common = {
     prompt: opts.prompt,
@@ -98,12 +98,12 @@ function buildKernelDriver(kernel: any, opts: StreamOpts): { driver: any; input:
   }
 }
 
-// Kernel plan steps key their text as { text }; swarmdeck's StreamPlan and the entire dashboard
+// Kernel plan steps key their text as { text }; helio's StreamPlan and the entire dashboard
 // pipeline (pikichannel adapter -> ws.ts -> PlanProgressCard) key it as { step }. Translate at
 // this seam — the same place we already remap usage fields — so codex/claude task lists render
 // their text. Without it the progress count ("0/4") shows but every row is blank (the card reads
 // step.step, which is undefined on the kernel shape).
-export function toSwarmDeckPlan(plan: any): StreamPreviewPlan | null {
+export function toHelioPlan(plan: any): StreamPreviewPlan | null {
   if (!plan || !Array.isArray(plan.steps)) return null;
   const steps = plan.steps
     .map((st: any) => ({
@@ -174,16 +174,16 @@ export async function loadKernel(): Promise<any> {
   ];
   // Prefer an installed package if present, else the in-repo built dist.
   // (specifier kept in a variable so tsc treats it as a dynamic any, not a static resolve)
-  const pkgName = '@swarmdeck/kernel';
+  const pkgName = '@helio/kernel';
   try { _kernel = await import(pkgName); return _kernel; } catch { /* not installed */ }
   for (const c of candidates) {
     if (fs.existsSync(c)) { _kernel = await import(pathToFileURL(c).href); return _kernel; }
   }
-  throw new Error(`@swarmdeck/kernel not found (build it: npm run build in packages/kernel). Looked in: ${candidates.join(', ')}`);
+  throw new Error(`@helio/kernel not found (build it: npm run build in packages/kernel). Looked in: ${candidates.join(', ')}`);
 }
 
 // A kernel 'artifact' (e.g. a generated image as a data URL) -> write to a temp file and
-// deliver through swarmdeck's normal file-delivery seam (same path as im_send_file).
+// deliver through helio's normal file-delivery seam (same path as im_send_file).
 async function deliverKernelArtifact(artifact: any, opts: StreamOpts): Promise<void> {
   try {
     const send = (opts as any).mcpSendFile;
@@ -201,13 +201,13 @@ export async function kernelStream(opts: StreamOpts): Promise<StreamResult> {
   const start = Date.now();
   const kernel = await loadKernel();
   const { driver, input } = buildKernelDriver(kernel, opts);
-  agentLog(`[kernel-bridge] routing ${opts.agent} turn via @swarmdeck/kernel ${driver?.constructor?.name || 'Driver'}`);
+  agentLog(`[kernel-bridge] routing ${opts.agent} turn via @helio/kernel ${driver?.constructor?.name || 'Driver'}`);
 
   let delivered = 0;                 // artifacts already sent out-of-band
   let seenSid: string | null = null;
 
   // SessionRunner (via runTurn) owns the event accumulation; the bridge only translates
-  // the kernel's UniversalSnapshot onto swarmdeck's preview (onText) and delivers any new
+  // the kernel's UniversalSnapshot onto helio's preview (onText) and delivers any new
   // artifacts through the normal file seam. This is the "product bridge" pattern: map your
   // request -> AgentTurnInput, map snapshot -> your UI, map result -> your result shape.
   const onSnapshot = (s: any) => {
@@ -225,7 +225,7 @@ export async function kernelStream(opts: StreamOpts): Promise<StreamResult> {
       subAgents: s.subAgents?.length ? s.subAgents : undefined,
       providerName: opts.byokProviderName ?? null,
     };
-    try { opts.onText(s.text || '', s.reasoning || '', s.activity || '', m, toSwarmDeckPlan(s.plan)); } catch { /* isolate */ }
+    try { opts.onText(s.text || '', s.reasoning || '', s.activity || '', m, toHelioPlan(s.plan)); } catch { /* isolate */ }
   };
 
   let result: any; let snapshot: any = {};
@@ -262,7 +262,7 @@ export async function kernelStream(opts: StreamOpts): Promise<StreamResult> {
     ok: !!result.ok,
     message: presentation.message,
     thinking: (result.reasoning || snapshot.reasoning || '').trim() || null,
-    plan: toSwarmDeckPlan(snapshot.plan),
+    plan: toHelioPlan(snapshot.plan),
     sessionId: finalSessionId,
     workspacePath: null,
     model: input.model ?? null,

@@ -44,7 +44,7 @@ describe('Claude TUI driver — startup-failure fallback contract', () => {
 
   beforeEach(() => {
     onText.mockReset();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-claude-tui-test-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-claude-tui-test-'));
   });
 
   afterEach(() => {
@@ -52,7 +52,7 @@ describe('Claude TUI driver — startup-failure fallback contract', () => {
   });
 
   it('throws (not returns) when pty.spawn cannot find the claude binary — lets the dispatcher fall back to -p', async () => {
-    const isolatedPath = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-no-claude-'));
+    const isolatedPath = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-no-claude-'));
     const { doClaudeTuiStream } = await import('../src/agent/drivers/claude-tui.ts');
     try {
       let thrown: any = null;
@@ -96,14 +96,14 @@ describe('Claude TUI driver — upfront session-id promotion', () => {
 
   beforeEach(() => {
     onText.mockReset();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-tui-promote-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-tui-promote-'));
   });
   afterEach(() => {
     try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
   });
 
   async function runWithBrokenSpawn(sessionId: string | null, onSessionId: (id: string) => void) {
-    const isolatedPath = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-no-claude-'));
+    const isolatedPath = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-no-claude-'));
     const { doClaudeTuiStream } = await import('../src/agent/drivers/claude-tui.ts');
     try {
       await Promise.race([
@@ -442,7 +442,7 @@ describe('Claude TUI driver — hook script', () => {
   let statePath: string;
 
   beforeEach(async () => {
-    workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-hook-test-'));
+    workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-hook-test-'));
     hookPath = path.join(workDir, 'hook.cjs');
     statePath = path.join(workDir, 'state.json');
     const HOOK_SCRIPT = `#!/usr/bin/env node
@@ -531,7 +531,7 @@ describe('Claude TUI driver — readJsonlIncrement', () => {
   let tmpFile: string;
 
   beforeEach(() => {
-    tmpFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-jsonl-')), 'session.jsonl');
+    tmpFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'helio-jsonl-')), 'session.jsonl');
   });
 
   afterEach(() => {
@@ -827,11 +827,11 @@ describe('Claude TUI driver — decideClaudeTuiStop + decideClaudeTuiStall watch
 describe('Claude TUI driver — isAskUserToolName (im_ask_user detection)', () => {
   it('matches the bare + MCP-namespaced im_ask_user tool, nothing else', async () => {
     const { isAskUserToolName } = await import('../src/agent/drivers/claude-tui.ts');
-    expect(isAskUserToolName('mcp__swarmdeck__im_ask_user')).toBe(true);
+    expect(isAskUserToolName('mcp__helio__im_ask_user')).toBe(true);
     expect(isAskUserToolName('mcp__something__im_ask_user')).toBe(true);
     expect(isAskUserToolName('im_ask_user')).toBe(true);
-    expect(isAskUserToolName('mcp__swarmdeck__im_send_file')).toBe(false);
-    expect(isAskUserToolName('mcp__swarmdeck__await_background')).toBe(false);
+    expect(isAskUserToolName('mcp__helio__im_send_file')).toBe(false);
+    expect(isAskUserToolName('mcp__helio__await_background')).toBe(false);
     expect(isAskUserToolName('im_ask_user_extra')).toBe(false);
     expect(isAskUserToolName('Bash')).toBe(false);
     expect(isAskUserToolName('')).toBe(false);

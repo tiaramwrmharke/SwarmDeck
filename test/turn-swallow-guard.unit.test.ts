@@ -152,7 +152,7 @@ describe('truncated-turn self-heal (integration)', () => {
     delete process.env.PIKILOOM_CLAUDE_TRUNCATED_RECOVERY;
     const bin = writeFakeClaude(`
   const text = JSON.stringify(msg);
-  if (!text.includes('swarmdeck-recover')) { emit({ type: 'result', subtype: 'success', is_error: false }); return; }
+  if (!text.includes('helio-recover')) { emit({ type: 'result', subtype: 'success', is_error: false }); return; }
   emit({ type: 'stream_event', event: { type: 'content_block_delta', delta: { type: 'text_delta', text: 'Done — auto-delete is now enabled.' } } });
   emit({ type: 'result', subtype: 'success', is_error: false, stop_reason: 'end_turn', result: '' });
 `);
@@ -324,7 +324,7 @@ describe('transcript rendering of a dangling turn', () => {
     });
   });
 
-  it('hides the driver-injected <swarmdeck-recover> prompt from the transcript', async () => {
+  it('hides the driver-injected <helio-recover> prompt from the transcript', async () => {
     await withTempHome(async (homeDir) => {
       const workdir = '/Users/test/recover';
       const projectDir = path.join(homeDir, '.claude', 'projects', '-Users-test-recover');
@@ -343,7 +343,7 @@ describe('transcript rendering of a dangling turn', () => {
       const rich = result.richMessages || [];
       const userMsgs = rich.filter(m => m.role === 'user').map(m => m.text);
       expect(userMsgs).toEqual(['do the thing']);
-      expect(rich.map(m => m.text).join('\n')).not.toContain('swarmdeck-recover');
+      expect(rich.map(m => m.text).join('\n')).not.toContain('helio-recover');
     });
   });
 
@@ -380,7 +380,7 @@ describe('transcript rendering of a dangling turn', () => {
       expect(allText).not.toContain('No response requested.');
       const notices = rich.flatMap(m => m.blocks || []).filter((b: any) => b.type === 'system_notice');
       expect(notices.length).toBe(1);
-      expect(String(notices[0].content)).toContain('Restored by swarmdeck');
+      expect(String(notices[0].content)).toContain('Restored by helio');
       // The follow-up turn ("结果呢") is untouched and not double-restored.
       const userMsgs = rich.filter(m => m.role === 'user').map(m => m.text);
       expect(userMsgs).toEqual(['你帮我针对这个用户起草一份回复邮件', '结果呢']);

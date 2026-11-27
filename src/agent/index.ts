@@ -73,7 +73,7 @@ export {
 
 export {
   updateSessionMeta, promoteSessionId, recordFork, resolveCanonicalSessionId, getSessionPromotions,
-  listSwarmDeckSessions, findSwarmDeckSession, getSessionStoredConfig,
+  listHelioSessions, findHelioSession, getSessionStoredConfig,
   ensureManagedSession, findManagedThreadSession, stageSessionFiles,
   mergeManagedAndNativeSessions, managedRecordToSessionInfo,
   getSessions, getSessionTail, getSessionMessages,

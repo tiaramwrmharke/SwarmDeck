@@ -2,7 +2,7 @@
   - banner [ref=e5]:
     - generic [ref=e6]:
       - generic [ref=e7]:
-        - img "swarmdeck" [ref=e47]
+        - img "helio" [ref=e47]
         - generic [ref=e8]: v0.4.29
       - navigation [ref=e9]:
         - generic [ref=e10]:
@@ -46,7 +46,7 @@
             - generic [ref=e63] [cursor=pointer]:
               - img [ref=e64]
               - generic [ref=e66]:
-                - generic [ref=e67]: swarmdeck
+                - generic [ref=e67]: helio
                 - img [ref=e69]
               - generic [ref=e75]:
                 - button "新建会话" [ref=e76]:
@@ -345,7 +345,7 @@
         - generic [ref=e374]:
           - generic [ref=e375]:
             - generic [ref=e377]:
-              - generic [ref=e378]: swarmdeck
+              - generic [ref=e378]: helio
               - generic [ref=e379]: /
               - generic [ref=e380]: "STREAM-TEST-A: Without using any tools or reading any files, write about 400 words explaining how prime numbers work...."
             - generic [ref=e381]:
@@ -579,7 +579,7 @@
             - generic [ref=e791]: 新建会话
             - generic [ref=e792]:
               - img [ref=e793]
-              - generic [ref=e795]: swarmdeck
+              - generic [ref=e795]: helio
             - button [ref=e797] [cursor=pointer]:
               - img [ref=e798]
           - generic [ref=e804]: 选择工作区和 Agent，输入初始提示词开始新会话。

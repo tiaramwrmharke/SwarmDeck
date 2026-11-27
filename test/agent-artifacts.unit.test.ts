@@ -23,10 +23,10 @@ describe('delivered-artifact manifest', () => {
   let workdir: string;
 
   beforeEach(() => {
-    home = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-artifacts-home-'));
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-artifacts-home-'));
     homeSnapshot = process.env.HOME;
     process.env.HOME = home;
-    workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-artifacts-wd-'));
+    workdir = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-artifacts-wd-'));
   });
   afterEach(() => {
     fs.rmSync(home, { recursive: true, force: true });
@@ -47,7 +47,7 @@ describe('delivered-artifact manifest', () => {
     expect(rec!.kind).toBe('document');
     expect(rec!.caption).toBe('final report');
 
-    expect(rec!.path).toContain(path.join('.swarmdeck', 'attachments', 'claude', 'sess-1', 'delivered'));
+    expect(rec!.path).toContain(path.join('.helio', 'attachments', 'claude', 'sess-1', 'delivered'));
     expect(rec!.path).not.toBe(src);
     expect(fs.existsSync(rec!.path)).toBe(true);
     expect(fs.readFileSync(rec!.path, 'utf-8')).toBe('PDF-CONTENT');

@@ -40,7 +40,7 @@ vi.mock('discord.js', () => {
     });
   }
   class FakeClient {
-    user = { id: 'BOT_USER', username: 'swarmdeck', displayName: 'swarmdeck' };
+    user = { id: 'BOT_USER', username: 'helio', displayName: 'helio' };
     channels = {
       cache: new Map<string, FakeChannel>(),
       fetch: vi.fn(async (id: string) => {
@@ -101,7 +101,7 @@ describe('DiscordChannel connect / send / edit', () => {
       const ch = new DiscordChannel({ botToken: 'token' });
       const bot = await ch.connect();
       expect(bot.id).toBe('BOT_USER');
-      expect(bot.username).toBe('swarmdeck');
+      expect(bot.username).toBe('helio');
     }
 
     hoist.sentMessages.length = 0;

@@ -1,23 +1,23 @@
 # syntax=docker/dockerfile:1.7
 #
-# SwarmDeck — Docker image
+# Helio — Docker image
 #
 # Layered approach:
 #   1. `builder`  full deps, compiles TS + builds Vite dashboard
 #   2. `deps`     production-only node_modules (no devDeps)
 #   3. `runtime`  pinned Node/npm + agent CLIs (claude / codex / gemini) baked in,
-#                 non-root user, /workspace and /home/piki/.swarmdeck as volumes
+#                 non-root user, /workspace and /home/piki/.helio as volumes
 #
 # Build:
-#   docker build -t swarmdeck:local .
+#   docker build -t helio:local .
 #
 # Run (named volumes + Telegram example):
 #   docker run --rm -it -p 3939:3939 \
 #     -e TELEGRAM_BOT_TOKEN=...:... \
 #     -e ANTHROPIC_API_KEY=sk-ant-... \
-#     -v swarmdeck-config:/home/piki/.swarmdeck \
-#     -v swarmdeck-workspace:/workspace \
-#     ghcr.io/xiaotonng/swarmdeck:latest
+#     -v helio-config:/home/piki/.helio \
+#     -v helio-workspace:/workspace \
+#     ghcr.io/expumpemployee/helio:latest
 #
 # See docs/DOCKER.md for the full reference.
 
@@ -46,7 +46,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 # Copy only what `npm run build` (tsc + vite) needs. .dockerignore
-# already keeps node_modules, dist/, .swarmdeck/, .scratch/, etc. out.
+# already keeps node_modules, dist/, .helio/, .scratch/, etc. out.
 COPY .nvmrc Dockerfile ./
 COPY scripts/verify-toolchain.mjs ./scripts/verify-toolchain.mjs
 COPY tsconfig.json ./tsconfig.json
@@ -77,7 +77,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --omit=optional --no-audit --no-fund
 
 # ---------------------------------------------------------------------------
-# Stage 3 — runtime: Node + agent CLIs + compiled swarmdeck.
+# Stage 3 — runtime: Node + agent CLIs + compiled helio.
 # ---------------------------------------------------------------------------
 FROM node:${NODE_VERSION} AS runtime
 ARG NPM_VERSION
@@ -152,12 +152,12 @@ COPY --from=builder --chown=piki:piki /build/dashboard/dist ./dashboard/dist
 COPY --from=builder --chown=piki:piki /build/packages/kernel/dist ./packages/kernel/dist
 
 # Persistent dirs the entrypoint expects to exist.
-RUN mkdir -p /workspace /home/piki/.swarmdeck \
+RUN mkdir -p /workspace /home/piki/.helio \
              /home/piki/.claude /home/piki/.codex /home/piki/.gemini \
  && chown -R piki:piki /workspace /home/piki
 
-COPY --chown=root:root docker/entrypoint.sh /usr/local/bin/swarmdeck-entrypoint
-RUN chmod +x /usr/local/bin/swarmdeck-entrypoint
+COPY --chown=root:root docker/entrypoint.sh /usr/local/bin/helio-entrypoint
+RUN chmod +x /usr/local/bin/helio-entrypoint
 
 USER piki
 
@@ -170,12 +170,12 @@ ENV NODE_ENV=production \
 
 EXPOSE 3939
 
-VOLUME ["/home/piki/.swarmdeck", "/workspace"]
+VOLUME ["/home/piki/.helio", "/workspace"]
 
 # /api/state returns 200 once the bot has settled; before that the dashboard
 # is still bound but the bot may still be coming up.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://127.0.0.1:3939/api/state >/dev/null || exit 1
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/swarmdeck-entrypoint"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/helio-entrypoint"]
 CMD ["--no-daemon", "--workdir", "/workspace"]

@@ -123,7 +123,7 @@ describe('buildCodexMcpAddArgs', () => {
   it('builds stdio/HTTP argv, threads bearer tokens, sanitizes names, and returns null for malformed entries', () => {
     const stdioArgs = buildCodexMcpAddArgs(
       {
-        name: 'swarmdeck',
+        name: 'helio',
         type: 'stdio',
         command: '/usr/bin/node',
         args: ['session-server.js'],
@@ -131,7 +131,7 @@ describe('buildCodexMcpAddArgs', () => {
       },
       {},
     );
-    expect(stdioArgs).toEqual(['mcp', 'add', 'swarmdeck', '--env', 'FOO=bar', '--', '/usr/bin/node', 'session-server.js']);
+    expect(stdioArgs).toEqual(['mcp', 'add', 'helio', '--env', 'FOO=bar', '--', '/usr/bin/node', 'session-server.js']);
 
     const bearerEnv: Record<string, string> = {};
     const httpArgs = buildCodexMcpAddArgs(
@@ -185,7 +185,7 @@ describe('buildGeminiMcpConfig', () => {
         headers: { Authorization: 'Bearer tok' },
       },
       {
-        name: 'swarmdeck',
+        name: 'helio',
         type: 'stdio',
         command: '/usr/bin/node',
         args: ['session-server.js'],
@@ -200,7 +200,7 @@ describe('buildGeminiMcpConfig', () => {
         headers: { Authorization: 'Bearer tok' },
         trust: true,
       },
-      swarmdeck: {
+      helio: {
         command: '/usr/bin/node',
         args: ['session-server.js'],
         env: { FOO: 'bar' },

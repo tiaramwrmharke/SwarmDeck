@@ -14,7 +14,7 @@ import {
   run, agentLog, buildStreamPreviewMeta,
   appendSystemPrompt, pushRecentActivity, firstNonEmptyLine, shortValue, normalizeErrorMessage,
   sanitizeSessionUserPreviewText, emitSessionIdUpdate,
-  listSwarmDeckSessions, findSwarmDeckSession, isPendingSessionId,
+  listHelioSessions, findHelioSession, isPendingSessionId,
   mergeManagedAndNativeSessions, managedRecordToSessionInfo, applyTurnWindow,
   stripInjectedPrompts, attachAgentImage,
   roundPercent, emptyUsage, Q,
@@ -315,7 +315,7 @@ function prepareGeminiHomeOverlay(opts: GeminiOverlayOpts): GeminiHomeOverlay | 
 
   let overlayHome: string;
   try {
-    overlayHome = fs.mkdtempSync(path.join(os.tmpdir(), 'swarmdeck-gemini-'));
+    overlayHome = fs.mkdtempSync(path.join(os.tmpdir(), 'helio-gemini-'));
   } catch {
     return null;
   }
@@ -659,15 +659,15 @@ function getNativeGeminiSessions(workdir: string): SessionInfo[] {
 
 function getGeminiSessions(workdir: string, limit?: number): SessionListResult {
   const resolvedWorkdir = path.resolve(workdir);
-  const swarmdeckSessions = listSwarmDeckSessions(resolvedWorkdir, 'gemini').map(managedRecordToSessionInfo);
+  const helioSessions = listHelioSessions(resolvedWorkdir, 'gemini').map(managedRecordToSessionInfo);
   const nativeSessions = getNativeGeminiSessions(resolvedWorkdir);
-  const merged = mergeManagedAndNativeSessions(swarmdeckSessions, nativeSessions);
+  const merged = mergeManagedAndNativeSessions(helioSessions, nativeSessions);
   const sessions = typeof limit === 'number' ? merged.slice(0, limit) : merged;
   const projectName = geminiProjectName(resolvedWorkdir);
   const chatsDir = projectName ? geminiChatsDir(resolvedWorkdir) || '' : '';
   agentLog(
     `[sessions:gemini] workdir=${resolvedWorkdir} projectName=${projectName || '(none)'} chatsDir=${chatsDir || '(none)'} ` +
-    `chatsDirExists=${chatsDir ? fs.existsSync(chatsDir) : false} swarmdeck=${swarmdeckSessions.length} native=${nativeSessions.length} merged=${sessions.length}`
+    `chatsDirExists=${chatsDir ? fs.existsSync(chatsDir) : false} helio=${helioSessions.length} native=${nativeSessions.length} merged=${sessions.length}`
   );
   return { ok: true, sessions, error: null };
 }

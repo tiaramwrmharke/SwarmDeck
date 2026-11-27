@@ -22,7 +22,7 @@ export interface ModelLayer {
 // panel, so it lives here once instead of being re-fetched by each InputComposer on mount.
 let _modelLayerInFlight: Promise<ModelLayer | null> | null = null;
 
-const CACHE_KEY = 'swarmdeck-store-cache';
+const CACHE_KEY = 'helio-store-cache';
 
 interface CachedSlices {
   state: AppState | null;
@@ -49,7 +49,7 @@ let _toastId = 0;
 
 function getInitialTheme(): Theme {
   try {
-    const stored = localStorage.getItem('swarmdeck-theme');
+    const stored = localStorage.getItem('helio-theme');
     if (stored === 'light' || stored === 'dark') return stored;
   } catch {}
   return 'dark';
@@ -57,7 +57,7 @@ function getInitialTheme(): Theme {
 
 function getInitialLocale(): Locale {
   try {
-    const stored = localStorage.getItem('swarmdeck-locale');
+    const stored = localStorage.getItem('helio-locale');
     if (stored === 'en' || stored === 'zh-CN') return stored;
   } catch {}
   return 'zh-CN';
@@ -114,12 +114,12 @@ export const useStore = create<StoreState>()((set, get) => ({
 
   setTheme: (t) => {
     document.documentElement.dataset.theme = t;
-    try { localStorage.setItem('swarmdeck-theme', t); } catch {}
+    try { localStorage.setItem('helio-theme', t); } catch {}
     set({ theme: t });
   },
 
   setLocale: (l) => {
-    try { localStorage.setItem('swarmdeck-locale', l); } catch {}
+    try { localStorage.setItem('helio-locale', l); } catch {}
     set({ locale: l });
   },
 

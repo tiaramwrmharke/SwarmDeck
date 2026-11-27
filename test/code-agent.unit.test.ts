@@ -16,7 +16,7 @@ import {
   getSessionTail,
   getUsage,
   labelFromWindowMinutes,
-  listSwarmDeckSessions,
+  listHelioSessions,
   listModels,
   mergeManagedAndNativeSessions,
   promoteSessionId,
@@ -36,7 +36,7 @@ import {
 } from '../src/agent/drivers/claude.ts';
 import { makeTmpDir, withTempHome } from './support/env.ts';
 
-const tmpDir = path.join(os.tmpdir(), 'swarmdeck-test-' + process.pid);
+const tmpDir = path.join(os.tmpdir(), 'helio-test-' + process.pid);
 const fakeBin = path.join(tmpDir, 'bin');
 
 function writeFakeScript(name: string, jsonLines: object[]) {
@@ -93,7 +93,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
     expect(sanitizeSessionUserPreviewText('[Attached file: /tmp/shot.png]')).toBe('');
     expect(sanitizeSessionUserPreviewText('[Image: original 2316x1558] 帮我看一下这里为什么有间距')).toBe('帮我看一下这里为什么有间距');
     expect(sanitizeSessionUserPreviewText('正常问题')).toBe('正常问题');
-    expect(sanitizeSessionUserPreviewText('@/Users/me/.swarmdeck/sessions/claude/x/workspace/image.png\n\n看一下截图')).toBe('看一下截图');
+    expect(sanitizeSessionUserPreviewText('@/Users/me/.helio/sessions/claude/x/workspace/image.png\n\n看一下截图')).toBe('看一下截图');
     expect(sanitizeSessionUserPreviewText('@/tmp/a.jpg @/tmp/b.webp prompt')).toBe('prompt');
     expect(sanitizeSessionUserPreviewText('@user mentions are not paths')).toBe('@user mentions are not paths');
 
@@ -103,7 +103,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
         sessionId: 'sess-1',
         agent: 'codex',
         workdir: tmpDir,
-        workspacePath: '/tmp/swarmdeck/workspace',
+        workspacePath: '/tmp/helio/workspace',
         model: 'local-model',
         createdAt: '2026-03-16T00:00:00.000Z',
         title: 'local title',
@@ -140,7 +140,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
       title: 'native title',
       model: 'native-model',
       createdAt: '2026-03-16T00:01:00.000Z',
-      workspacePath: '/tmp/swarmdeck/workspace',
+      workspacePath: '/tmp/helio/workspace',
       running: true,
       runState: 'incomplete',
       runDetail: 'local detail',
@@ -155,7 +155,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
     const merged = mergeManagedAndNativeSessions([
       {
         sessionId: 'sess-eff', agent: 'claude', workdir: tmpDir,
-        workspacePath: '/tmp/swarmdeck/workspace', model: 'claude-opus-4-8',
+        workspacePath: '/tmp/helio/workspace', model: 'claude-opus-4-8',
         thinkingEffort: 'max', workflowEnabled: true,
         createdAt: '2026-03-16T00:00:00.000Z', title: 't',
         running: false, runState: 'completed', runDetail: null,
@@ -183,7 +183,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
         sessionId: 'sess-2',
         agent: 'claude',
         workdir: tmpDir,
-        workspacePath: '/tmp/swarmdeck/workspace',
+        workspacePath: '/tmp/helio/workspace',
         model: 'claude-opus-4-7',
         createdAt: '2026-03-16T00:00:00.000Z',
         title: 'stale title',
@@ -217,7 +217,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
     expect(merged).toHaveLength(1);
     expect(merged[0]).toMatchObject({
       sessionId: 'sess-2',
-      workspacePath: '/tmp/swarmdeck/workspace',
+      workspacePath: '/tmp/helio/workspace',
       runUpdatedAt: '2026-03-16T00:05:00.000Z',
       lastQuestion: 'new question',
       lastAnswer: 'new answer',
@@ -231,7 +231,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
         sessionId: 'sess-preview-1',
         agent: 'codex',
         workdir: tmpDir,
-        workspacePath: '/tmp/swarmdeck/workspace',
+        workspacePath: '/tmp/helio/workspace',
         model: 'o3',
         createdAt: '2026-03-20T10:00:00.000Z',
         title: 'managed title',
@@ -278,7 +278,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
         sessionId: 'sess-preview-2',
         agent: 'codex',
         workdir: tmpDir,
-        workspacePath: '/tmp/swarmdeck/workspace',
+        workspacePath: '/tmp/helio/workspace',
         model: 'o3',
         createdAt: '2026-03-20T10:00:00.000Z',
         title: 'managed title',
@@ -317,12 +317,12 @@ describe('buildCodexTurnInput and usage helpers', () => {
     expect(s.lastQuestion).toBe('native question (latest)');
     expect(s.lastAnswer).toBe('native answer (latest)');
     expect(s.lastMessageText).toBe('native answer (latest)');
-    expect(s.workspacePath).toBe('/tmp/swarmdeck/workspace');
+    expect(s.workspacePath).toBe('/tmp/helio/workspace');
     }
 
     await withTempHome(async (homeDir) => {
-      const workdir = makeTmpDir('swarmdeck-workdir-');
-      const otherWorkdir = makeTmpDir('swarmdeck-other-workdir-');
+      const workdir = makeTmpDir('helio-workdir-');
+      const otherWorkdir = makeTmpDir('helio-other-workdir-');
       const sessionsDir = path.join(homeDir, '.codex', 'sessions', '2026', '03', '28');
       fs.mkdirSync(sessionsDir, { recursive: true });
 
@@ -337,13 +337,13 @@ describe('buildCodexTurnInput and usage helpers', () => {
         id: 'sess-parent',
         timestamp: '2026-03-28T00:12:31.000Z',
         cwd: workdir,
-        originator: 'swarmdeck',
+        originator: 'helio',
       });
       writeRollout('rollout-child.jsonl', {
         id: 'sess-child',
         timestamp: '2026-03-28T00:13:16.000Z',
         cwd: workdir,
-        originator: 'swarmdeck',
+        originator: 'helio',
         source: {
           subagent: {
             thread_spawn: {
@@ -359,7 +359,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
         id: 'sess-other',
         timestamp: '2026-03-28T00:14:00.000Z',
         cwd: otherWorkdir,
-        originator: 'swarmdeck',
+        originator: 'helio',
       });
 
       const result = await getSessions({ agent: 'codex', workdir });
@@ -373,7 +373,7 @@ describe('buildCodexTurnInput and usage helpers', () => {
 describe('stageSessionFiles', () => {
   it('stages/migrates uploads, sets titles, promotes pending sessions, and keeps per-agent records distinct', () => {
     {
-    const uploadDir = makeTmpDir('swarmdeck-upload-');
+    const uploadDir = makeTmpDir('helio-upload-');
     const uploadPath = path.join(uploadDir, 'report.txt');
     fs.writeFileSync(uploadPath, 'hello');
 
@@ -383,21 +383,21 @@ describe('stageSessionFiles', () => {
       files: [uploadPath],
     });
 
-    const stagedDir = path.join(tmpDir, '.swarmdeck', 'sessions', 'claude', staged.sessionId);
+    const stagedDir = path.join(tmpDir, '.helio', 'sessions', 'claude', staged.sessionId);
     expect(staged.workspacePath).toBe(path.join(stagedDir, 'workspace'));
     expect(fs.existsSync(path.join(staged.workspacePath, 'report.txt'))).toBe(true);
     expect(fs.existsSync(path.join(stagedDir, 'session.json'))).toBe(true);
 
     const legacySessionId = 'sess_legacy_layout';
-    const legacyWorkspacePath = path.join(tmpDir, '.swarmdeck', 'workspaces', 'claude', legacySessionId);
-    const legacyMetaDir = path.join(legacyWorkspacePath, '.swarmdeck');
+    const legacyWorkspacePath = path.join(tmpDir, '.helio', 'workspaces', 'claude', legacySessionId);
+    const legacyMetaDir = path.join(legacyWorkspacePath, '.helio');
     fs.mkdirSync(legacyMetaDir, { recursive: true });
     fs.writeFileSync(path.join(legacyWorkspacePath, 'legacy.txt'), 'legacy');
     fs.writeFileSync(path.join(legacyMetaDir, 'return.json'), JSON.stringify({
       files: [{ path: 'legacy.txt', kind: 'document' }],
     }));
-    fs.mkdirSync(path.join(tmpDir, '.swarmdeck', 'sessions'), { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, '.swarmdeck', 'sessions', 'index.json'), JSON.stringify({
+    fs.mkdirSync(path.join(tmpDir, '.helio', 'sessions'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.helio', 'sessions', 'index.json'), JSON.stringify({
       version: 1,
       sessions: [{
         sessionId: legacySessionId,
@@ -419,7 +419,7 @@ describe('stageSessionFiles', () => {
       sessionId: legacySessionId,
     });
 
-    const migratedDir = path.join(tmpDir, '.swarmdeck', 'sessions', 'claude', legacySessionId);
+    const migratedDir = path.join(tmpDir, '.helio', 'sessions', 'claude', legacySessionId);
     expect(migrated.workspacePath).toBe(path.join(migratedDir, 'workspace'));
     expect(fs.existsSync(path.join(migrated.workspacePath, 'legacy.txt'))).toBe(true);
     expect(fs.existsSync(path.join(migratedDir, 'session.json'))).toBe(true);
@@ -434,13 +434,13 @@ describe('stageSessionFiles', () => {
       title: '第一行问题前缀\n第二行补充说明\n第三行细节',
     });
 
-    const record = listSwarmDeckSessions(tmpDir, 'claude').find(entry => entry.sessionId === staged.sessionId);
+    const record = listHelioSessions(tmpDir, 'claude').find(entry => entry.sessionId === staged.sessionId);
     expect(record?.title).toBe('第一行问题前缀');
     }
 
     {
-    const workdir = makeTmpDir('swarmdeck-promote-');
-    const uploadDir = makeTmpDir('swarmdeck-image-');
+    const workdir = makeTmpDir('helio-promote-');
+    const uploadDir = makeTmpDir('helio-image-');
     const uploadPath = path.join(uploadDir, 'shot.jpg');
     fs.writeFileSync(uploadPath, 'image-bytes');
 
@@ -456,11 +456,11 @@ describe('stageSessionFiles', () => {
 
     promoteSessionId(workdir, 'codex', staged.sessionId, 'thread-native');
 
-    const nativeWorkspace = path.join(workdir, '.swarmdeck', 'sessions', 'codex', 'thread-native', 'workspace');
+    const nativeWorkspace = path.join(workdir, '.helio', 'sessions', 'codex', 'thread-native', 'workspace');
     expect(fs.existsSync(path.join(nativeWorkspace, 'shot.jpg'))).toBe(true);
     expect(fs.existsSync(oldFilePath)).toBe(true);
 
-    const records = listSwarmDeckSessions(workdir, 'codex');
+    const records = listHelioSessions(workdir, 'codex');
     expect(records.map(entry => entry.sessionId)).toContain('thread-native');
     expect(records.map(entry => entry.sessionId)).not.toContain(staged.sessionId);
     }
@@ -481,8 +481,8 @@ describe('stageSessionFiles', () => {
       threadId: 'thread-shared',
     });
 
-    const claudeRecord = listSwarmDeckSessions(tmpDir, 'claude').find(entry => entry.sessionId === 'shared-session');
-    const codexRecord = listSwarmDeckSessions(tmpDir, 'codex').find(entry => entry.sessionId === 'shared-session');
+    const claudeRecord = listHelioSessions(tmpDir, 'claude').find(entry => entry.sessionId === 'shared-session');
+    const codexRecord = listHelioSessions(tmpDir, 'codex').find(entry => entry.sessionId === 'shared-session');
     const codexBinding = findManagedThreadSession(tmpDir, 'thread-shared', 'codex');
 
     expect(claudeRecord?.agent).toBe('claude');
@@ -970,9 +970,9 @@ process.stdout.write(JSON.stringify({ type: 'result', session_id: 'gemini-sessio
       respectGitIgnore: false,
       respectGeminiIgnore: false,
     });
-    expect(settings.mcpServers?.swarmdeck?.command).toBeTruthy();
-    expect(settings.mcpServers?.swarmdeck?.env?.MCP_CALLBACK_URL).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
-    expect(settings.mcpServers?.swarmdeck?.trust).toBe(true);
+    expect(settings.mcpServers?.helio?.command).toBeTruthy();
+    expect(settings.mcpServers?.helio?.env?.MCP_CALLBACK_URL).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
+    expect(settings.mcpServers?.helio?.trust).toBe(true);
     }
 
     {
@@ -1909,11 +1909,11 @@ rl.on('line', (line) => {
     const result = await doStream(baseOpts('codex', { prompt: '给我讲故事' }));
     expect(result.ok).toBe(true);
     expect(result.sessionId).toBe('thread-native');
-    expect(result.workspacePath).toBe(path.join(tmpDir, '.swarmdeck', 'sessions', 'codex', 'thread-native', 'workspace'));
+    expect(result.workspacePath).toBe(path.join(tmpDir, '.helio', 'sessions', 'codex', 'thread-native', 'workspace'));
 
-    const record = listSwarmDeckSessions(tmpDir, 'codex').find(entry => entry.sessionId === 'thread-native');
+    const record = listHelioSessions(tmpDir, 'codex').find(entry => entry.sessionId === 'thread-native');
     expect(record?.title).toBe('给我讲故事');
-    expect(record?.workspacePath).toBe(path.join(tmpDir, '.swarmdeck', 'sessions', 'codex', 'thread-native', 'workspace'));
+    expect(record?.workspacePath).toBe(path.join(tmpDir, '.helio', 'sessions', 'codex', 'thread-native', 'workspace'));
     }
 
     shutdownCodexServer();
@@ -1983,8 +1983,8 @@ rl.on('line', (line) => {
     expect(result.ok).toBe(true);
     expect(result.sessionId).toBe('thread-forwarded');
 
-    const record = listSwarmDeckSessions(tmpDir, 'codex').find(entry => entry.sessionId === 'thread-forwarded');
-    expect(record?.workspacePath).toBe(path.join(tmpDir, '.swarmdeck', 'sessions', 'codex', 'thread-forwarded', 'workspace'));
+    const record = listHelioSessions(tmpDir, 'codex').find(entry => entry.sessionId === 'thread-forwarded');
+    expect(record?.workspacePath).toBe(path.join(tmpDir, '.helio', 'sessions', 'codex', 'thread-forwarded', 'workspace'));
     }
 
     shutdownCodexServer();
@@ -1999,7 +1999,7 @@ rl.on('line', (line) => {
     const completed = await doStream(baseOpts('claude', { prompt: 'first pass' }));
     expect(completed.ok).toBe(true);
 
-    let record = listSwarmDeckSessions(tmpDir, 'claude').find(entry => entry.sessionId === 'sess-status');
+    let record = listHelioSessions(tmpDir, 'claude').find(entry => entry.sessionId === 'sess-status');
     expect(record?.runState).toBe('completed');
     expect(record?.runDetail).toBeNull();
 
@@ -2013,7 +2013,7 @@ exit 1`;
     const incomplete = await doStream(baseOpts('claude', { sessionId: 'sess-status', prompt: 'second pass' }));
     expect(incomplete.ok).toBe(false);
 
-    record = listSwarmDeckSessions(tmpDir, 'claude').find(entry => entry.sessionId === 'sess-status');
+    record = listHelioSessions(tmpDir, 'claude').find(entry => entry.sessionId === 'sess-status');
     expect(record?.runState).toBe('incomplete');
     expect(record?.runDetail).toContain('quota exceeded');
     }
@@ -2030,7 +2030,7 @@ exit 1`;
       workdir: tmpDir,
       files: [],
     });
-    const manifestPath = path.join(tmpDir, '.swarmdeck', 'sessions', 'claude', staged.sessionId, 'return.json');
+    const manifestPath = path.join(tmpDir, '.helio', 'sessions', 'claude', staged.sessionId, 'return.json');
     fs.writeFileSync(manifestPath, JSON.stringify({
       files: [{ path: 'README.md', kind: 'document', caption: 'stale artifact' }],
     }, null, 2));
@@ -2251,7 +2251,7 @@ exit 0`;
       expect(claudeUsage.windows[0].status).toBe('warning');
       expect(claudeUsage.windows[0].resetAfterSeconds).toBe(39 * 3600);
 
-      const emptyBin = makeTmpDir('swarmdeck-empty-bin-');
+      const emptyBin = makeTmpDir('helio-empty-bin-');
       const oldPath = process.env.PATH;
       process.env.PATH = emptyBin;
       try {

@@ -19,7 +19,7 @@ function writeSkill(root: string, name: string, body: string) {
 
 beforeEach(() => {
   restoreEnv(envSnapshot);
-  process.env.PIKILOOM_CONFIG = path.join(makeTmpDir('swarmdeck-config-'), 'setting.json');
+  process.env.PIKILOOM_CONFIG = path.join(makeTmpDir('helio-config-'), 'setting.json');
 });
 
 afterEach(() => {
@@ -29,8 +29,8 @@ afterEach(() => {
 describe('project skills', () => {
   it('resolves skill paths, routes per-agent, merges legacy roots, and collapses shorthand', () => {
     {
-      const workdir = makeTmpDir('swarmdeck-claude-skill-');
-      writeSkill(path.join(workdir, '.swarmdeck', 'skills'), 'install', '---\nlabel: Install\ndescription: shared\n---\n');
+      const workdir = makeTmpDir('helio-claude-skill-');
+      writeSkill(path.join(workdir, '.helio', 'skills'), 'install', '---\nlabel: Install\ndescription: shared\n---\n');
       writeSkill(path.join(workdir, '.claude', 'skills'), 'install', '---\nlabel: Install\ndescription: claude\n---\n');
 
       const bot = new Bot();
@@ -38,7 +38,7 @@ describe('project skills', () => {
       bot.chat(1).agent = 'claude';
 
       expect(getProjectSkillPaths(workdir, 'install')).toEqual({
-        sharedSkillFile: path.join(workdir, '.swarmdeck', 'skills', 'install', 'SKILL.md'),
+        sharedSkillFile: path.join(workdir, '.helio', 'skills', 'install', 'SKILL.md'),
         claudeSkillFile: path.join(workdir, '.claude', 'skills', 'install', 'SKILL.md'),
         agentsSkillFile: path.join(workdir, '.agents', 'skills', 'install', 'SKILL.md'),
       });
@@ -52,8 +52,8 @@ describe('project skills', () => {
     }
 
     {
-      const workdir = makeTmpDir('swarmdeck-codex-skill-');
-      writeSkill(path.join(workdir, '.swarmdeck', 'skills'), 'fixup', '---\nlabel: Fixup\ndescription: shared\n---\n');
+      const workdir = makeTmpDir('helio-codex-skill-');
+      writeSkill(path.join(workdir, '.helio', 'skills'), 'fixup', '---\nlabel: Fixup\ndescription: shared\n---\n');
       writeSkill(path.join(workdir, '.agents', 'skills'), 'fixup', '---\nlabel: Fixup\ndescription: agents\n---\n');
 
       const bot = new Bot();
@@ -68,28 +68,28 @@ describe('project skills', () => {
     }
 
     {
-      const workdir = makeTmpDir('swarmdeck-migrate-skill-');
-      writeSkill(path.join(workdir, '.swarmdeck', 'skills'), 'ship', '---\nlabel: Ship\ndescription: shared\n---\n');
-      writeFile(path.join(workdir, '.swarmdeck', 'skills', 'ship', 'references', 'shared.txt'), 'shared\n');
+      const workdir = makeTmpDir('helio-migrate-skill-');
+      writeSkill(path.join(workdir, '.helio', 'skills'), 'ship', '---\nlabel: Ship\ndescription: shared\n---\n');
+      writeFile(path.join(workdir, '.helio', 'skills', 'ship', 'references', 'shared.txt'), 'shared\n');
       writeSkill(path.join(workdir, '.claude', 'skills'), 'ship', '---\nlabel: Ship\ndescription: claude\n---\n');
       writeFile(path.join(workdir, '.claude', 'skills', 'ship', 'references', 'claude.txt'), 'preserved\n');
       writeSkill(path.join(workdir, '.agents', 'skills'), 'package', '---\nlabel: Package\ndescription: agents\n---\n');
 
       initializeProjectSkills(workdir);
 
-      expect(fs.lstatSync(path.join(workdir, '.swarmdeck', 'skills')).isSymbolicLink()).toBe(false);
-      expect(fs.readFileSync(path.join(workdir, '.swarmdeck', 'skills', 'ship', 'SKILL.md'), 'utf8')).toContain('description: shared');
-      expect(fs.existsSync(path.join(workdir, '.swarmdeck', 'skills', 'ship', 'references', 'shared.txt'))).toBe(true);
-      expect(fs.existsSync(path.join(workdir, '.swarmdeck', 'skills', 'ship', 'references', 'claude.txt'))).toBe(true);
-      expect(fs.existsSync(path.join(workdir, '.swarmdeck', 'skills', 'package', 'SKILL.md'))).toBe(true);
+      expect(fs.lstatSync(path.join(workdir, '.helio', 'skills')).isSymbolicLink()).toBe(false);
+      expect(fs.readFileSync(path.join(workdir, '.helio', 'skills', 'ship', 'SKILL.md'), 'utf8')).toContain('description: shared');
+      expect(fs.existsSync(path.join(workdir, '.helio', 'skills', 'ship', 'references', 'shared.txt'))).toBe(true);
+      expect(fs.existsSync(path.join(workdir, '.helio', 'skills', 'ship', 'references', 'claude.txt'))).toBe(true);
+      expect(fs.existsSync(path.join(workdir, '.helio', 'skills', 'package', 'SKILL.md'))).toBe(true);
       expect(fs.lstatSync(path.join(workdir, '.claude', 'skills')).isSymbolicLink()).toBe(true);
       expect(fs.lstatSync(path.join(workdir, '.agents', 'skills')).isSymbolicLink()).toBe(true);
-      expect(fs.realpathSync(path.join(workdir, '.claude', 'skills'))).toBe(fs.realpathSync(path.join(workdir, '.swarmdeck', 'skills')));
-      expect(fs.realpathSync(path.join(workdir, '.agents', 'skills'))).toBe(fs.realpathSync(path.join(workdir, '.swarmdeck', 'skills')));
+      expect(fs.realpathSync(path.join(workdir, '.claude', 'skills'))).toBe(fs.realpathSync(path.join(workdir, '.helio', 'skills')));
+      expect(fs.realpathSync(path.join(workdir, '.agents', 'skills'))).toBe(fs.realpathSync(path.join(workdir, '.helio', 'skills')));
     }
 
     {
-      const workdir = makeTmpDir('swarmdeck-relink-skill-');
+      const workdir = makeTmpDir('helio-relink-skill-');
       const claudeSkills = path.join(workdir, '.claude', 'skills');
       fs.mkdirSync(path.dirname(claudeSkills), { recursive: true });
       fs.symlinkSync('../.pikiclaw/skills', claudeSkills, 'dir');
@@ -98,16 +98,16 @@ describe('project skills', () => {
       initializeProjectSkills(workdir);
 
       expect(fs.lstatSync(claudeSkills).isSymbolicLink()).toBe(true);
-      expect(fs.readlinkSync(claudeSkills)).toBe(path.join('..', '.swarmdeck', 'skills'));
-      expect(fs.realpathSync(claudeSkills)).toBe(fs.realpathSync(path.join(workdir, '.swarmdeck', 'skills')));
+      expect(fs.readlinkSync(claudeSkills)).toBe(path.join('..', '.helio', 'skills'));
+      expect(fs.realpathSync(claudeSkills)).toBe(fs.realpathSync(path.join(workdir, '.helio', 'skills')));
 
       initializeProjectSkills(workdir);
-      expect(fs.readlinkSync(claudeSkills)).toBe(path.join('..', '.swarmdeck', 'skills'));
+      expect(fs.readlinkSync(claudeSkills)).toBe(path.join('..', '.helio', 'skills'));
     }
 
     {
-      const workdir = makeTmpDir('swarmdeck-collapse-skill-');
-      writeSkill(path.join(workdir, '.swarmdeck', 'skills'), 'install', '---\nlabel: Install\n---\n');
+      const workdir = makeTmpDir('helio-collapse-skill-');
+      writeSkill(path.join(workdir, '.helio', 'skills'), 'install', '---\nlabel: Install\n---\n');
       const bot = new Bot();
       bot.switchWorkdir(workdir, { persist: false });
       bot.chat(7).agent = 'claude';

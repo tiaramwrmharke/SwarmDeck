@@ -2,14 +2,14 @@ import type { RecommendedSkillRepo } from '../agent/mcp/registry.js';
 
 export const SKILL_REPOS: RecommendedSkillRepo[] = [
   {
-    id: 'swarmdeck-skills',
-    name: 'SwarmDeck Skills',
-    description: 'First-party SwarmDeck skills — image generation, recorded demo videos, and the embeddable tech-intel signal pipeline',
-    descriptionZh: 'SwarmDeck 官方技能 — 生图、产品导览视频、可嵌入的 tech-intel 信号流水线',
-    source: 'xiaotonng/swarmdeck-skills',
+    id: 'helio-skills',
+    name: 'Helio Skills',
+    description: 'First-party Helio skills — image generation, recorded demo videos, and the embeddable tech-intel signal pipeline',
+    descriptionZh: 'Helio 官方技能 — 生图、产品导览视频、可嵌入的 tech-intel 信号流水线',
+    source: 'expumpemployee/helio-skills',
     category: 'productivity',
     recommendedScope: 'both',
-    homepage: 'https://github.com/xiaotonng/swarmdeck-skills',
+    homepage: 'https://github.com/expumpemployee/helio-skills',
     pinned: true,
   },
   {

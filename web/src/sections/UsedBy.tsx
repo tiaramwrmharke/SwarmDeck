@@ -33,7 +33,7 @@ export default function UsedBy() {
   return (
     <section className="relative mx-auto max-w-6xl px-6 py-16">
       <p className="text-center text-xs uppercase tracking-[0.22em] text-neutral-600">
-        Engineers from these teams build with swarmdeck
+        Engineers from these teams build with helio
       </p>
       <div className="mt-9">
         <LogoLoop
@@ -45,7 +45,7 @@ export default function UsedBy() {
           scaleOnHover
           fadeOut
           fadeOutColor="#05060a"
-          ariaLabel="Companies whose engineers use swarmdeck"
+          ariaLabel="Companies whose engineers use helio"
         />
       </div>
     </section>

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hoist = vi.hoisted(() => {
   const calls: { method: string; payload: any }[] = [];
   const results: Record<string, (payload: any) => any> = {
-    'auth.test': () => ({ ok: true, user_id: 'BOT_USER', team: 'TestTeam', user: 'swarmdeck_bot' }),
+    'auth.test': () => ({ ok: true, user_id: 'BOT_USER', team: 'TestTeam', user: 'helio_bot' }),
     'chat.postMessage': () => ({ ok: true, ts: `${Date.now()}.000100` }),
     'chat.update': () => ({ ok: true }),
     'chat.delete': () => ({ ok: true }),
@@ -73,7 +73,7 @@ describe('SlackChannel connect, send, and edit', () => {
       const ch = makeChannel();
       const bot = await ch.connect();
       expect(bot.id).toBe('BOT_USER');
-      expect(bot.username).toBe('swarmdeck_bot');
+      expect(bot.username).toBe('helio_bot');
       expect(hoist.calls.find(c => c.method === 'auth.test')).toBeDefined();
     }
 

@@ -2,7 +2,7 @@
   - banner [ref=e5]:
     - generic [ref=e6]:
       - generic [ref=e7]:
-        - img "swarmdeck" [ref=e36]
+        - img "helio" [ref=e36]
         - generic [ref=e8]: v0.4.29
       - navigation [ref=e9]:
         - generic [ref=e10]:
@@ -46,7 +46,7 @@
             - generic [ref=e63] [cursor=pointer]:
               - img [ref=e64]
               - generic [ref=e66]:
-                - generic [ref=e67]: swarmdeck
+                - generic [ref=e67]: helio
                 - img [ref=e69]
               - generic [ref=e75]:
                 - button "新建会话" [ref=e76]:
@@ -327,7 +327,7 @@
         - generic [ref=e374]:
           - generic [ref=e375]:
             - generic [ref=e377]:
-              - generic [ref=e378]: swarmdeck
+              - generic [ref=e378]: helio
               - generic [ref=e379]: /
               - generic [ref=e380]: 你好
             - generic [ref=e381]:
@@ -363,7 +363,7 @@
                   - generic [ref=e410]: · ↑533
               - generic [ref=e413]:
                 - paragraph [ref=e414]: 你好！👋
-                - paragraph [ref=e415]: 我是 Claude Code，可以帮你处理 swarmdeck 的各类开发任务。
+                - paragraph [ref=e415]: 我是 Claude Code，可以帮你处理 helio 的各类开发任务。
                 - paragraph [ref=e416]:
                   - text: 我注意到你当前工作区有一些未提交的改动，看起来和
                   - strong [ref=e417]: pikichannel TURN
@@ -425,7 +425,7 @@
         - generic [ref=e471]:
           - generic [ref=e472]:
             - generic [ref=e474]:
-              - generic [ref=e475]: swarmdeck
+              - generic [ref=e475]: helio
               - generic [ref=e476]: /
               - generic [ref=e477]: 为什么 NAT 还需要公网域名啊，不能直接打通吗
             - generic [ref=e478]:
@@ -678,9 +678,9 @@
                     - generic [ref=e686]: · 196.8k tok
                     - generic [ref=e687]: · ↑89.1k
                 - generic [ref=e689]:
-                  - button "执行 mcp__swarmdeck__im_ask_user 51" [ref=e691] [cursor=pointer]:
+                  - button "执行 mcp__helio__im_ask_user 51" [ref=e691] [cursor=pointer]:
                     - generic [ref=e693]: 执行
-                    - generic [ref=e694]: mcp__swarmdeck__im_ask_user
+                    - generic [ref=e694]: mcp__helio__im_ask_user
                     - generic [ref=e695]: "51"
                     - img [ref=e696]
                   - button "子代理 · Explore Map pikichannel WebRTC/ICE surface haiku-4-5 24" [ref=e699] [cursor=pointer]:

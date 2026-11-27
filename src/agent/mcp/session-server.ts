@@ -137,7 +137,7 @@ function handleMessage(msg: any) {
       respond(id, {
         protocolVersion: params?.protocolVersion || '2024-11-05',
         capabilities: { tools: {} },
-        serverInfo: { name: 'swarmdeck-session', version: '1.0.0' },
+        serverInfo: { name: 'helio-session', version: '1.0.0' },
       });
       break;
 

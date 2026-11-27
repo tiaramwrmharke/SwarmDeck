@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { projectSnapshot } from '../src/pikichannel/adapter-swarmdeck.ts';
+import { projectSnapshot } from '../src/pikichannel/adapter-helio.ts';
 import { diffSnapshot, applySnapshotPatch, type UniversalSnapshot } from '../src/pikichannel/protocol.ts';
 
 // A maximal StreamSnapshot exercising every field a remote client renders.

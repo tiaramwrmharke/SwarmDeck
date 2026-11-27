@@ -24,8 +24,8 @@ export function WorkspaceExtensionsModal({
         title={L(locale, `${wsName} — 项目扩展`, `${wsName} — Project Extensions`)}
         description={L(
           locale,
-          '仅对当前工作区生效。直接操作项目目录中的 .mcp.json 与 .swarmdeck/skills/。',
-          'Project-scoped only. Operates directly on .mcp.json and .swarmdeck/skills/ in the workspace directory.',
+          '仅对当前工作区生效。直接操作项目目录中的 .mcp.json 与 .helio/skills/。',
+          'Project-scoped only. Operates directly on .mcp.json and .helio/skills/ in the workspace directory.',
         )}
         onClose={onClose}
       />

@@ -115,7 +115,7 @@ export function resolveMcpServerCommand(runtime: McpServerRuntimeInfo = {
   if (fs.existsSync(cliScript)) {
     return { command: 'node', args: [cliScript, '--mcp-serve'] };
   }
-  return { command: 'swarmdeck', args: ['--mcp-serve'] };
+  return { command: 'helio', args: ['--mcp-serve'] };
 }
 
 function parseOptionalBool(value: unknown): boolean | null {
@@ -246,7 +246,7 @@ export function buildSupplementalMcpServers(
       cdpEndpoint,
     });
     servers.push({
-      name: 'swarmdeck-browser',
+      name: 'helio-browser',
       command: browserServer.command,
       args: browserServer.args,
     });
@@ -261,7 +261,7 @@ export function buildGuiSetupHints(gui: GuiIntegrationConfig = resolveGuiIntegra
   const hints: string[] = [];
   if (gui.browserEnabled) {
     hints.push(
-      `managed browser profile mode enabled; runtime sessions reuse ${gui.browserProfileDir || getManagedBrowserProfileDir()}; configured MCP browser mode=${gui.browserHeadless ? 'headless' : 'headed'}. This mode keeps automation isolated from your everyday browser. If the managed browser is already open, swarmdeck will try to attach to it first. When using browser_tabs, use action="new" to open a tab, not "create".`,
+      `managed browser profile mode enabled; runtime sessions reuse ${gui.browserProfileDir || getManagedBrowserProfileDir()}; configured MCP browser mode=${gui.browserHeadless ? 'headless' : 'headed'}. This mode keeps automation isolated from your everyday browser. If the managed browser is already open, helio will try to attach to it first. When using browser_tabs, use action="new" to open a tab, not "create".`,
     );
   }
   if (gui.peekabooEnabled && process.platform === 'darwin') {
@@ -475,7 +475,7 @@ export function _matchPeekabooMcpProcessCommand(command: string): boolean {
 function commandLooksLikeLiveMcpController(command: string): boolean {
   if (!command) return false;
   const text = command.toLowerCase();
-  if (/\bswarmdeck\b/.test(text) || text.includes('swarmdeck@')) return true;
+  if (/\bhelio\b/.test(text) || text.includes('helio@')) return true;
   const first = commandTokenBase(command.split(/\s+/)[0] || '');
   return first === 'claude' || first === 'codex' || first === 'gemini' || first === 'hermes';
 }
@@ -773,7 +773,7 @@ export async function startMcpBridge(opts: McpBridgeOpts): Promise<McpBridgeHand
             const interaction: AgentInteraction = {
               kind: 'user-input',
               id: requestId,
-              title: header || 'SwarmDeck needs your input',
+              title: header || 'Helio needs your input',
               hint: hint || null,
               questions: [interactionQuestion],
               resolveWith: (answers) => {
@@ -886,7 +886,7 @@ export async function startMcpBridge(opts: McpBridgeOpts): Promise<McpBridgeHand
       MCP_LOG_URL: `http://127.0.0.1:${port}/log`,
       MCP_TOOLS_AVAILABLE: enabledTools.join(','),
     };
-    servers.unshift({ name: 'swarmdeck', command, args, env: envVars });
+    servers.unshift({ name: 'helio', command, args, env: envVars });
   }
 
   if (!servers.length) {

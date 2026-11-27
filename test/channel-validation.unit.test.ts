@@ -46,7 +46,7 @@ describe('validateSlackConfig', () => {
     expect(badFormat.state.status).toBe('invalid');
     expect(badFormat.state.detail).toMatch(/xoxb-/);
 
-    setFetchStubs([{ url: 'slack.com/api/auth.test', response: () => ({ ok: true, user_id: 'U1', user: 'swarmdeck', team: 'TestTeam' }) }]);
+    setFetchStubs([{ url: 'slack.com/api/auth.test', response: () => ({ ok: true, user_id: 'U1', user: 'helio', team: 'TestTeam' }) }]);
     const ready = await validateSlackConfig('xoxb-test', 'xapp-test');
     expect(ready.state.status).toBe('ready');
     expect(ready.bot?.userId).toBe('U1');
@@ -65,11 +65,11 @@ describe('validateDiscordConfig', () => {
 
     setFetchStubs([{
       url: 'discord.com/api/v10/users/@me',
-      response: () => ({ id: '1234567890', username: 'swarmdeck', application_id: 'APP1' }),
+      response: () => ({ id: '1234567890', username: 'helio', application_id: 'APP1' }),
     }]);
     const ready = await validateDiscordConfig('Bot-Token');
     expect(ready.state.status).toBe('ready');
-    expect(ready.bot?.username).toBe('swarmdeck');
+    expect(ready.bot?.username).toBe('helio');
 
     setFetchStubs([{
       url: 'discord.com/api/v10/users/@me',

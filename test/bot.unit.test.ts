@@ -104,7 +104,7 @@ describe('Bot.runStream', () => {
     const doStreamMock = vi.mocked(doStream);
     const bot = new Bot();
     const sessionWorkdir = makeTmpDir('bot-unit-session-workdir-');
-    const workspacePath = path.join(sessionWorkdir, '.swarmdeck', 'sessions', 'claude', 'session-1', 'workspace');
+    const workspacePath = path.join(sessionWorkdir, '.helio', 'sessions', 'claude', 'session-1', 'workspace');
     const runtime: any = {
       key: 'claude:session-1',
       workdir: sessionWorkdir,
@@ -634,18 +634,18 @@ describe('Bot external session control', () => {
 });
 
 describe('Bot gitignore management', () => {
-  it('keeps .swarmdeck/skills tracked while ignoring managed runtime state', () => {
+  it('keeps .helio/skills tracked while ignoring managed runtime state', () => {
     const workdir = makeTmpDir('bot-unit-gitignore-');
-    fs.writeFileSync(path.join(workdir, '.gitignore'), '.env\n.swarmdeck/\n');
+    fs.writeFileSync(path.join(workdir, '.gitignore'), '.env\n.helio/\n');
     process.env.PIKILOOM_WORKDIR = workdir;
 
     new Bot();
 
     expect(fs.readFileSync(path.join(workdir, '.gitignore'), 'utf8')).toBe([
       '.env',
-      '.swarmdeck/*',
-      '!.swarmdeck/skills/',
-      '!.swarmdeck/skills/**',
+      '.helio/*',
+      '!.helio/skills/',
+      '!.helio/skills/**',
       '',
     ].join('\n'));
   });

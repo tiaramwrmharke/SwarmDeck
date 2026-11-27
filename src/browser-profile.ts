@@ -555,10 +555,10 @@ export function getManagedBrowserStatus(): ManagedBrowserStatus {
     pid: runningState.pid,
     detail: chromeInstalled
       ? runningState.running
-        ? 'Managed browser is open for sign-in. swarmdeck will close it automatically before browser automation starts.'
+        ? 'Managed browser is open for sign-in. helio will close it automatically before browser automation starts.'
         : profileCreated
-        ? 'Managed browser profile is ready. Launch it to confirm login state. If it is still open later, swarmdeck will close it automatically before browser automation starts.'
-        : 'Chrome is installed. Launch the managed browser once and sign in to the sites you need. If it is still open later, swarmdeck will close it automatically before browser automation starts.'
+        ? 'Managed browser profile is ready. Launch it to confirm login state. If it is still open later, helio will close it automatically before browser automation starts.'
+        : 'Chrome is installed. Launch the managed browser once and sign in to the sites you need. If it is still open later, helio will close it automatically before browser automation starts.'
       : 'Chrome is not available on this machine. Install Google Chrome or Chromium to use browser automation.',
     chromeExecutable,
     launchCommand: chromeExecutable ? [chromeExecutable, ...getManagedBrowserLaunchArgs(profileDir)] : [],
