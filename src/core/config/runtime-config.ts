@@ -227,3 +227,12 @@ export function splitEffortForAgent(agent: Agent, raw: string | null | undefined
   if (agent === 'codex') return { effort: trimmed(raw).toLowerCase(), workflow: false };
   return decomposeEffortSelection(raw);
 }
+
+
+export function mergeProviders(base: Record<string, any>, override: Record<string, any>) {
+  const out: Record<string, any> = { ...base };
+  for (const [k, v] of Object.entries(override)) {
+    out[k] = { ...(base[k] ?? {}), ...(v ?? {}) };
+  }
+  return out;
+}
