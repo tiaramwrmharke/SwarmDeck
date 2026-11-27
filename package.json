@@ -1,7 +1,7 @@
 {
   "name": "helio",
   "version": "0.4.83",
-  "description": "Helio - the assistant on helius.dev. Answers from the docs, triages RPC errors, drafts code against your own keys.",,
+  "description": "Helio - the assistant on helius.dev. Answers from the docs, triages RPC errors, drafts code against your own keys.",
   "type": "module",
   "bin": {
     "helio": "dist/cli/main.js"
